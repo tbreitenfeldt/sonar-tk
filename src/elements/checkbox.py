@@ -3,14 +3,15 @@ from typing import Callable, List
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from ui.elements import Element
+from state import State
+from elements import Element
 from utils import audio_manager
 from utils import speech_manager
 
 class Checkbox(Element[bool]):
 
     def __init__(
-        self, parent: "Tab", title: str = "", value: bool = False, callback: Callable[[Callable[[str, any], None], bool, any], None] = None, callback_args: List[any] = [],
+        self, parent: State, title: str = "", value: bool = False, callback: Callable[[Callable[[str, any], None], bool, any], None] = None, callback_args: List[any] = [],
         check_sound: str = "", uncheck_sound: str = ""
     ) -> None:
         super().__init__(parent=parent, title=title, value=value, type="Checkbox", callback=callback, callback_args=callback_args)

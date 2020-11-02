@@ -10,7 +10,9 @@ T = TypeVar("T")
 
 class Element(Generic[T], State):
 
-    def __init__(self, parent: "Tab", title: str, value: T, type: str, callback: Callable[[Callable[[str, any], None], T, any], None], callback_args: List[any], use_key_handler: bool = True) -> None:
+    def __init__(self, parent: State, title: str, value: T, type: str, callback: Callable[[Callable[[str, any], None], T, any], None],
+        callback_args: List[any], use_key_handler: bool = True
+    ) -> None:
         self.parent: "Tab" = parent
         self.title: str = title
         self._value: T = value

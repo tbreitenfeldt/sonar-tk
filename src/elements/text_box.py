@@ -5,7 +5,8 @@ from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 import pyperclip
 
-from ui.elements import Element
+from state import State
+from elements import Element
 from utils import audio_manager
 from utils import speech_manager
 from utils import KeyHandler
@@ -13,7 +14,7 @@ from utils import KeyHandler
 class TextBox(Element):
 
     def __init__(
-        self, parent: "Tab", title: str = "", default_value: str = "", hidden: bool = False,
+        self, parent: State, title: str = "", default_value: str = "", hidden: bool = False,
         allowed_chars: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890!@#$%^&*()_+-=`~[]{}\;:\'\",<.>/?|",
         echo_characters: bool = True, echo_words: bool = True, disable_up_down_keys: bool = False, read_only: bool = False, text_box_size: int = 80,
         callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],

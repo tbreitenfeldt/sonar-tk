@@ -3,8 +3,9 @@ from typing import Dict, Callable, List
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from ui.elements import Element
+from elements import Element
 from state_machine import StateMachine, EmptyState
+from state import State
 from utils import audio_manager
 from utils import speech_manager
 from utils import KeyHandler
@@ -24,7 +25,7 @@ class BasicMenuItem(Element[str]):
 class Menu(Element[str]):
 
     def __init__(
-        self, parent: "Tab", title: str = "", is_border: bool = True, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
+        self, parent: State, title: str = "", items: List[Dict[str, any]] = [], is_border: bool = True, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
         callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [], scroll_sound: str = "", select_sound: str = "", open_sound: str = "",
         border_sound: str = "", music: str = ""
     ) -> None:
@@ -41,6 +42,14 @@ class Menu(Element[str]):
         self.end_of_menu: bool = 0
         self.state_machine: StateMachine = StateMachine()
         self.bind_keys()
+
+        if items:
+            for item in items:
+                if not item or len(item) > 1:
+                    raise ValueError("Requires 1 dictionary entry.")
+                else:
+                    k, v = next(iter(item.items()))
+                    self.add(k, v)
 
     def bind_keys(self) -> None:
         if self.is_side_menu:

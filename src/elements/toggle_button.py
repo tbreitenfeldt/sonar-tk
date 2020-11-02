@@ -3,14 +3,15 @@ from typing import Callable, List
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from ui.elements import Element
+from state import State
+from elements import Element
 from utils import audio_manager
 from utils import speech_manager
 
 class ToggleButton(Element[str]):
 
     def __init__(
-        self, parent: "Tab", title: str = "", position: int = 0, items: List[str] = [], callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],
+        self, parent: State, title: str = "", position: int = 0, items: List[str] = [], callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],
         toggle_sound: str = ""
     ) -> None:
         super().__init__(parent=parent, title=title, value="", type="Toggle", callback=callback, callback_args=callback_args)

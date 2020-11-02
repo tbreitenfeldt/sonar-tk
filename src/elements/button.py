@@ -3,13 +3,14 @@ from typing import Callable, List
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from ui.elements import Element
+from state import State
+from elements import Element
 from utils import audio_manager
 from utils import speech_manager
 
 class Button(Element[str]):
 
-    def __init__(self, parent: "Tab", title: str = "", callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [], activate_sound: str = "") -> None:
+    def __init__(self, parent: State, title: str = "", callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [], activate_sound: str = "") -> None:
         super().__init__(parent=parent, title=title, value=title, type="Button", callback=callback, callback_args=callback_args)
         self.activate_sound: str = activate_sound
         self.bind_keys()

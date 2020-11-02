@@ -47,13 +47,13 @@ def get_current_screenreader() -> Output:
     return _screenreader.get_first_available_output()
 
 def is_nvda_active() -> bool:
-    return isinstance(get_current_screenreader(), NVDA)
+    return (platform.system() == "Windows" and isinstance(get_current_screenreader(), NVDA))
 
 def is_jaws_active() -> bool:
-    return isinstance(get_current_screenreader(), Jaws)
+    return (platform.system() == "Windows" and isinstance(get_current_screenreader(), Jaws))
 
 def is_voiceover_active() -> bool:
-    return isinstance(get_current_screenreader(), VoiceOver)
+    return (platform.system() == "Darwin" and isinstance(get_current_screenreader(), VoiceOver))
 
 def clear_history() -> None:
     global _speech_history

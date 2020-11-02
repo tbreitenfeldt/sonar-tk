@@ -31,8 +31,8 @@ class Window:
     def open_window(self, caption: str, width: int = 640, height: int = 480, resizable: bool =False, fullscreen: bool = False) -> None:
         self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=caption)
         self._caption = caption
-        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.1)
-        pyglet.clock.schedule_once(lambda dt: self.run_speech_introduction(), 0.18)
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.05)
+        pyglet.clock.schedule_once(lambda dt: self.run_speech_introduction(), 0.2)
         pyglet.clock.schedule_interval(self.update, 0.01)
         self.push_handlers(self.key_handler)
         pyglet.app.run()

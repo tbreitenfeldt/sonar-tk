@@ -37,7 +37,7 @@ def output(message: str, interrupt: bool = False, log_message: bool = True) -> N
 def silence() -> None:
     global _screenreader
 
-    if isinstance(_screenreader.get_first_available_output(), NVDA):
+    if platform.system() == "Windows" and isinstance(_screenreader.get_first_available_output(), NVDA):
         _screenreader.output(None, interrupt=True)
     else:
         _screenreader.output("", interrupt=True)

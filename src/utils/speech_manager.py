@@ -22,7 +22,11 @@ global _screenreader
 
 _speech_history = []
 _history_position = 0
-_screenreader = Auto()
+
+if platform.system() == "Darwin":
+    _screenreader = VoiceOver()
+else:
+    _screenreader = Auto()
 
 def output(message: str, interrupt: bool = False, log_message: bool = True) -> None:
     global _screenreader
@@ -32,15 +36,15 @@ def output(message: str, interrupt: bool = False, log_message: bool = True) -> N
         _speech_history.append(message)
         navigate_to_end_of_history()
 
-    _screenreader.output(message, interrupt=interrupt)
+    _screenreader.speak(message, interrupt=interrupt)
 
 def silence() -> None:
     global _screenreader
 
     if platform.system() == "Windows" and isinstance(_screenreader.get_first_available_output(), NVDA):
-        _screenreader.output(None, interrupt=True)
+        _screenreader.speak(None, interrupt=True)
     else:
-        _screenreader.output("", interrupt=True)
+        _screenreader.speak("", interrupt=True)
 
 def get_current_screenreader() -> Output:
     global _screenreader

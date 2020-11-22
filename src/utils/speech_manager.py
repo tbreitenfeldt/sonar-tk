@@ -22,11 +22,7 @@ global _screenreader
 
 _speech_history = []
 _history_position = 0
-
-if platform.system() == "Darwin":
-    _screenreader = VoiceOver()
-else:
-    _screenreader = Auto()
+_screenreader = Auto()
 
 def output(message: str, interrupt: bool = False, log_message: bool = True) -> None:
     global _screenreader

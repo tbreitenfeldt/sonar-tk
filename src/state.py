@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Callable
 
-from pygame.event import Event
-
 class State(ABC):
 
     def __init__(self) -> None:

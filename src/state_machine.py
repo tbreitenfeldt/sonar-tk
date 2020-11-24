@@ -1,7 +1,5 @@
 from typing import Dict, Callable
 
-from pygame.event import Event
-
 from state import State
 
 class EmptyState(State):

@@ -39,9 +39,10 @@ class Window:
 
     def run_speech_introduction(self) -> None:
         speech_manager.output(self._caption, interrupt=True, log_message=False)
-        first_state_key: str = next(iter(self.state_machine.states))
-        self.state_machine.change(first_state_key)
 
+        if self.state_machine.size() > 0:
+            first_state_key: str = next(iter(self.state_machine.states))
+            self.state_machine.change(first_state_key)
 
     def update(self, delta_time: float) -> None:
         self.state_machine.update(delta_time)

@@ -1,3 +1,6 @@
+import sys
+sys.path.append("../src")
+
 from window import Window
 from screens import ContainerScreen
 from elements import *

@@ -21,7 +21,9 @@ class StateMachine:
         self.current_state: State = EmptyState()
 
     def add(self, key: str, state: State) -> None:
-        state.state_key = key
+        if state is not None:
+            state.state_key = key
+
         self.states[key] = state
 
     def remove(self, key: str) -> State:

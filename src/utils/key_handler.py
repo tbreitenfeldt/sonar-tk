@@ -1,4 +1,4 @@
-from typing import Dict, List, Callable
+from typing import Dict, List, Callable, Union
 import operator
 import functools
 
@@ -19,6 +19,7 @@ class Key:
         else:
             self.modifiers = 0
 
+        # remove capslock from the modifiers if present because there is an issue where if capslock is on, it causes it to be passed in with all key presses until it is turned off.
         if self.modifiers & key.MOD_CAPSLOCK:
             self.modifiers &=  (~key.MOD_CAPSLOCK)
 
@@ -30,6 +31,7 @@ class Key:
 
     def __repr__(self) -> str:
         return f"({pyglet.window.key.symbol_string(self.symbol)}, {pyglet.window.key.modifiers_string(self.modifiers)})"
+
 
 class Callback:
 
@@ -76,8 +78,8 @@ class KeyHandler:
 
             if pressed_key in self.registered_key_presses:
                 callback: Callback = self.registered_key_presses[pressed_key]
-                is_handled: bool = callback.call()
-                self.handled_key = is_handled
+                key_handled: bool = callback.call()
+                self.key_handled = key_handled
 
                 if self.key_repeat_interval > 0:
                     pyglet.clock.schedule_interval(callback.call, self.key_repeat_interval)
@@ -86,7 +88,9 @@ class KeyHandler:
                     pyglet.clock.schedule_interval(callback.call, pressed_key.key_repeat_interval)
                     self.key_held_down = pressed_key
 
-                return is_handled
+                return key_handled
+            else:
+                self.key_handled = False
 
         return EVENT_UNHANDLED
 
@@ -100,7 +104,8 @@ class KeyHandler:
 
         if released_key in self.registered_key_releases:
             callback: Callback = self.registered_key_releases[released_key]
-            return callback.call()
+            self.key_handled = callback.call()
+            return self.key_handled
         else:
             self.handled_key = False
 
@@ -124,7 +129,7 @@ class KeyHandler:
 
         return EVENT_UNHANDLED
 
-    def add_key_press(self, callback: Callable, key: any, modifiers: List[int] = [], *args, **kwargs) -> None:
+    def add_key_press(self, callback: Callable, key: Union[int, Key], modifiers: List[int] = [], *args, **kwargs) -> None:
         if isinstance(key, int):
             key_press: Key = Key(key, *modifiers)
             registered_callback: Callback = Callback(callback, *args, **kwargs)
@@ -138,7 +143,7 @@ class KeyHandler:
         else:
             raise ValueError("MKey must be either of type Key or int.")
 
-    def add_key_release(self, callback: Callable, key: any, modifiers: List[int] = [], *args, **kwargs) -> None:
+    def add_key_release(self, callback: Callable, key: Union[int, Key], modifiers: List[int] = [], *args, **kwargs) -> None:
         if isinstance(key, int):
             key_release: Key = Key(key, *modifiers)
             registered_callback: Callback = Callback(callback, *args, **kwargs)
@@ -156,7 +161,7 @@ class KeyHandler:
         registered_callback: Callback = Callback(callback, *args, **kwargs)
         self.registered_text_input = registered_callback
 
-    def add_text_motion(self, callback: Callable, key: any, *args, **kwargs) -> None:
+    def add_text_motion(self, callback: Callable, key: Union[int, Key], *args, **kwargs) -> None:
         if isinstance(key, int):
             motion_key: Key = Key(key)
             registered_callback: Callback = Callback(callback, *args, **kwargs)

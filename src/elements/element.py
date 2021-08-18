@@ -33,7 +33,7 @@ class Element(Generic[T], State):
     def value(self, value) -> None:
         self._value = value
 
-    def setup(self, change_state: Callable[[str, any], None], interrupt_speech) -> bool:
+    def setup(self, change_state: Callable[[str, any], None], interrupt_speech=False) -> bool:
         self.change_state = change_state
 
         if self.title:
@@ -61,6 +61,10 @@ class Element(Generic[T], State):
 
     @abstractmethod
     def on_action(self, *args, **kwargs) -> bool:
+        pass
+
+    @abstractmethod
+    def reset(self) -> None:
         pass
 
     def push_handlers(self, handler: KeyHandler) -> None:

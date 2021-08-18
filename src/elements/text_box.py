@@ -2,7 +2,7 @@ from typing import List, Callable
 import re
 
 from pyglet.window import key
-from pyglet.event import EVENT_HANDLED
+from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 import pyperclip
 
 from state import State
@@ -17,10 +17,11 @@ class TextBox(Element):
         self, parent: State, title: str = "", default_value: str = "", hidden: bool = False,
         allowed_chars: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890!@#$%^&*()_+-=`~[]{}\;:\'\",<.>/?|",
         echo_characters: bool = True, echo_words: bool = True, disable_up_down_keys: bool = False, read_only: bool = False, text_box_size: int = 80,
-        callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],
+        onsubmit_callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],
         open_sound: str = "", typing_sound: str = "", border_sound: str = "", submit_sound: str = "", delete_sound: str = "", navigate_sound: str = "", music: str = "",
     ) -> None:
-        super().__init__(parent=parent, title=title, value=default_value, type="Edit", callback=callback, callback_args=callback_args)
+        super().__init__(parent=parent, title=title, value=default_value, type="Edit", callback=onsubmit_callback, callback_args=callback_args)
+        self.default_value: str = default_value
         self.input: List[str] = list(default_value)
         self.hidden: bool = hidden
         self.allowed_chars: str = allowed_chars
@@ -482,42 +483,45 @@ class TextBox(Element):
         return EVENT_HANDLED
 
     def type_character(self, character: str) -> bool:
-        if self.is_selected():
-            self.delete_selection()
-
-        if len(self.input) < self.text_box_size:
-            self.input.insert(self.position, character)
-            self.position += 1
-
-            output_value: str = character
-
-            if self.hidden:
-                output_value = "star"
-            elif character == " ":
-                if self.echo_words and self.position != 1:
-                    value: str = "".join(self.input)
-                    start_of_word: int = -1
-
-                    try:
-                        start_of_word = value.rindex(" ", 0, self.position-1)
-                    except ValueError:
-                        start_of_word = 0
-
-                    output_value = value[start_of_word:self.position - 1]
-                    if output_value == " ":
+        if character in self.allowed_chars:
+            if self.is_selected():
+                self.delete_selection()
+    
+            if len(self.input) < self.text_box_size:
+                self.input.insert(self.position, character)
+                self.position += 1
+    
+                output_value: str = character
+    
+                if self.hidden:
+                    output_value = "star"
+                elif character == " ":
+                    if self.echo_words and self.position != 1:
+                        value: str = "".join(self.input)
+                        start_of_word: int = -1
+    
+                        try:
+                            start_of_word = value.rindex(" ", 0, self.position-1)
+                        except ValueError:
+                            start_of_word = 0
+    
+                        output_value = value[start_of_word:self.position - 1]
+                        if output_value == " ":
+                            output_value = "space"
+                    else:
                         output_value = "space"
-                else:
-                    output_value = "space"
+    
+                if character == " " or self.echo_characters:
+                    if output_value.isupper():
+                        speech_manager.output("Cap " + output_value, interrupt=True, log_message=False)
+                    else:
+                        speech_manager.output(output_value, interrupt=True, log_message=False)
+    
+            self.play_typing_sound()
+    
+            return EVENT_HANDLED
 
-            if character == " " or self.echo_characters:
-                if output_value.isupper():
-                    speech_manager.output("Cap " + output_value, interrupt=True, log_message=False)
-                else:
-                    speech_manager.output(output_value, interrupt=True, log_message=False)
-
-        self.play_typing_sound()
-
-        return EVENT_HANDLED
+        return EVENT_UNHANDLED
 
     def get_value(self) -> str:
         return "".join(self.input)
@@ -621,3 +625,12 @@ class TextBox(Element):
             return True
 
         return False
+
+    def reset(self) -> None:
+        self.value = default_value
+        self.input = list(default_value)
+        self.position = 0
+        self.left_selection_index = -1
+        self.right_selection_index = -1
+        self.selecting_left = False
+        self.selecting_right = False

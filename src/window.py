@@ -12,12 +12,12 @@ pyglet.options['debug_gl'] = False
 
 class Window:
 
-    def __init__(self, escapable: bool = False):
+    def __init__(self, caption: str = "", escapable: bool = False):
         self.escapable: bool = escapable
         self.state_machine: StateMachine = StateMachine()
         self.position: int = 0
         self.key_handler: KeyHandler = KeyHandler()
-        self._caption: str = ""
+        self._caption: str = caption
         self.pyglet_window: pyglet.window.Window = None
         self.bind_keys()
 
@@ -25,24 +25,35 @@ class Window:
         if not self.escapable:
             self.key_handler.add_key_press(lambda: EVENT_HANDLED, key.ESCAPE)  # Remove pyglet default behavior of closing on escape
 
-        self.key_handler.add_key_press(self.close_window, key.W, [key.MOD_CTRL])
-        self.key_handler.add_key_press(self.close_window, key.F4, [key.MOD_CTRL])
+        self.key_handler.add_key_press(self.close, key.W, [key.MOD_CTRL])
+        self.key_handler.add_key_press(self.close, key.F4, [key.MOD_CTRL])
 
-    def open_window(self, caption: str, width: int = 640, height: int = 480, resizable: bool =False, fullscreen: bool = False) -> None:
-        self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=caption)
-        self._caption = caption
+    def open_window(self, caption: str = "", width: int = 640, height: int = 480, resizable: bool =False, fullscreen: bool = False) -> None:
+        if caption != "":
+            self._caption = caption
+        elif self._caption == "":
+            raise ValueError("No caption was set for the window")
+
+        self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=self._caption)
+
+        # Run a series of scheduled jobs to guess at when the screen reader needs to be silenced before start up.
+        # This is to fix a small bug where NVDA attempts to read the name of the executing file and gets interrupted by the caption that is set.
+        # The caption in this case wil also hopefully be silenced to duplicate JAWS behavior, so that speaking the title of the window is the responsibility of the application.
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.05)
-        pyglet.clock.schedule_once(lambda dt: self.run_speech_introduction(), 0.2)
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.1)
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.2)
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.3)
+
+        pyglet.clock.schedule_once(lambda dt: self.setup(), 0.4)
         pyglet.clock.schedule_interval(self.update, 0.01)
         self.push_handlers(self.key_handler)
         pyglet.app.run()
 
-    def run_speech_introduction(self) -> None:
+    def setup(self) -> None:
         speech_manager.output(self._caption, interrupt=True, log_message=False)
-
         if self.state_machine.size() > 0:
             first_state_key: str = next(iter(self.state_machine.states))
-            self.state_machine.change(first_state_key)
+            pyglet.clock.schedule_once(lambda dt: self.state_machine.change(first_state_key), 0.3)
 
     def update(self, delta_time: float) -> None:
         self.state_machine.update(delta_time)
@@ -63,7 +74,7 @@ class Window:
         if len(self.pyglet_window._event_stack) > 1:
             self.pyglet_window.pop_handlers()
 
-    def close_window(self) -> None:
+    def close(self) -> None:
         self.state_machine.clear()
         self.pyglet_window.close()
 
@@ -73,6 +84,8 @@ class Window:
 
     @caption.setter
     def caption(self, caption: str) -> None:
-        speech_manager.output(self._caption, interrupt=True, log_message=False)
-        self._caption = caption
-        self.pyglet_window.set_caption(caption)
+        if caption != "":
+            self._caption = caption
+            self.pyglet_window.set_caption(caption)
+            if speech_manager.is_jaws_active():
+                speech_manager.output(pyglet.window.caption, interrupt=False, log_message=False)

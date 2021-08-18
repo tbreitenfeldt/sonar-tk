@@ -15,6 +15,7 @@ class Checkbox(Element[bool]):
         check_sound: str = "", uncheck_sound: str = ""
     ) -> None:
         super().__init__(parent=parent, title=title, value=value, type="Checkbox", callback=callback, callback_args=callback_args)
+        self.default_value: bool = value
         self.check_sound: str = check_sound
         self.uncheck_sound: str = uncheck_sound
         self.bind_keys()
@@ -45,3 +46,6 @@ class Checkbox(Element[bool]):
             return True
 
         return False
+
+    def reset(self) -> None:
+        self.value = self.default_value

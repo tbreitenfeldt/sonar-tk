@@ -1,44 +1,42 @@
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Union
 
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
 from elements import Element
+from elements import TextLabel
 from state_machine import StateMachine, EmptyState
 from state import State
 from utils import audio_manager
 from utils import speech_manager
 from utils import KeyHandler
 
-class BasicMenuItem(Element[str]):
-
-    def __init__(self, parent: "Tab", title: str) -> None:
-        super().__init__(parent=parent, title=title, value="", type="", callback=None, callback_args=None, use_key_handler=False)
-
-    def on_action(self) -> bool:
-        return True
-
-    def __repr__(self):
-        return self.title
-
-
 class Menu(Element[str]):
 
     def __init__(
-        self, parent: State, title: str = "", items: List[Dict[str, any]] = [], is_border: bool = True, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
-        callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [], scroll_sound: str = "", select_sound: str = "", open_sound: str = "",
+        self, parent: State, title: str = "", items: List[Dict[str, Union[Element, str]]] = [], position: int = 0, has_border: bool = True, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
+        suppress_type: bool = False, reset_item_state_onchange: bool = False, reset_menu_onfocus: bool = True, suppress_reading_first_item_onfocus: bool = False,
+        onsubmit_callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [], scroll_sound: str = "", select_sound: str = "", open_sound: str = "",
         border_sound: str = "", music: str = ""
     ) -> None:
-        super().__init__(parent=parent, title=title, value="", type="Menu", callback=callback, callback_args=callback_args)
-        self.is_border: bool = is_border
+        if suppress_type:
+            super().__init__(parent=parent, title=title, value="", type="", callback=onsubmit_callback, callback_args=callback_args)
+        else:
+            super().__init__(parent=parent, title=title, value="", type="Menu", callback=onsubmit_callback, callback_args=callback_args)
+
+        self.has_border: bool = has_border
         self.is_first_letter_navigation: bool = is_first_letter_navigation  
         self.is_side_menu: bool = is_side_menu
+        self.reset_item_state_onchange: bool = reset_item_state_onchange
+        self.reset_menu_onfocus: bool = reset_menu_onfocus
+        self.suppress_reading_first_item_onfocus: bool = suppress_reading_first_item_onfocus
         self.scroll_sound: str = scroll_sound
         self.select_sound: str = select_sound
         self.open_sound: str = open_sound
         self.border_sound: str = border_sound
         self.music: str = music
-        self.position: int = 0
+        self.position: int = position
+        self.default_position: int = position
         self.end_of_menu: bool = 0
         self.state_machine: StateMachine = StateMachine()
         self.bind_keys()
@@ -66,13 +64,18 @@ class Menu(Element[str]):
         if self.is_first_letter_navigation:
             self.key_handler.add_on_text_input(self.navigate_by_first_letter)
 
-
     @property
     def value(self) -> str:
         return list(self.state_machine.states)[self.position]
 
     @value.setter
     def value(self, value: str) -> None:
+        index: int = 0
+        for key in self.state_machine.states.keys():
+            if key == value: break
+            index += 1
+
+        self.position = index
         self.state_machine.change(value)
 
     def setup(self, change_state: Callable[[str, any], None], interrupt_speech: bool = True) -> bool:
@@ -84,8 +87,17 @@ class Menu(Element[str]):
 
         self.play_open_sound()
 
+        if self.reset_menu_onfocus:
+            self.reset()
+
         if not isinstance(self.state_machine.current_state, EmptyState):
-            self.state_machine.setup(interrupt_speech=False)
+            if not self.suppress_reading_first_item_onfocus:
+                self.state_machine.setup(interrupt_speech=False)
+            else:
+                self.position = -1
+                if not isinstance(self.state_machine.current_state, TextLabel):
+                    self.push_handlers(self.state_machine.current_state.key_handler)
+
         else:
             self.set_state(interrupt_speech=False)
 
@@ -97,20 +109,22 @@ class Menu(Element[str]):
 
     def exit(self) -> bool:
         self.state_machine.current_state.exit()
-        self.pop_handlers()
-        return True
+        return super().exit()
 
     def next_item(self) -> bool:
         if self.state_machine.size() == 1:
             self.set_state()
         elif not self.end_of_menu and self.position + 1 >= self.state_machine.size():
-            if self.is_border:
+            if self.has_border:
                 self.end_of_menu = True
                 self.position = len(self.state_machine.states) - 1
                 self.play_border_sound()
             else:
                 self.position = 0
                 self.set_state()
+                element: Element = self.state_machine.current_state
+                if self.reset_item_state_onchange:
+                    element.reset()
 
                 if not self.play_border_sound():
                     self.play_scroll_sound()
@@ -119,6 +133,9 @@ class Menu(Element[str]):
             self.end_of_menu = False
             self.position += 1
             self.set_state()
+            element: Element = self.state_machine.current_state
+            if self.reset_item_state_onchange:
+                element.reset()
             self.play_scroll_sound()
 
         return EVENT_HANDLED
@@ -127,26 +144,27 @@ class Menu(Element[str]):
         if len(self.state_machine.states) == 1:
             self.set_state()
         elif not self.end_of_menu and self.position - 1 < 0:
-            if self.is_border:
+            if self.has_border:
                 self.end_of_menu = True
                 self.position = 0
                 self.play_border_sound()
             else:
                 self.position = len(self.state_machine.states) - 1
                 self.set_state()
+                element: Element = self.state_machine.current_state
+                if self.reset_item_state_onchange:
+                    element.reset()
 
                 if not self.play_border_sound():
                     self.play_scroll_sound()
 
-        elif self.position > 0:
+        elif self.position > 0 or (not self.end_of_menu and self.position == 0):
             self.end_of_menu = False
             self.position -= 1
             self.set_state()
-            self.play_scroll_sound()
-        elif not self.end_of_menu and self.position == 0:
-            self.end_of_menu = False
-            self.position -= 1
-            self.set_state()
+            element: Element = self.state_machine.current_state
+            if self.reset_item_state_onchange:
+                element.reset()
             self.play_scroll_sound()
 
         return EVENT_HANDLED
@@ -183,9 +201,9 @@ class Menu(Element[str]):
         state_key: str =  list(self.state_machine.states)[self.position]
         self.state_machine.change(state_key, interrupt_speech)
 
-    def add(self, key: str, item: any) -> None:
+    def add(self, key: str, item: Union[Element, str]) -> None:
         if isinstance(item, str):
-            self.state_machine.add(key, BasicMenuItem(self, item))
+            self.state_machine.add(key, TextLabel(self, item))
         elif isinstance(item, Element):
             self.state_machine.add(key, item)
         else:
@@ -221,3 +239,12 @@ class Menu(Element[str]):
             return True
 
         return False
+
+    def reset(self):
+        self.position = self.default_position
+        self.end_of_menu = False
+        state_key: str =  list(self.state_machine.states)[self.position]
+        self.state_machine.current_state = self.state_machine.states[state_key]
+
+        for item in self.state_machine.states.values():
+            item.reset()

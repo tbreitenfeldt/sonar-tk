@@ -17,6 +17,7 @@ class ToggleButton(Element[str]):
         super().__init__(parent=parent, title=title, value="", type="Toggle", callback=callback, callback_args=callback_args)
         self.items: List[str] = items
         self.position: int = position
+        self.default_position: int = position
         self.bind_keys()
 
     def bind_keys(self) -> None:
@@ -43,3 +44,6 @@ class ToggleButton(Element[str]):
             return True
 
         return False
+
+    def reset(self) -> None:
+        self.position = self.default_position

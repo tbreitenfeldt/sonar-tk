@@ -29,3 +29,6 @@ class Button(Element[str]):
             return True
 
         return False
+
+    def reset(self) -> None:
+        pass

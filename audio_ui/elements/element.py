@@ -1,10 +1,10 @@
 from typing import TypeVar, Generic, Callable, List 
 from abc import abstractmethod
 
-from state import State
-from utils import audio_manager
-from utils import speech_manager
-from utils import KeyHandler
+from audio_ui.state import State
+from audio_ui.utils import audio_manager
+from audio_ui.utils import speech_manager
+from audio_ui.utils import KeyHandler
 
 T = TypeVar("T")
 

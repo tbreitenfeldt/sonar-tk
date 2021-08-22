@@ -5,11 +5,11 @@ from pyglet.window import key
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 import pyperclip
 
-from state import State
-from elements import Element
-from utils import audio_manager
-from utils import speech_manager
-from utils import KeyHandler
+from audio_ui.state import State
+from audio_ui.elements import Element
+from audio_ui.utils import audio_manager
+from audio_ui.utils import speech_manager
+from audio_ui.utils import KeyHandler
 
 class TextBox(Element):
 

@@ -1,0 +1,22 @@
+[run]
+branch = True
+
+[paths]
+source = ./audio_ui/ ./test/
+
+[report]
+fail_under = 80.0
+show_missing = True
+skip_empty = True
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AssertionError
+    raise NotImplementedError
+    # Don't complain about abstract methods, they aren't run:
+    @(abc\.)?abstractmethod
+
+[html]
+directory = coverage_html_report
+title = "Audio UI Test Coverage"

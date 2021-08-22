@@ -30,6 +30,7 @@ celerybeat-schedule
 .coverage
 .coverage.*
 coverage.xml
+coverage_html_report
 .cache
 .DS_Store
 .idea/workspace.xml
@@ -47,7 +48,4 @@ pip-delete-this-directory.txt
 .scrapy
 *.pot
 .webassets-cache
-future_log.txt
-*.log
-deployScripts/ftp_config.ini
-myProgram/
+.vscode

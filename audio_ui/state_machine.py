@@ -1,6 +1,6 @@
 from typing import Dict, Callable
 
-from state import State
+from .state import State
 
 class EmptyState(State):
 

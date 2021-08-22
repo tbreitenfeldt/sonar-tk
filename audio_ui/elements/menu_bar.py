@@ -3,11 +3,11 @@ from typing import Dict, Callable, List, Union
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 from pyglet.window import key
 
-from elements import Menu
-from state import State
-from state_machine import EmptyState
-from elements import Element
-from utils import Key
+from audio_ui.elements import Menu
+from audio_ui.state import State
+from audio_ui.state_machine import EmptyState
+from audio_ui.elements import Element
+from audio_ui.utils import Key
 
 class MenuBar(Menu):
 

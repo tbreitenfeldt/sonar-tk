@@ -1,18 +1,24 @@
 from typing import Callable, List
 import time
 import sys
+import os
 
-sys.path.append("../src")
+path = os.getcwd()
+
+if os.path.basename(path) == "examples":
+    path = os.path.dirname(path)
+
+sys.path.append(path)
 
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 
-from window import Window
-from screens import ContainerScreen
-from screens import Dialog
-from utils import Key
-from utils import speech_manager
-from elements import *
+from audio_ui.window import Window
+from audio_ui.screens import ContainerScreen
+from audio_ui.screens import Dialog
+from audio_ui.utils import Key
+from audio_ui.utils import speech_manager
+from audio_ui.elements import *
 
 class Test:
 

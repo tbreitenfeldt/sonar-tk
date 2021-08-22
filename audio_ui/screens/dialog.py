@@ -4,11 +4,11 @@ from pyglet import clock
 from pyglet.event import EVENT_HANDLED
 from pyglet.window import key
 
-from screens import Screen
-from screens import ContainerScreen
-from utils import speech_manager
-from utils import KeyHandler
-from state_machine import EmptyState
+from audio_ui.screens import Screen
+from audio_ui.screens import ContainerScreen
+from audio_ui.utils import speech_manager
+from audio_ui.utils import KeyHandler
+from audio_ui.state_machine import EmptyState
 
 class Dialog(Screen):
 

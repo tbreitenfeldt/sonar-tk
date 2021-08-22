@@ -1,5 +1,5 @@
-from elements import Element
-from state import State
+from audio_ui.elements import Element
+from audio_ui.state import State
 
 class TextLabel(Element[str]):
 

@@ -1,3 +1,5 @@
 accessible_output2
 pyglet
 pyperclip
+pytest
+pytest-cov

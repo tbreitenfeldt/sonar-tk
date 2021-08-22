@@ -3,13 +3,13 @@ from typing import Dict, Callable, List, Union
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from elements import Element
-from elements import TextLabel
-from state_machine import StateMachine, EmptyState
-from state import State
-from utils import audio_manager
-from utils import speech_manager
-from utils import KeyHandler
+from audio_ui.elements import Element
+from audio_ui.elements import TextLabel
+from audio_ui.state_machine import StateMachine, EmptyState
+from audio_ui.state import State
+from audio_ui.utils import audio_manager
+from audio_ui.utils import speech_manager
+from audio_ui.utils import KeyHandler
 
 class Menu(Element[str]):
 

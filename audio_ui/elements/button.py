@@ -3,10 +3,10 @@ from typing import Callable, List
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED
 
-from state import State
-from elements import Element
-from utils import audio_manager
-from utils import speech_manager
+from audio_ui.state import State
+from audio_ui.elements import Element
+from audio_ui.utils import audio_manager
+from audio_ui.utils import speech_manager
 
 class Button(Element[str]):
 

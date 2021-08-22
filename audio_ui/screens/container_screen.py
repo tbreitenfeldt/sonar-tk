@@ -4,13 +4,13 @@ import pyglet
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 from pyglet.window import key
 
-from elements import Element
-from utils import KeyHandler
-from state import State
-from state_machine import EmptyState
-from state_machine import StateMachine
-from screens import Screen
-from window import Window
+from audio_ui.elements import Element
+from audio_ui.utils import KeyHandler
+from audio_ui.state import State
+from audio_ui.state_machine import EmptyState
+from audio_ui.state_machine import StateMachine
+from audio_ui.screens import Screen
+from audio_ui.window import Window
 
 class ContainerScreen(Screen):
 

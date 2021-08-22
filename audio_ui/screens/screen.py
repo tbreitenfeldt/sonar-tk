@@ -4,12 +4,12 @@ from typing import Union
 
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 
-from state import State
-from state_machine import EmptyState
-from state_machine import StateMachine
-from window import Window
-from elements import Element
-from utils import KeyHandler
+from audio_ui.state import State
+from audio_ui.state_machine import EmptyState
+from audio_ui.state_machine import StateMachine
+from audio_ui.window import Window
+from audio_ui.elements import Element
+from audio_ui.utils import KeyHandler
 
 class Screen(State):
 

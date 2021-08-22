@@ -3,10 +3,10 @@ from pyglet.event import EVENT_UNHANDLED, EVENT_HANDLED
 from pyglet.window import key
 from accessible_output2.outputs.auto import Auto
 
-from state_machine import StateMachine
-from state import State
-from utils import KeyHandler
-from utils import speech_manager
+from .state_machine import StateMachine
+from .state import State
+from .utils import KeyHandler
+from .utils import speech_manager
 
 pyglet.options['debug_gl'] = False
 

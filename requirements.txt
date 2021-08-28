@@ -2,4 +2,5 @@ accessible_output2
 pyglet
 pyperclip
 pytest
+pytest-mock
 pytest-cov

@@ -21,9 +21,10 @@ class StateMachine:
         self.current_state: State = EmptyState()
 
     def add(self, key: str, state: State) -> None:
-        if state is not None:
-            state.state_key = key
+        if key is None or state is None:
+            raise ValueError("Neither key or state can be None")
 
+        state.state_key = key
         self.states[key] = state
 
     def remove(self, key: str) -> State:

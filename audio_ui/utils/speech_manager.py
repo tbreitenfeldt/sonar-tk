@@ -122,3 +122,7 @@ def navigate_to_beginning_of_history() -> str:
 
     _history_position = 0
     return _speech_history[_history_position]
+
+def get_speech_history() -> List[str]:
+    global _speech_history
+    return _speech_history

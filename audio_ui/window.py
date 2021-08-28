@@ -31,12 +31,12 @@ class Window:
     def open_window(self, caption: str = "", width: int = 640, height: int = 480, resizable: bool =False, fullscreen: bool = False) -> None:
         if caption != "":
             self._caption = caption
-        elif self._caption == "":
+        if self._caption == "":
             raise ValueError("No caption was set for the window")
 
         self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=self._caption)
 
-        # Run a series of scheduled jobs to guess at when the screen reader needs to be silenced before start up.
+        # Run a series of scheduled jobs to guess at when the screen reader needs to be silenced before start up. All of these calls are needed to account for operating system varients in scheduling.
         # This is to fix a small bug where NVDA attempts to read the name of the executing file and gets interrupted by the caption that is set.
         # The caption in this case wil also hopefully be silenced to duplicate JAWS behavior, so that speaking the title of the window is the responsibility of the application.
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.05)
@@ -53,7 +53,7 @@ class Window:
         speech_manager.output(self._caption, interrupt=True, log_message=False)
         if self.state_machine.size() > 0:
             first_state_key: str = next(iter(self.state_machine.states))
-            pyglet.clock.schedule_once(lambda dt: self.state_machine.change(first_state_key), 0.3)
+            self.state_machine.change(first_state_key)
 
     def update(self, delta_time: float) -> None:
         self.state_machine.update(delta_time)
@@ -71,12 +71,13 @@ class Window:
         self.pyglet_window.push_handlers(handler)
 
     def pop_handlers(self) -> None:
-        if len(self.pyglet_window._event_stack) > 1:
+        if len(self.pyglet_window._event_stack) > 0:
             self.pyglet_window.pop_handlers()
 
-    def close(self) -> None:
+    def close(self) -> bool:
         self.state_machine.clear()
         self.pyglet_window.close()
+        return EVENT_HANDLED
 
     @property
     def caption(self) -> str:
@@ -88,4 +89,4 @@ class Window:
             self._caption = caption
             self.pyglet_window.set_caption(caption)
             if speech_manager.is_jaws_active():
-                speech_manager.output(pyglet.window.caption, interrupt=False, log_message=False)
+                speech_manager.output(self.pyglet_window.caption, interrupt=False, log_message=False)

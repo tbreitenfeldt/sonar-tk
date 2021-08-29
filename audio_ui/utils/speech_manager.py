@@ -32,15 +32,15 @@ def output(message: str, interrupt: bool = False, log_message: bool = True) -> N
         _speech_history.append(message)
         navigate_to_end_of_history()
 
-    _screenreader.speak(message, interrupt=interrupt)
+    _screenreader.output(message, interrupt=interrupt)
 
 def silence() -> None:
     global _screenreader
 
     if platform.system() == "Windows" and isinstance(_screenreader.get_first_available_output(), NVDA):
-        _screenreader.speak(None, interrupt=True)
+        _screenreader.output(None, interrupt=True)
     else:
-        _screenreader.speak("", interrupt=True)
+        _screenreader.output("", interrupt=True)
 
 def get_current_screenreader() -> Output:
     global _screenreader

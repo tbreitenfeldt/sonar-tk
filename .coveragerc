@@ -16,6 +16,9 @@ exclude_lines =
     raise NotImplementedError
     # Don't complain about abstract methods, they aren't run:
     @(abc\.)?abstractmethod
+    # ignore imports
+    from
+    import
 
 [html]
 directory = coverage_html_report

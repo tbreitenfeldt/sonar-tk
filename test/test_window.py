@@ -1,5 +1,4 @@
 import sys
-from typing import Callable, List, Union
 
 import pyglet
 import pytest
@@ -9,42 +8,8 @@ from audio_ui import Window
 from audio_ui import State
 from audio_ui.utils import KeyHandler, Key
 from audio_ui.utils import speech_manager
-
-class MockState(State):
-
-    def __init__(self, setup_value: bool = True, update_value: bool = True, exit_value: bool = True) -> None:
-        self.setup_value: bool = setup_value
-        self.update_value: bool = update_value
-        self.exit_value: bool = exit_value
-
-    def setup(self, change_state: Callable[[str, any], None], setup_value: bool = None) -> bool:
-        return self.setup_value
-
-    def update(self, delta_time: float) -> bool:
-        return self.update_value
-
-    def exit(self) -> bool:
-        return self.exit_value
-
-
-class MockPygletWindow:
-
-    def __init__(self) -> None:
-        self.caption: str = ""
-        self._event_stack: List[any] = []
-
-    def push_handlers(self, key_handler: KeyHandler) -> None:
-        self._event_stack.append(key_handler)
-
-    def pop_handlers(self) -> None:
-        self._event_stack.pop(0)
-
-    def set_caption(self, caption: str) -> None:
-        self.caption = caption
-
-    def close(self) -> None:
-        pass
-
+from test.mocks.mock_state import MockState
+from test.mocks.mock_pyglet_window import MockPygletWindow
 
 @pytest.fixture
 def default_window() -> Window:

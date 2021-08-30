@@ -13,6 +13,7 @@ from accessible_output2.outputs.base import Output
 if platform.system() == "Windows":
     from accessible_output2.outputs.nvda import NVDA
     from accessible_output2.outputs.jaws import Jaws
+    from accessible_output2.outputs.sapi5 import SAPI5
 elif platform.system() == "Darwin":
     from accessible_output2.outputs.voiceover import VoiceOver
 
@@ -55,6 +56,9 @@ def is_jaws_active() -> bool:
 def is_voiceover_active() -> bool:
     return (platform.system() == "Darwin" and isinstance(get_current_screenreader(), VoiceOver))
 
+def is_sapi_active() -> bool:
+    return (platform.system() == "Windows" and isinstance(get_current_screenreader(), SAPI5))
+
 def clear_history() -> None:
     global _speech_history
     global _history_position
@@ -62,15 +66,21 @@ def clear_history() -> None:
     _speech_history = []
     _history_position = 0
 
-def get_last_message() -> str:
+def pop_last_message() -> str:
     global _speech_history
+    global _history_position
+
+    if len(_speech_history) == 0:
+        return None
+
+    _history_position= len(_speech_history) - 2
     return _speech_history.pop()
 
 def trim_old_history(message_count: int) -> None:
     global _speech_history
     global _history_position
 
-    if len(_speech_history) > 1:
+    if len(_speech_history) > 0:
         if message_count > len(_speech_history):
             message_count = len(_speech_history)
 

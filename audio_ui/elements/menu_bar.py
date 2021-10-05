@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Dict, Callable, List, Union
 
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
@@ -5,98 +6,149 @@ from pyglet.window import key
 
 from audio_ui.elements import Menu
 from audio_ui.state import State
-from audio_ui.state_machine import EmptyState
+from audio_ui.state_machine import EmptyState, StateMachine
 from audio_ui.elements import Element
 from audio_ui.utils import Key
+from audio_ui.utils import speech_manager
 
-class MenuBar(Menu):
+class MenuBarItem(Element[str]):
+
+    def __init__(self, parent: MenuBar, menu: Menu) -> None:
+        super().__init__(parent=parent, title=menu.title, value="", type="submenu", use_key_handler=False)
+        self.menu: Menu = menu
+        self.is_expanded: bool = False
+
+    def setup(self, change_state: Callable[[str, any], None], interrupt_speech=False) -> bool:
+        if self.is_expanded:
+            self.menu.setup(change_state)
+        else:
+            super().setup(change_state)
+
+        return True
+
+    def exit(self):
+        if self.is_expanded:
+            self.menu.exit()
+
+        return super().exit()
+
+    def reset(self) -> None:
+        self.is_expanded = False
+
+
+class MenuBar(Element[MenuBarItem]):
 
     def __init__(self, parent: State) -> None:
-        super().__init__(parent, title="Menu Bar", is_side_menu=True, suppress_type=True, has_border=False)
+        super().__init__(parent, title="Menu", type="bar", value=None)
         self.is_open: bool = False
-        self.expanded: bool = False
+        self.is_expanded: bool = False
+        self.position: int  = 0
+        self.state_machine: StateMachine = StateMachine()
+        self.bind_keys()
 
     def bind_keys(self) -> None:
-        super().bind_keys()
-        self.key_handler.add_key_press(self.expand_menus, key.UP)
-        self.key_handler.add_key_press(self.expand_menus, key.DOWN)
+        self.key_handler.add_key_press(self.open_menu, key.UP)
+        self.key_handler.add_key_press(self.open_menu, key.DOWN)
+        self.key_handler.add_key_press(self.next_menu, key.RIGHT)
+        self.key_handler.add_key_press(self.previous_menu, key.LEFT)
         self.key_handler.add_key_press(self.close, key.ESCAPE)
+
+    def setup(self, change_state: Callable[[str, any], None]) -> bool:
+        super().setup(change_state)
+        state_key: str =  list(self.state_machine.states)[self.position]
+        self.state_machine.current_state = self.state_machine.states[state_key]
+        self.state_machine.current_state.setup(change_state, interrupt_speech=False)
+        return True
 
     def exit(self) -> bool:
         if self.is_open:
-            self.expanded = False
-            for menu in self.state_machine.states.values():
-                menu.suppress_reading_first_item_onfocus = True
-            self.close()
+            self.is_open = False
+            self.state_machine.current_state.exit() 
+            super().exit()
+            self.collapse_menus()
+            self.position = 0
+            self.parent.state_machine.current_state = EmptyState()
+            self.parent.set_state(interrupt_speech=False)
 
-        return super().exit()
+        return True
+
+    def reset(self) -> None:
+        self.is_open = False
+        self.collapse_menus()
+        self.position = 0
 
     def open_menu_bar(self) -> bool:
         if not self.is_open:
             self.is_open = True
-            counter: int = len(self.state_machine.states) + 1
-            state_key: str = f"menu_bar {counter}"
-            self.parent.state_machine.add(state_key, self)
-            self.parent.state_machine.change(state_key)
-        else:
-            return EVENT_UNHANDLED
+            self.parent.state_machine.current_state.exit()
+            self.parent.state_machine.current_state = self
+            self.setup(self.parent.state_machine.change)
+            return EVENT_HANDLED
 
-        return EVENT_HANDLED
+        return EVENT_UNHANDLED
 
-    def open_menu(self, key: str) -> bool:
-        counter: int = self.state_machine.size()+ 1
-        menu_bar_key: str = f"menu_bar {counter}"
-        index: int = list(self.state_machine.states.keys()).index(key)
-        self.position = index
+    def open_menu(self, key: str=None) -> bool:
+        # if key is None, use the current position
+        if key is not None:
+            index: int = list(self.state_machine.states.keys()).index(key)
+            self.position = index
 
         if not self.is_open:
             self.is_open = True
             self.expand_menus()
-            self.parent.state_machine.add(menu_bar_key, self)
-            self.reset_menu_onfocus = False
-            self.parent.state_machine.change(menu_bar_key)
-            self.reset_menu_onfocus = True
+            self.parent.state_machine.current_state.exit()
+            self.parent.state_machine.current_state = self
+            self.setup(self.parent.state_machine.change)
+        else:
+            self.expand_menus()
+            state_key: str =  list(self.state_machine.states)[self.position]
+            self.state_machine.current_state = self.state_machine.states[state_key]
+            self.state_machine.current_state.setup(self.change_state)
 
+        return EVENT_HANDLED
 
+    def expand_menus(self) -> None:
+        if not self.is_expanded:
+            self.is_expanded = True
+            for menu in self.state_machine.states.values():
+                menu.is_expanded = True
+
+    def collapse_menus(self) -> None:
+        if self.is_expanded:
+            self.is_expanded = False
+            for menu in self.state_machine.states.values():
+                menu.is_expanded = False
+
+    def next_menu(self) -> bool:
+        self.position = (self.position + 1) % self.state_machine.size()
         self.set_state()
         return EVENT_HANDLED
 
-    def expand_menus(self) -> bool:
-        if not self.expanded:
-            self.expanded = True
-            for menu in self.state_machine.states.values():
-                menu.suppress_reading_first_item_onfocus = False
+    def previous_menu(self) -> bool:
+        self.position = (self.position - 1) % self.state_machine.size()
+        self.set_state()
+        return EVENT_HANDLED
 
-        return EVENT_UNHANDLED
-
-    def next_item(self) -> bool:
-        result: bool = super().next_item()
-        if not self.expanded:
-            menu: Menu = self.state_machine.current_state
-            menu.position = -1
-        return result
-
-    def previous_item(self) -> bool:
-        result: bool = super().previous_item()
-        if not self.expanded:
-            menu: Menu = self.state_machine.current_state
-            menu.position = -1
-        return result
-
-    def add_menu(
-        self, title: str, key: str, items: List[Dict[str, Union[Element, str]]], shortcut: Key = None, *args, **kwards) -> Menu:
-        menu: Menu = Menu(self, title=title, items=items, has_border=False, *args, **kwards, suppress_reading_first_item_onfocus=True)
-        self.add(key, menu)
-        return menu
+    def add_menu(self, key: str, menu: Menu) -> MenuBarItem:
+        item: MenuBarItem = MenuBarItem(self, menu)
+        self.state_machine.add(key, item)
+        return item
 
     def close(self) -> None:
-        if self.expanded:
-            self.expanded = False
-            for menu in self.state_machine.states.values():
-                menu.suppress_reading_first_item_onfocus = True
-            self.set_state()
+        if self.is_expanded:
+            # Manually set the new state since the menues should be collapsed between when current_state.exit() is called and when the new state .setup() is called
+            self.state_machine.current_state.exit()
+            self.collapse_menus()
+            state_key: str =  list(self.state_machine.states)[self.position]
+            self.state_machine.current_state = self.state_machine.states[state_key]
+            self.state_machine.current_state.setup(self.change_state)
         else:
             self.is_open = False
+            self.position = 0
+            super().exit()
+            self.parent.state_machine.current_state = EmptyState()
             self.parent.set_state(interrupt_speech=False)
-            self.state_machine.current_state = EmptyState()
-            self.parent.state_machine.remove(self.state_key)
+
+    def set_state(self, interrupt_speech: bool = True) -> None:
+        state_key: str =  list(self.state_machine.states)[self.position]
+        self.state_machine.change(state_key, interrupt_speech)

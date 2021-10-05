@@ -24,7 +24,7 @@ class ContainerScreen(Screen):
 
     def setup(self, change_state: Callable[[str, any], None], *args, **kwargs) -> bool:
         self.change_state = change_state
-        self.push_handlers(self.key_handler)
+        self.push_window_handlers(self.key_handler)
         self.set_state(interrupt_speech=False)
         return True
 
@@ -35,7 +35,7 @@ class ContainerScreen(Screen):
         if self.state_machine.size() > 0:
             self.state_machine.exit()
 
-        self.pop_handlers()
+        self.pop_window_handlers()
         return EVENT_HANDLED
 
     def close(self) -> None:

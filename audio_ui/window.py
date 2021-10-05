@@ -46,7 +46,7 @@ class Window:
 
         pyglet.clock.schedule_once(lambda dt: self.setup(), 0.4)
         pyglet.clock.schedule_interval(self.update, 0.01)
-        self.push_handlers(self.key_handler)
+        self.push_window_handlers(self.key_handler)
         pyglet.app.run()
 
     def setup(self) -> None:
@@ -67,10 +67,10 @@ class Window:
     def change(self, key: str, *args: any, **kwargs: any) -> None:
         self.state_machine.change(key, *args, **kwargs)
 
-    def push_handlers(self, handler: KeyHandler) -> None:
+    def push_window_handlers(self, handler: KeyHandler) -> None:
         self.pyglet_window.push_handlers(handler)
 
-    def pop_handlers(self) -> None:
+    def pop_window_handlers(self) -> None:
         if len(self.pyglet_window._event_stack) > 0:
             self.pyglet_window.pop_handlers()
 

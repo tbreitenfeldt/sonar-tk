@@ -17,7 +17,7 @@ sdist/
 target/
 .tox/
 var/
-venv/
+.venv/
 *.py[cod]
 *$py.class
 *.so

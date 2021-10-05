@@ -137,7 +137,7 @@ def test_push_handlers(mocker: MockerFixture, default_window: Window):
     default_window.pyglet_window = MockPygletWindow()
     pyglet_push_handlers_mock = mocker.patch("test.test_window.MockPygletWindow.push_handlers")
     key_handler: KeyHandler = KeyHandler()
-    default_window.push_handlers(key_handler)
+    default_window.push_window_handlers(key_handler)
     pyglet_push_handlers_mock.assert_called_with(key_handler)
 
 def test_pop_handlers(mocker: MockerFixture, default_window: Window):
@@ -145,13 +145,13 @@ def test_pop_handlers(mocker: MockerFixture, default_window: Window):
     pyglet__pop_handlers_mock = mocker.patch("test.test_window.MockPygletWindow.pop_handlers")
     key_handler: KeyHandler = KeyHandler()
     default_window.pyglet_window._event_stack.append(key_handler)
-    default_window.pop_handlers()
+    default_window.pop_window_handlers()
     pyglet__pop_handlers_mock.assert_called_with()
 
 def test_pop_handlers_with_empty_stack(mocker: MockerFixture, default_window: Window):
     default_window.pyglet_window = MockPygletWindow()    
     pyglet__pop_handlers_mock = mocker.patch("test.test_window.MockPygletWindow.pop_handlers")
-    default_window.pop_handlers()
+    default_window.pop_window_handlers()
     assert not pyglet__pop_handlers_mock.called
 
 def test_close(mocker: MockerFixture, default_window: Window):

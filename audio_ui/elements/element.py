@@ -1,25 +1,22 @@
-from typing import TypeVar, Generic, Callable, List 
+from typing import TypeVar, Generic, Callable
 from abc import abstractmethod
 
+from pyglet.event import EventDispatcher
+
 from audio_ui.state import State
-from audio_ui.utils import audio_manager
 from audio_ui.utils import speech_manager
 from audio_ui.utils import KeyHandler
 
 T = TypeVar("T")
 
-class Element(Generic[T], State):
+class Element(Generic[T], State, EventDispatcher):
 
-    def __init__(self, parent: State, title: str, value: T, type: str, callback: Callable[[Callable[[str, any], None], T, any], None],
-        callback_args: List[any], use_key_handler: bool = True
-    ) -> None:
-        self.parent: "Tab" = parent
+    def __init__(self, parent: State, title: str, value: T, type: str, use_key_handler: bool = True) -> None:
+        self.parent: State = parent
         self.title: str = title
         self._value: T = value
         self.type: str = type
         self.use_key_handler: bool = use_key_handler
-        self.callback: Callable[[Callable[[str, any], None], any, any], None] = callback
-        self.callback_args: List[any] = callback_args
         self.change_state: Callable[[str, any], None] = None
 
         if self.use_key_handler:
@@ -40,8 +37,9 @@ class Element(Generic[T], State):
             speech_manager.output(self.title + " " + self.type, interrupt=interrupt_speech, log_message=False)
 
         if self.use_key_handler:
-            self.push_handlers(self.key_handler)
+            self.push_window_handlers(self.key_handler)
 
+        self.dispatch_event("on_focus", self)
         return True
 
     def update(self, delta_time: float) -> bool:
@@ -49,26 +47,18 @@ class Element(Generic[T], State):
 
     def exit(self) -> bool:
         if self.use_key_handler:
-            self.pop_handlers()
+            self.pop_window_handlers()
 
         return True
-
-    def submit(self, * args, **kwargs) -> None:
-        if self.callback:
-            self.callback(self.change_state, self.value, *self.callback_args)
-
-        return self.on_action(*args, **kwargs)
-
-    @abstractmethod
-    def on_action(self, *args, **kwargs) -> bool:
-        pass
 
     @abstractmethod
     def reset(self) -> None:
         pass
 
-    def push_handlers(self, handler: KeyHandler) -> None:
-        self.parent.push_handlers(handler)
+    def push_window_handlers(self, handler: KeyHandler) -> None:
+        self.parent.push_window_handlers(handler)
 
-    def pop_handlers(self) -> None:
-        self.parent.pop_handlers()
+    def pop_window_handlers(self) -> None:
+        self.parent.pop_window_handlers()
+
+Element.register_event_type("on_focus")

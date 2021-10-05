@@ -4,10 +4,7 @@ from audio_ui.state import State
 class TextLabel(Element[str]):
 
     def __init__(self, parent: State, title: str) -> None:
-        super().__init__(parent=parent, title=title, value="", type="", callback=None, callback_args=None, use_key_handler=False)
-
-    def on_action(self) -> bool:
-        return True
+        super().__init__(parent=parent, title=title, value="", type="", use_key_handler=False)
 
     def reset(self) -> None:
         pass

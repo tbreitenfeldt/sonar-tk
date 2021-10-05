@@ -7,7 +7,6 @@ import pyperclip
 
 from audio_ui.state import State
 from audio_ui.elements import Element
-from audio_ui.utils import audio_manager
 from audio_ui.utils import speech_manager
 from audio_ui.utils import KeyHandler
 
@@ -17,10 +16,8 @@ class TextBox(Element):
         self, parent: State, title: str = "", default_value: str = "", hidden: bool = False,
         allowed_chars: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890!@#$%^&*()_+-=`~[]{}\;:\'\",<.>/?|",
         echo_characters: bool = True, echo_words: bool = True, disable_up_down_keys: bool = False, read_only: bool = False, text_box_size: int = 80,
-        onsubmit_callback: Callable[[Callable[[str, any], None], str, any], None] = None, callback_args: List[any] = [],
-        open_sound: str = "", typing_sound: str = "", border_sound: str = "", submit_sound: str = "", delete_sound: str = "", navigate_sound: str = "", music: str = "",
     ) -> None:
-        super().__init__(parent=parent, title=title, value=default_value, type="Edit", callback=onsubmit_callback, callback_args=callback_args)
+        super().__init__(parent=parent, title=title, value=default_value, type="edit")
         self.default_value: str = default_value
         self.input: List[str] = list(default_value)
         self.hidden: bool = hidden
@@ -30,13 +27,6 @@ class TextBox(Element):
         self.disable_up_down_keys: bool = disable_up_down_keys
         self.read_only: bool = read_only
         self.text_box_size: int = text_box_size
-        self.open_sound: str = open_sound
-        self.typing_sound: str = typing_sound
-        self.border_sound: str = border_sound
-        self.submit_sound: str = submit_sound
-        self.delete_sound: str = delete_sound
-        self.navigate_sound: str = navigate_sound
-        self.music: str = music
         self.position: int = 0
         self.left_selection_index: int = -1
         self.right_selection_index: int = -1
@@ -80,17 +70,8 @@ class TextBox(Element):
 
     def setup(self, change_state: Callable[[str, any], None], interrupt_speech: bool = True) ->bool:
         super().setup(change_state, interrupt_speech)
-
-        if self.music:
-            audio_manager.load_music(self.music)
-            audio_manager.play_music(loops=-1)
-        if self.open_sound != "":
-            audio_manager.play_sound(self.open_sound)
-
-        self.play_open_sound()
-
         output_value: str = self.get_value()
-        if self.get_value() == "":
+        if output_value == "":
             output_value = "Blank"
         if self.read_only:
             output_value = "Read Only " + output_value
@@ -124,7 +105,6 @@ class TextBox(Element):
                 speech_manager.output(output_value, interrupt=True, log_message=False)
                 del self.input[self.position-1]
                 self.position -= 1
-                self.play_delete_sound()
         else:
             speech_manager.output("Blank", interrupt=True, log_message=False)
 
@@ -155,11 +135,9 @@ class TextBox(Element):
 
                 speech_manager.output(output_value, interrupt=True, log_message=False)
                 del self.input[self.position]
-                self.play_delete_sound()
             elif self.position == len(self.input) - 1:
                 speech_manager.output("Blank", interrupt=True, log_message=False)
                 del self.input[self.position]
-                self.play_delete_sound()
             elif self.position >= len(self.input):
                 speech_manager.output("Blank", interrupt=True, log_message=False)
         else:
@@ -206,7 +184,6 @@ class TextBox(Element):
             word = "space"
 
         speech_manager.output(word, interrupt=True, log_message=False)
-        self.play_navigate_sound()
 
         self.clear_selection()
         return EVENT_HANDLED
@@ -241,7 +218,6 @@ class TextBox(Element):
             word = "space"
 
         speech_manager.output(word, interrupt=True, log_message=False)
-        self.play_navigate_sound()
 
         self.clear_selection()
         return EVENT_HANDLED
@@ -253,10 +229,8 @@ class TextBox(Element):
         elif self.position + 1 == len(self.input):
             speech_manager.output("blank", interrupt=True, log_message=False)
             self.position += 1
-            self.play_border_sound()
         elif self.position + 1 > len(self.input):
             speech_manager.output("blank", interrupt=True, log_message=False)
-            self.play_border_sound()
         else:
             self.position += 1
 
@@ -271,8 +245,6 @@ class TextBox(Element):
                         output_value = "Cap " + self.input[self.position]
                     speech_manager.output(output_value, interrupt=True, log_message=False)
 
-            self.play_navigate_sound()
-
         self.clear_selection()
         return EVENT_HANDLED
 
@@ -281,7 +253,6 @@ class TextBox(Element):
             self.position = 0
             speech_manager.output(self.input[self.position], interrupt=True, log_message=False)
         elif self.position - 1 < 0:
-            self.play_border_sound()
 
             if self.input:
                 if self.input[0] == " ":
@@ -293,7 +264,6 @@ class TextBox(Element):
         else:
             self.position -= 1
 
-            self.play_navigate_sound()
             if self.hidden:
                 speech_manager.output("star", interrupt=True, log_message=False)
             else:
@@ -304,8 +274,6 @@ class TextBox(Element):
                     if output_value.isupper():
                         output_value = "Cap " + output_value
                     speech_manager.output(output_value, interrupt=True, log_message=False)
-
-            self.play_navigate_sound()
 
         self.clear_selection()
         return EVENT_HANDLED
@@ -433,8 +401,8 @@ class TextBox(Element):
 
         return EVENT_HANDLED
 
-    def on_action(self) -> bool:
-        self.play_submit_sound()
+    def submit(self) -> bool:
+        self.dispatch_event("on_submit", self)
         return EVENT_HANDLED
 
     def copy_to_clipboard(self) -> bool:
@@ -517,7 +485,6 @@ class TextBox(Element):
                     else:
                         speech_manager.output(output_value, interrupt=True, log_message=False)
     
-            self.play_typing_sound()
     
             return EVENT_HANDLED
 
@@ -584,53 +551,13 @@ class TextBox(Element):
 
             self.clear_selection()
 
-    def play_open_sound(self) -> bool:
-        if self.open_sound:
-            audio_manager.play(self.open_sound, wait_until_done=True)
-            return True
-
-        return False
-
-    def play_typing_sound(self) -> bool:
-        if self.typing_sound:
-            audio_manager.play(self.typing_sound)
-            return True
-
-        return False     
-
-    def play_submit_sound(self) -> bool:
-        if self.submit_sound:
-            audio_manager.play(self.submit_sound)
-            return True
-
-        return False
-
-    def play_border_sound(self) -> bool:
-        if self.border_sound:
-            audio_manager.play(self.border_sound)
-            return True
-
-        return False
-
-    def play_delete_sound(self) -> bool:
-        if self.delete_sound:
-            audio_manager.play(self.delete_sound)
-            return True
-
-        return False        
-
-    def play_navigate_sound(self) -> bool:
-        if self.navigate_sound:
-            audio_manager.play(self.navigate_sound)
-            return True
-
-        return False
-
     def reset(self) -> None:
-        self.value = default_value
-        self.input = list(default_value)
+        self.value = self.default_value
+        self.input = list(self.default_value)
         self.position = 0
         self.left_selection_index = -1
         self.right_selection_index = -1
         self.selecting_left = False
         self.selecting_right = False
+
+TextBox.register_event_type("on_submit")

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 from typing import Union
 
@@ -60,11 +59,11 @@ class Screen(State):
         state_key: str =  list(self.state_machine.states)[self.position]
         self.state_machine.change(state_key, interrupt_speech)
 
-    def push_handlers(self, handler: KeyHandler) -> None:
-        self.parent.push_handlers(handler)
+    def push_window_handlers(self, handler: KeyHandler) -> None:
+        self.parent.push_window_handlers(handler)
 
-    def pop_handlers(self) -> None:
-        self.parent.pop_handlers()
+    def pop_window_handlers(self) -> None:
+        self.parent.pop_window_handlers()
 
     @property
     def caption(self) -> None:

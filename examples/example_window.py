@@ -20,7 +20,7 @@ from audio_ui.utils import Key
 from audio_ui.utils import speech_manager
 from audio_ui.elements import *
 
-class Test:
+class ExampleWindow:
 
     def __init__(self) -> None:
         self.main_window: Window = Window()
@@ -29,17 +29,18 @@ class Test:
         self.dialog = self.create_dialog(self.container)
         self.dialog2 = self.create_dialog2(self.dialog)
 
-        self.container.add("button1", Button(self.container, title="Test", callback=self.open_dialog))
+        self.container.add("button1", Button(self.container, title="Open Dialog 1"))
         self.container.add("checkbox", Checkbox(self.container, title="Update"))
-        self.container.add("menu", Menu(self.container, title="Main", items=[{"start": "Start"}, {"options": "Options"}], reset_menu_onfocus=False))
+        self.container.add("menu", Menu(self.container, title="Main", items=[{"start": "Start"}, {"options": "Options"}]))
+        self.container.add("menu2", Menu(self.container, title="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
         self.container.add("text_box", TextBox(self.container, title="Age", allowed_chars="0123456789"))
         self.container.add("toggle_button", ToggleButton(self.container, title="Update", items=["On", "Off"]))
 
+        self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.LALT)
+        self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.RALT)
         self.container.key_handler.add_key_press(lambda: self.menu_bar.open_menu("file_menu"), key.F, [key.MOD_ALT])
         self.container.key_handler.add_key_press(lambda: self.menu_bar.open_menu("edit_menu"), key.E, [key.MOD_ALT])
         self.container.key_handler.add_key_press(lambda: self.menu_bar.open_menu("help_menu"), key.H, [key.MOD_ALT])
-        self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key.LALT)
-        self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key.RALT)
         self.container.key_handler.add_key_press(self.next_speech_history, key.PAGEDOWN, [key.MOD_CTRL])
         self.container.key_handler.add_key_press(self.previous_speech_history, key.PAGEUP, [key.MOD_CTRL])
 
@@ -48,7 +49,7 @@ class Test:
 
     def create_dialog(self, container: ContainerScreen) -> Dialog:
         dialog = Dialog(container)
-        dialog.add("hello_world", Button(dialog, "hello world", callback=self.open_dialog2))
+        dialog.add("hello_world", Button(dialog, "hello world"))
         dialog.add("checkbox", Checkbox(dialog, "test"))
         return dialog
 
@@ -66,9 +67,12 @@ class Test:
 
     def create_menu_bar(self, parent) -> Menu:
         menu_bar: MenuBar = MenuBar(parent)
-        menu_bar.add_menu(title="File", key="file_menu", items=[{"open": "Open"}, {"save": "Save"}, {"exit": "Exit"}], onsubmit_callback=self.onsubmit_file_menu)
-        menu_bar.add_menu(title="Edit", key="edit_menu", items=[{"copy": "Copy"}, {"cut": "Cut"}, {"paste": "Paste"}], onsubmit_callback=self.onsubmit_edit_menu)
-        menu_bar.add_menu(title="Help", key="help_menu", items=[{"get_help": "Get Help"}, {"about": "About..."}])
+        file_menu: Menu = Menu(parent=menu_bar, title="File", items=[{"open": "Open"}, {"save": "Save"}, {"exit": "Exit"}])
+        menu_bar.add_menu("file_menu", file_menu)
+        edit_menu: Menu = Menu(parent=menu_bar, title="Edit", items=[{"copy": "Copy"}, {"cut": "Cut"}, {"paste": "Paste"}])
+        menu_bar.add_menu("edit_menu", edit_menu)
+        help_menu: Menu = Menu(parent=menu_bar, title="Help", items=[{"get_help": "Get Help"}, {"about": "About..."}])
+        menu_bar.add_menu("help_menu", help_menu)
         return menu_bar
 
     def onsubmit_file_menu(self, change_state: Callable[[str, any], None], value: str) -> None:
@@ -107,4 +111,4 @@ class Test:
 
         return EVENT_HANDLED
 
-Test()
+ExampleWindow()

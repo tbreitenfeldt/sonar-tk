@@ -3,8 +3,8 @@ import time
 import sys
 import os
 
+# Only used to insure that the audio_ui library is added to the path, not necessary if installed through pip
 path = os.getcwd()
-
 if os.path.basename(path) == "examples":
     path = os.path.dirname(path)
 
@@ -26,11 +26,19 @@ class ExampleWindow:
         self.main_window: Window = Window()
         self.container: ContainerScreen = ContainerScreen(self.main_window)
         self.menu_bar: MenuBar = self.create_menu_bar(self.container)
-        self.dialog = self.create_dialog(self.container)
-        self.dialog2 = self.create_dialog2(self.dialog)
+        self.save_dialog: Dialog = self.create_save_dialog(self.container)
+        self.open_dialog: Dialog = self.create_open_dialog(self.save_dialog)
+        self.open_dialog_button: Element = Button(self.container, title="Open Dialog 1")
+        self.checkbox: Element = Checkbox(self.container, title="Update")
+        self.open_newwindow_button: Element = Button(self.container, title="Open a New Window") 
 
-        self.container.add("button1", Button(self.container, title="Open Dialog 1"))
-        self.container.add("checkbox", Checkbox(self.container, title="Update"))
+        self.open_dialog_button.push_handlers(on_submit = lambda b: self.save_dialog.open_dialog(caption="Save"))
+        self.checkbox.push_handlers(on_checked = lambda c: speech_manager.output("Updated Item", interrupt=False))
+        self.open_newwindow_button.push_handlers(on_submit = self.open_new_window)
+
+        self.container.add("open_dialog_button", self.open_dialog_button)
+        self.container.add("checkbox", self.checkbox)
+        self.container.add("open_newwindow_button", self.open_newwindow_button)
         self.container.add("menu", Menu(self.container, title="Main", items=[{"start": "Start"}, {"options": "Options"}]))
         self.container.add("menu2", Menu(self.container, title="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
         self.container.add("text_box", TextBox(self.container, title="Age", allowed_chars="0123456789"))
@@ -47,23 +55,19 @@ class ExampleWindow:
         self.main_window.add("container", self.container)
         self.main_window.open_window(caption="TestWindow")
 
-    def create_dialog(self, container: ContainerScreen) -> Dialog:
+    def create_save_dialog(self, container: ContainerScreen) -> Dialog:
         dialog = Dialog(container)
-        dialog.add("hello_world", Button(dialog, "hello world"))
+        button: Button = Button(dialog, "Open Another Dialog")
+        button.push_handlers(on_submit = lambda b: self.open_dialog.open_dialog(caption="Open"))
+        dialog.add("hello_world", button)
         dialog.add("checkbox", Checkbox(dialog, "test"))
         return dialog
 
-    def open_dialog(self, change_state, value) -> None:
-        self.dialog.open_dialog(caption="Save")
-
-    def create_dialog2(self, container: ContainerScreen) -> Dialog:
+    def create_open_dialog(self, container: ContainerScreen) -> Dialog:
         dialog = Dialog(container)
         dialog.add("open_button", Button(dialog, "Open"))
         dialog.add("checkbox", Checkbox(dialog, "Change Name"))
         return dialog
-
-    def open_dialog2(self, change_state, value) -> None:
-        self.dialog2.open_dialog(caption="Open")
 
     def create_menu_bar(self, parent) -> Menu:
         menu_bar: MenuBar = MenuBar(parent)
@@ -110,5 +114,13 @@ class ExampleWindow:
         return EVENT_UNHANDLED
 
         return EVENT_HANDLED
+
+    def open_new_window(self, button: Button) -> None:
+        window: Window = Window(escapable=True)
+        container: ContainerScreen = ContainerScreen(window)
+        container.add("menu2", Menu(container, title="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
+        container.add("text_box", TextBox(container, title="Age", allowed_chars="0123456789"))
+        window.add("container", container)
+        window.open_window(caption="A new window")
 
 ExampleWindow()

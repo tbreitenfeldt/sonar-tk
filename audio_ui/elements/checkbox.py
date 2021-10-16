@@ -27,6 +27,12 @@ class Checkbox(Element[bool]):
     def toggle_state(self) -> bool:
         self.value = not self.value
         self.dispatch_event("on_change", self)
+
+        if self.value:
+            self.dispatch_event("on_checked", self)
+        else:
+            self.dispatch_event("on_unchecked", self)
+
         output_value: str = "Checked" if self.value  else "Unchecked"
         speech_manager.output(output_value, interrupt=True, log_message=False)
         return EVENT_HANDLED
@@ -35,3 +41,5 @@ class Checkbox(Element[bool]):
         self.value = self.default_value
 
 Checkbox.register_event_type("on_change")
+Checkbox.register_event_type("on_checked")
+Checkbox.register_event_type("on_unchecked")

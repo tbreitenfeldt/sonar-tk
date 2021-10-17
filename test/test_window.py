@@ -60,9 +60,11 @@ def test_open_window_with_empty_caption(mocker: MockerFixture, default_window: W
     speech_manager_silence_mock.assert_called_with()
     pyglet_schedule_once_mocker.call_args_list[3][0][0](dt)
     speech_manager_silence_mock.assert_called_with()
+    pyglet_schedule_once_mocker.call_args_list[4][0][0](dt)
+    speech_manager_silence_mock.assert_called_with()
 
     # test setup call
-    pyglet_schedule_once_mocker.call_args_list[4][0][0](dt)
+    pyglet_schedule_once_mocker.call_args_list[5][0][0](dt)
     window_setup_mock.assert_called_with()
 
     # test update call

@@ -43,11 +43,11 @@ class Element(Generic[T], State, EventDispatcher):
         return True
 
     def update(self, delta_time: float) -> bool:
-        Element.dispatch_event("on_update", self, delta_time)
+        self.dispatch_event("on_update", self, delta_time)
         return True
 
     def exit(self) -> bool:
-        Element.dispatch_event("on_lose_focus", self)
+        self.dispatch_event("on_lose_focus", self)
         if self.use_key_handler:
             self.pop_window_handlers()
 

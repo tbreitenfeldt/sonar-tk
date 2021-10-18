@@ -109,26 +109,26 @@ class MenuBar(Element[MenuBarItem]):
 
     def expand_menus(self) -> None:
         if not self.is_expanded:
-            MenuBar.dispatch_event("on_expanded", self)
+            self.dispatch_event("on_expanded", self)
             self.is_expanded = True
             for menu in self.state_machine.states.values():
                 menu.is_expanded = True
 
     def collapse_menus(self) -> None:
         if self.is_expanded:
-            MenuBar.dispatch_event("on_collapsed", self)
+            self.dispatch_event("on_collapsed", self)
             self.is_expanded = False
             for menu in self.state_machine.states.values():
                 menu.is_expanded = False
 
     def next_menu(self) -> bool:
-        MenuBar.dispatch_event("on_next_menu", self)
+        self.dispatch_event("on_next_menu", self)
         self.position = (self.position + 1) % self.state_machine.size()
         self.set_state()
         return EVENT_HANDLED
 
     def previous_menu(self) -> bool:
-        MenuBar.dispatch_event("on_previous_menu", self)
+        self.dispatch_event("on_previous_menu", self)
         self.position = (self.position - 1) % self.state_machine.size()
         self.set_state()
         return EVENT_HANDLED

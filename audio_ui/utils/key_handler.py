@@ -93,17 +93,16 @@ class KeyHandler:
     def on_key_release(self, symbol, modifiers) -> bool:
         released_key: Key = Key(symbol, [modifiers])
 
+        if released_key in self.registered_key_presses:
+            self.handled_key = False
         if self.key_held_down and self.key_held_down == released_key:
-            callback: Callback = self.registered_key_presses[released_key]
+            callback, repeat_interval = self.registered_key_presses[released_key]
             pyglet.clock.unschedule(callback.call)
             self.key_held_down = None
-            self.handled_key = False
 
         if released_key in self.registered_key_releases:
             callback: Callback = self.registered_key_releases[released_key]
             return callback.call()
-        else:
-            self.handled_key = False
 
         return EVENT_UNHANDLED
 

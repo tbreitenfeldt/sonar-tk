@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List
 import operator
 import functools
 
@@ -102,6 +102,13 @@ def test_key_handler_on_key_press(default_key_handler: KeyHandler):
     default_key_handler.registered_key_presses[key_press] = (registered_callback, 0.0)
     assert default_key_handler.on_key_press(symbol=key.W, modifiers=functools.reduce(operator.ior, [key.MOD_CTRL, key.MOD_SHIFT]))
     assert default_key_handler.handled_key
+
+def test_key_handler_on_key_press_already_handled_key(default_key_handler: KeyHandler):
+    key_press: Key = Key(symbol=key.W, modifiers=[key.MOD_CTRL, key.MOD_SHIFT])
+    registered_callback: Callback = Callback(lambda: True)
+    default_key_handler.registered_key_presses[key_press] = (registered_callback, 0.0)
+    default_key_handler.key_held_down = Key(key.F)
+    assert not default_key_handler.on_key_press(symbol=key.W, modifiers=functools.reduce(operator.ior, [key.MOD_CTRL, key.MOD_SHIFT]))
 
 def test_key_handler_on_key_press_not_found(default_key_handler: KeyHandler):
     key_press: Key = Key(symbol=key.W, modifiers=[key.MOD_CTRL, key.MOD_SHIFT])
@@ -210,3 +217,138 @@ def test_key_handler_on_text_already_handled(default_key_handler: KeyHandler):
 def test_key_handler_on_text_with_no_callback_set(default_key_handler: KeyHandler):
     assert not default_key_handler.on_text("a")
 
+def test_key_handler_on_text_motion(default_key_handler: KeyHandler):
+    key_motion: Key = Key(key.MOTION_PREVIOUS_WORD)
+    default_key_handler.registered_text_motions[key_motion] = Callback(lambda: True)
+    assert default_key_handler.on_text_motion(key.MOTION_PREVIOUS_WORD)
+
+def test_key_handler_on_text_motion_failed(default_key_handler: KeyHandler):
+    key_motion: Key = Key(key.MOTION_DOWN)
+    default_key_handler.registered_text_motions[key] = Callback(lambda: True)
+    assert not default_key_handler.on_text_motion(key.MOTION_PREVIOUS_WORD)
+
+def test_key_handler_add_key_press_with_key_object(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    key_pressed: Key = Key(key.N)
+    default_key_handler.add_key_press(callback, key_pressed)
+    assert len(default_key_handler.registered_key_presses) == 1
+    assert key_pressed in default_key_handler.registered_key_presses
+    assert default_key_handler.registered_key_presses[key_pressed][0] == Callback(callback)
+    assert default_key_handler.registered_key_presses[key_pressed][1] == 0.0
+
+def test_key_handler_add_key_press_with_key_object_and_modifiers(default_key_handler: KeyHandler):
+    with pytest.raises(ValueError):
+        callback: callable = lambda: True
+        key_pressed: Key = Key(key.N)
+        default_key_handler.add_key_press(callback=callback, key=key_pressed, modifiers=key.MOD_ACCEL)
+
+def test_key_handler_add_key_press_with_key_int(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    symbol: int = key.PAGEDOWN
+    modifiers: List[int] = [key.MOD_ACCEL]
+    repete_interval: float = 0.2
+    default_key_handler.add_key_press(callback, key=symbol, modifiers=modifiers, repeat_interval=repete_interval)
+    key_pressed: Key = Key(symbol, modifiers)
+    assert len(default_key_handler.registered_key_presses) == 1
+    assert key_pressed in default_key_handler.registered_key_presses
+    assert default_key_handler.registered_key_presses[key_pressed][0] == Callback(callback)
+    assert default_key_handler.registered_key_presses[key_pressed][1] == repete_interval
+
+def test_key_handler_add_key_press_with_error(default_key_handler: KeyHandler):
+    with pytest.raises(ValueError):
+        default_key_handler.add_key_press(lambda: True, None)
+
+def test_key_handler_add_key_release_with_key_object(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    key_released: Key = Key(key.N)
+    default_key_handler.add_key_release(callback, key_released)
+    assert len(default_key_handler.registered_key_releases) == 1
+    assert key_released in default_key_handler.registered_key_releases
+    assert default_key_handler.registered_key_releases[key_released] == Callback(callback)
+
+def test_key_handler_add_key_release_with_key_object_and_modifiers(default_key_handler: KeyHandler):
+    with pytest.raises(ValueError):
+        callback: callable = lambda: True
+        key_released: Key = Key(key.N)
+        default_key_handler.add_key_release(callback=callback, key=key_released, modifiers=key.MOD_ACCEL)
+
+def test_key_handler_add_key_release_with_key_int(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    symbol: int = key.PAGEDOWN
+    modifiers: List[int] = [key.MOD_ACCEL]
+    default_key_handler.add_key_release(callback, key=symbol, modifiers=modifiers)
+    key_released: Key = Key(symbol, modifiers)
+    assert len(default_key_handler.registered_key_releases) == 1
+    assert key_released in default_key_handler.registered_key_releases
+    assert default_key_handler.registered_key_releases[key_released] == Callback(callback)
+
+def test_key_handler_add_key_release_with_error(default_key_handler: KeyHandler):
+    with pytest.raises(ValueError):
+        default_key_handler.add_key_release(lambda: True, None)
+
+def test_key_handler_add_on_text_input(default_key_handler: KeyHandler):
+    callback: Callable = lambda: True
+    default_key_handler.add_on_text_input(callback)
+    assert default_key_handler.registered_text_input == Callback(callback)
+
+def test_key_handler_add_text_motion_with_key_object(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    text_motion: Key = Key(key.MOTION_BEGINNING_OF_FILE)
+    default_key_handler.add_text_motion(callback, text_motion)
+    assert len(default_key_handler.registered_text_motions) == 1
+    assert text_motion in default_key_handler.registered_text_motions
+    assert default_key_handler.registered_text_motions[text_motion] == Callback(callback)
+
+def test_key_handler_add_text_motion_with_key_int(default_key_handler: KeyHandler):
+    callback: callable = lambda: True
+    key_motion: int = key.MOTION_BEGINNING_OF_FILE
+    default_key_handler.add_text_motion(callback, key=key_motion)
+    text_motion: Key = Key(key_motion)
+    assert len(default_key_handler.registered_text_motions) == 1
+    assert text_motion in default_key_handler.registered_text_motions
+    assert default_key_handler.registered_text_motions[text_motion] == Callback(callback)
+
+def test_key_handler_add_text_motion_with_error(default_key_handler: KeyHandler):
+    with pytest.raises(ValueError):
+        default_key_handler.add_text_motion(lambda: True, None)
+
+def test_key_handler_remove_key_press_success(default_key_handler: KeyHandler):
+    key_press: Key = Key(key.W)
+    default_key_handler.registered_key_presses[key_press] = lambda: True
+    assert default_key_handler.remove_key_press(key_press)
+    assert key_press not in default_key_handler.registered_key_presses
+
+def test_key_handler_remove_key_press_failed(default_key_handler: KeyHandler):
+    key_press: Key = Key(key.W)
+    default_key_handler.registered_key_presses[key_press] = lambda: True
+    assert not default_key_handler.remove_key_press(Key(key.L))
+    assert key_press in default_key_handler.registered_key_presses
+
+def test_key_handler_remove_key_release_success(default_key_handler: KeyHandler):
+    key_release: Key = Key(key.W)
+    default_key_handler.registered_key_releases[key_release] = lambda: True
+    assert default_key_handler.remove_key_release(key_release)
+    assert key_release not in default_key_handler.registered_key_releases
+
+def test_key_handler_remove_key_release_failed(default_key_handler: KeyHandler):
+    key_release: Key = Key(key.W)
+    default_key_handler.registered_key_releases[key_release] = lambda: True
+    assert not default_key_handler.remove_key_release(Key(key.L))
+    assert key_release in default_key_handler.registered_key_releases
+
+def test_key_handler_remove_on_text_input(default_key_handler: KeyHandler):
+    default_key_handler.registered_text_input = Callback(lambda: True)
+    default_key_handler.remove_on_text_input()
+    assert default_key_handler.registered_text_input is None
+
+def test_key_handler_remove_text_motion_success(default_key_handler: KeyHandler):
+    text_motion: Key = Key(key.W)
+    default_key_handler.registered_text_motions[text_motion] = lambda: True
+    assert default_key_handler.remove_text_motion(text_motion)
+    assert text_motion not in default_key_handler.registered_text_motions
+
+def test_key_handler_remove_text_motion_failed(default_key_handler: KeyHandler):
+    text_motion: Key = Key(key.W)
+    default_key_handler.registered_text_motions[text_motion] = lambda: True
+    assert not default_key_handler.remove_text_motion(Key(key.L))
+    assert text_motion in default_key_handler.registered_text_motions

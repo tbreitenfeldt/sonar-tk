@@ -114,27 +114,25 @@ class KeyHandler:
         return EVENT_UNHANDLED
 
     def on_text_motion(self, motion: int) -> bool:
-        if not self.handled_key:
-            self.handled_key = True
-            motion_key: Key = Key(motion)
+        motion_key: Key = Key(motion)
 
-            if motion_key in self.registered_text_motions:
-                callback: Callback = self.registered_text_motions[motion_key]
-                return callback.call()
+        if motion_key in self.registered_text_motions:
+            callback: Callback = self.registered_text_motions[motion_key]
+            return callback.call()
 
         return EVENT_UNHANDLED
 
     def add_key_press(self, callback: Callable, key: Union[int, Key], modifiers: List[int] = [], repeat_interval: float = 0.0, *args, **kwargs) -> None:
         if isinstance(key, int):
             key_press: Key = Key(key, modifiers)
-            registered_callback: Callback = (Callback(callback, *args, **kwargs), repeat_interval)
-            self.registered_key_presses[key_press] = registered_callback
+            registered_callback: Callback = (Callback(callback, *args, **kwargs))
+            self.registered_key_presses[key_press] = (registered_callback, repeat_interval)
         elif isinstance(key, Key):
             if modifiers:
                 raise ValueError("Please do not provide modifiers if you are giving a Key object.")
-            else:
-                registered_callback: Callback = Callback(callback, *args, **kwargs)
-                self.registered_key_presses[key] = registered_callback
+
+            registered_callback: Callback = Callback(callback, *args, **kwargs)
+            self.registered_key_presses[key] = (registered_callback, repeat_interval)
         else:
             raise ValueError("MKey must be either of type Key or int.")
 
@@ -146,9 +144,9 @@ class KeyHandler:
         elif isinstance(key, Key):
             if modifiers:
                 raise ValueError("Please do not provide modifiers if you are giving a Key object.")
-            else:
-                registered_callback: Callback = Callback(callback, *args, **kwargs)
-                self.registered_key_releases[key] = registered_callback
+
+            registered_callback: Callback = Callback(callback, *args, **kwargs)
+            self.registered_key_releases[key] = registered_callback
         else:
             raise ValueError("MKey must be either of type Key or int.")
 
@@ -163,7 +161,7 @@ class KeyHandler:
             self.registered_text_motions[motion_key] = registered_callback
         elif isinstance(key, Key):
             registered_callback: Callback = Callback(callback, *args, **kwargs)
-            self.registered_key_releases[key] = registered_callback
+            self.registered_text_motions[key] = registered_callback
         else:
             raise ValueError("MKey must be either of type Key or int.")
 
@@ -171,23 +169,22 @@ class KeyHandler:
         if key in self.registered_key_presses:
             del self.registered_key_presses[key]
             return True
-        else:
-            return False
+
+        return False
 
     def remove_key_release(self, key: Key) -> bool:
         if key in self.registered_key_releases:
             del self.registered_key_releases[key]
             return True
-        else:
-            return False
 
-    def remove_on_text_input(self) -> bool:
-            self.registered_text_input = None
-            return True
+        return False
+
+    def remove_on_text_input(self) -> None:
+        self.registered_text_input = None
 
     def remove_text_motion(self, key: Key) -> bool:
         if key in self.registered_text_motions:
             del self.registered_text_motions[key]
             return True
-        else:
-            return False
+
+        return False

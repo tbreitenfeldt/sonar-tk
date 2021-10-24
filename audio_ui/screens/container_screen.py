@@ -39,4 +39,5 @@ class ContainerScreen(Screen):
         return EVENT_HANDLED
 
     def close(self) -> None:
+        super().close()
         self.parent.close()

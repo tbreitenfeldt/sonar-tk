@@ -50,6 +50,7 @@ class Dialog(Screen):
             element.reset()
 
     def close(self) -> None:
+        super().close()
         self.position = 0
         self.reset()
         self.caption = self.original_caption

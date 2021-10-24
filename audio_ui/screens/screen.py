@@ -1,7 +1,9 @@
+from __future__ import annotations
 from abc import abstractmethod
 from typing import Union
 
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
+from pyglet.event import EventDispatcher
 
 from audio_ui.state import State
 from audio_ui.state_machine import EmptyState
@@ -10,10 +12,10 @@ from audio_ui.window import Window
 from audio_ui.elements import Element
 from audio_ui.utils import KeyHandler
 
-class Screen(State):
+class Screen(State, EventDispatcher):
 
-    def __init__(self, parent: Union[Window, 'Screen']) -> None:
-        self.parent: any = parent
+    def __init__(self, parent: Union[Window, Screen]) -> None:
+        self.parent: Union[Window, Screen] = parent
         self.position: int = 0
         self.state_machine: StateMachine = StateMachine()
         self.key_handler: KeyHandler = KeyHandler()
@@ -23,9 +25,8 @@ class Screen(State):
     def bind_keys(self) -> None:
         pass
 
-    @abstractmethod
     def close(self) -> None:
-        pass
+        self.dispatch_event("on_close", self)
 
     def add(self, key: str, element: Element) -> None:
         self.state_machine.add(key, element)
@@ -34,6 +35,7 @@ class Screen(State):
         return self.state_machine.remove(key)
 
     def next_element(self) -> bool:
+        self.dispatch_event("on_next_element", self)
         if self.state_machine.size() > 1:
             self.position = (self.position + 1) % self.state_machine.size()
             self.set_state()
@@ -45,6 +47,7 @@ class Screen(State):
         return EVENT_UNHANDLED
 
     def previous_element(self) -> bool:
+        self.dispatch_event("on_previous_element", self)
         if self.state_machine.size() > 1:
             self.position = (self.position - 1) % self.state_machine.size()
             self.set_state()
@@ -72,3 +75,7 @@ class Screen(State):
     @caption.setter
     def caption(self, caption: str) -> None:
         self.parent.caption = caption
+
+Screen.register_event_type("on_next_element")
+Screen.register_event_type("on_previous_element")
+Screen.register_event_type("on_close")

@@ -11,11 +11,11 @@ T = TypeVar("T")
 
 class Element(Generic[T], State, EventDispatcher):
 
-    def __init__(self, parent: State, title: str, value: T, type: str, use_key_handler: bool = True) -> None:
+    def __init__(self, parent: State, label: str, role: str, value: T, use_key_handler: bool = True) -> None:
         self.parent: State = parent
-        self.title: str = title
+        self.label: str = label
+        self.role: str = role
         self._value: T = value
-        self.type: str = type
         self.use_key_handler: bool = use_key_handler
         self.change_state: Callable[[str, any], None] = None
 
@@ -30,11 +30,15 @@ class Element(Generic[T], State, EventDispatcher):
     def value(self, value) -> None:
         self._value = value
 
+    @property
+    def name(self) -> str:
+        return f"{self.label} {self.role}"
+
     def setup(self, change_state: Callable[[str, any], None], interrupt_speech=False) -> bool:
         self.change_state = change_state
 
-        if self.title:
-            speech_manager.output(self.title + " " + self.type, interrupt=interrupt_speech, log_message=False)
+        if self.label:
+            speech_manager.output(self.name, interrupt=interrupt_speech, log_message=False)
 
         if self.use_key_handler:
             self.push_window_handlers(self.key_handler)

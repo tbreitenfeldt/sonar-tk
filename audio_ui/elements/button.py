@@ -9,8 +9,8 @@ from audio_ui.utils import speech_manager
 
 class Button(Element[str]):
 
-    def __init__(self, parent: State, title: str) -> None:
-        super().__init__(parent=parent, title=title, value=title, type="button")
+    def __init__(self, parent: State, label: str) -> None:
+        super().__init__(parent=parent, label=label, value=label, role="button")
         self.bind_keys()
 
     def bind_keys(self) -> None:

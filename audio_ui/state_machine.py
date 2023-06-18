@@ -41,6 +41,9 @@ class StateMachine:
     def size(self) -> int:
         return len(self.states)
 
+    def is_empty(self) -> bool:
+        return self.size() == 0
+
     def change(self, key: str, *args: any, **kwargs: any) -> None:
         if self.current_state.exit():
             next_state: State = self.states[key]

@@ -6,6 +6,18 @@ to enforce they are not to be imported from the outside world.
 
 from typing import List
 import platform 
+import os
+import shutil
+import sys
+
+
+# For accessible_output2, to handle cases when occasionally error is thrown due to genpy temp folder not getting removed.
+try:
+    genpy_path = os.path.join(os.environ["temp"], "gen_py")
+    if getattr(sys, "frozen", True) and os.path.isdir(genpy_path):
+        shutil.rmtree(genpy_path)
+except:
+    pass
 
 from accessible_output2.outputs.auto import Auto
 from accessible_output2.outputs.base import Output

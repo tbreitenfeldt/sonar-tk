@@ -9,8 +9,8 @@ from audio_ui.utils import speech_manager
 
 class ToggleButton(Element[str]):
 
-    def __init__(self, parent: State, title: str = "", position: int = 0, items: List[str] = []) -> None:
-        super().__init__(parent=parent, title=title, value="", type="toggle")
+    def __init__(self, parent: State, label: str = "", position: int = 0, items: List[str] = []) -> None:
+        super().__init__(parent=parent, label=label, value="", role="toggle")
         self.items: List[str] = items
         self.position: int = position
         self.default_position: int = position

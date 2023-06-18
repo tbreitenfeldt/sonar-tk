@@ -28,9 +28,9 @@ class ExampleWindow:
         self.menu_bar: MenuBar = self.create_menu_bar(self.container)
         self.save_dialog: Dialog = self.create_save_dialog(self.container)
         self.open_dialog: Dialog = self.create_open_dialog(self.save_dialog)
-        self.open_dialog_button: Element = Button(self.container, title="Open Dialog 1")
-        self.checkbox: Element = Checkbox(self.container, title="Update")
-        self.open_newwindow_button: Element = Button(self.container, title="Open a New Window") 
+        self.open_dialog_button: Element = Button(self.container, label="Open Dialog 1")
+        self.checkbox: Element = Checkbox(self.container, label="Update")
+        self.open_newwindow_button: Element = Button(self.container, label="Open a New Window") 
 
         self.open_dialog_button.push_handlers(on_submit = lambda b: self.save_dialog.open_dialog(caption="Save"))
         self.checkbox.push_handlers(on_checked = lambda c: speech_manager.output("Updated Item", interrupt=False))
@@ -39,10 +39,10 @@ class ExampleWindow:
         self.container.add("open_dialog_button", self.open_dialog_button)
         self.container.add("checkbox", self.checkbox)
         self.container.add("open_newwindow_button", self.open_newwindow_button)
-        self.container.add("menu", Menu(self.container, title="Main", items=[{"start": "Start"}, {"options": "Options"}]))
-        self.container.add("menu2", Menu(self.container, title="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
-        self.container.add("text_box", TextBox(self.container, title="Age", allowed_chars="0123456789"))
-        self.container.add("toggle_button", ToggleButton(self.container, title="Update", items=["On", "Off"]))
+        self.container.add("menu", Menu(self.container, label="Main", items=[{"start": "Start"}, {"options": "Options"}]))
+        self.container.add("menu2", Menu(self.container, label="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
+        self.container.add("text_box", TextBox(self.container, label="Age", allowed_chars="0123456789"))
+        self.container.add("toggle_button", ToggleButton(self.container, label="Update", items=["On", "Off"]))
 
         self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.LALT)
         self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.RALT)
@@ -71,11 +71,11 @@ class ExampleWindow:
 
     def create_menu_bar(self, parent) -> Menu:
         menu_bar: MenuBar = MenuBar(parent)
-        file_menu: Menu = Menu(parent=menu_bar, title="File", items=[{"open": "Open"}, {"save": "Save"}, {"exit": "Exit"}])
+        file_menu: Menu = Menu(parent=menu_bar, label="File", items=[{"open": "Open"}, {"save": "Save"}, {"exit": "Exit"}])
         menu_bar.add_menu("file_menu", file_menu)
-        edit_menu: Menu = Menu(parent=menu_bar, title="Edit", items=[{"copy": "Copy"}, {"cut": "Cut"}, {"paste": "Paste"}])
+        edit_menu: Menu = Menu(parent=menu_bar, label="Edit", items=[{"copy": "Copy"}, {"cut": "Cut"}, {"paste": "Paste"}])
         menu_bar.add_menu("edit_menu", edit_menu)
-        help_menu: Menu = Menu(parent=menu_bar, title="Help", items=[{"get_help": "Get Help"}, {"about": "About..."}])
+        help_menu: Menu = Menu(parent=menu_bar, label="Help", items=[{"get_help": "Get Help"}, {"about": "About..."}])
         menu_bar.add_menu("help_menu", help_menu)
         return menu_bar
 
@@ -118,8 +118,8 @@ class ExampleWindow:
     def open_new_window(self, button: Button) -> None:
         window: Window = Window(escapable=True)
         container: ContainerScreen = ContainerScreen(window)
-        container.add("menu2", Menu(container, title="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
-        container.add("text_box", TextBox(container, title="Age", allowed_chars="0123456789"))
+        container.add("menu2", Menu(container, label="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
+        container.add("text_box", TextBox(container, label="Age", allowed_chars="0123456789"))
         window.add("container", container)
         window.open_window(caption="A new window")
 

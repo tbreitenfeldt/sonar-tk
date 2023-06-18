@@ -24,7 +24,7 @@ class Dialog(Screen):
 
     def open_dialog(self, caption: str) -> None:
         count: int = self.parent.state_machine.size() + 1
-        self.parent.add(f"dialog{count}", self)
+        self.parent.add(f"dialog-{caption}-{count}", self)
         self.original_caption = self.caption
         self.caption = caption + " Dialog"
         clock.schedule_once(lambda dt: self.parent.state_machine.change(self.state_key), 0.3)
@@ -39,7 +39,7 @@ class Dialog(Screen):
         return self.state_machine.update(delta_time)
 
     def exit(self) -> bool:
-        if self.state_machine.size() > 0:
+        if not self.state_machine.is_empty():
             self.state_machine.exit()
 
         self.pop_window_handlers()

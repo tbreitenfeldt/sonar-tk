@@ -13,11 +13,11 @@ from audio_ui.utils import KeyHandler
 class TextBox(Element):
 
     def __init__(
-        self, parent: State, title: str = "", default_value: str = "", hidden: bool = False,
+        self, parent: State, label: str = "", default_value: str = "", hidden: bool = False,
         allowed_chars: str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890!@#$%^&*()_+-=`~[]{}\;:\'\",<.>/?|",
         echo_characters: bool = True, echo_words: bool = True, disable_up_down_keys: bool = False, read_only: bool = False, text_box_size: int = 80,
     ) -> None:
-        super().__init__(parent=parent, title=title, value=default_value, type="edit")
+        super().__init__(parent=parent, label=label, value=default_value, role="edit")
         self.default_value: str = default_value
         self.input: List[str] = list(default_value)
         self.hidden: bool = hidden

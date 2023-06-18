@@ -69,15 +69,17 @@ class KeyHandler:
         self.registered_text_input: Callback = None
         self.registered_text_motions: Dict[Key, Callback] = {}
         self.key_held_down: Key = None
-        self.handled_key: bool = False
+        self.is_key_pressed: bool = False
 
     def on_key_press(self, symbol, modifiers) -> bool:
+        self.is_key_pressed = True
+
         if not self.key_held_down:
             pressed_key: Key = Key(symbol, [modifiers])
 
             if pressed_key in self.registered_key_presses:
                 callback, repeat_interval = self.registered_key_presses[pressed_key]
-                self.handled_key = callback.call()
+                handled_key = callback.call()
 
                 if repeat_interval > 0:
                     pyglet.clock.schedule_interval(callback.call, repeat_interval)
@@ -86,28 +88,27 @@ class KeyHandler:
                     pyglet.clock.schedule_interval(callback.call, self.repeat_interval)
                     self.key_held_down = pressed_key
 
-                return self.handled_key
+                return handled_key
 
         return EVENT_UNHANDLED
 
     def on_key_release(self, symbol, modifiers) -> bool:
-        released_key: Key = Key(symbol, [modifiers])
+        if self.is_key_pressed:
+            self.is_key_pressed = False
+            released_key: Key = Key(symbol, [modifiers])
 
-        if released_key in self.registered_key_presses:
-            self.handled_key = False
-        if self.key_held_down and self.key_held_down == released_key:
-            callback, repeat_interval = self.registered_key_presses[released_key]
-            pyglet.clock.unschedule(callback.call)
-            self.key_held_down = None
-
-        if released_key in self.registered_key_releases:
-            callback: Callback = self.registered_key_releases[released_key]
-            return callback.call()
+            if self.key_held_down and self.key_held_down == released_key:
+                callback, repeat_interval = self.registered_key_presses[released_key]
+                pyglet.clock.unschedule(callback.call)
+                self.key_held_down = None
+            if released_key in self.registered_key_releases:
+                callback: Callback = self.registered_key_releases[released_key]
+                return callback.call()
 
         return EVENT_UNHANDLED
 
     def on_text(self, text: str) -> bool:
-        if not self.handled_key and self.registered_text_input:
+        if self.registered_text_input:
             self.registered_text_input.internal_args.append(text)
             return self.registered_text_input.call()
 

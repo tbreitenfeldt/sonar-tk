@@ -14,7 +14,7 @@ from audio_ui.utils import speech_manager
 class MenuBarItem(Element[str]):
 
     def __init__(self, parent: MenuBar, menu: Menu) -> None:
-        super().__init__(parent=parent, title=menu.title, value="", type="submenu", use_key_handler=False)
+        super().__init__(parent=parent, label=menu.label, value="", role="submenu", use_key_handler=False)
         self.menu: Menu = menu
         self.is_expanded: bool = False
 
@@ -39,7 +39,7 @@ class MenuBarItem(Element[str]):
 class MenuBar(Element[MenuBarItem]):
 
     def __init__(self, parent: State) -> None:
-        super().__init__(parent, title="Menu", type="bar", value=None)
+        super().__init__(parent, label="Menu", role="bar", value=None)
         self.is_open: bool = False
         self.is_expanded: bool = False
         self.position: int  = 0

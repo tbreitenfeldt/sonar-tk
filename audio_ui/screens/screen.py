@@ -76,6 +76,11 @@ class Screen(State, EventDispatcher):
     def caption(self, caption: str) -> None:
         self.parent.caption = caption
 
+    @property
+    def active_element(self) -> State:
+        return self.state_machine.current_state
+
 Screen.register_event_type("on_next_element")
 Screen.register_event_type("on_previous_element")
 Screen.register_event_type("on_close")
+

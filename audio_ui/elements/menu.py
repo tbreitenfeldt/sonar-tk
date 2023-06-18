@@ -14,10 +14,10 @@ from audio_ui.utils import KeyHandler
 class Menu(Element[str]):
 
     def __init__(
-        self, parent: State, title: str = "", items: List[Dict[str, Union[Element, str]]] = [], position: int = 0, has_border: bool = False, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
+        self, parent: State, label: str = "", items: List[Dict[str, Union[Element, str]]] = [], position: int = 0, has_border: bool = False, is_first_letter_navigation: bool = True, is_side_menu: bool = False,
         reset_position_on_focus: bool = True
     ) -> None:
-        super().__init__(parent=parent, title=title, value="", type="menu")
+        super().__init__(parent=parent, label=label, value="", role="menu")
 
         self.has_border: bool = has_border
         self.is_first_letter_navigation: bool = is_first_letter_navigation  

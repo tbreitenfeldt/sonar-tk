@@ -9,20 +9,19 @@ from audio_ui.utils import speech_manager
 
 class Checkbox(Element[bool]):
 
-    def __init__(self, parent: State, title: str = "", value: bool = False) -> None:
-        super().__init__(parent=parent, title=title, value=value, type="checkbox")
+    def __init__(self, parent: State, label: str = "", value: bool = False) -> None:
+        super().__init__(parent=parent, label=label, value=value, role="checkbox")
         self.default_value: bool = value
         self.bind_keys()
+
+    @property
+    def name(self) -> str:
+        output_value: str = "Checked" if self.value  else "Unchecked"
+        return f"{self.label} {self.role} {output_value}"
 
     def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.toggle_state, key.RETURN)
         self.key_handler.add_key_press(self.toggle_state, key.SPACE)
-
-    def setup(self, change_state: Callable[[str, any], None], interrupt_speech: str = True) -> bool:
-        super().setup(change_state, interrupt_speech)
-        output_value: str = "Checked" if self.value  else "Unchecked"
-        speech_manager.output(output_value, interrupt=False, log_message=False)
-        return True
 
     def toggle_state(self) -> bool:
         self.value = not self.value

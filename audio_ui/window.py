@@ -19,6 +19,7 @@ class Window:
         self.key_handler: KeyHandler = KeyHandler()
         self._caption: str = caption
         self.pyglet_window: pyglet.window.Window = None
+        self.is_open: bool = False
         self.bind_keys()
 
     def bind_keys(self) -> None:
@@ -34,27 +35,46 @@ class Window:
         if self._caption == "" or self._caption is None:
             raise ValueError("No caption was set for the window")
 
-        self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=self._caption)
+        self.pyglet_window = pyglet.window.Window(width, height, resizable=resizable, fullscreen=fullscreen, caption=self._caption, visible=False)
+        pyglet.clock.schedule_interval(self.update, 0.01)
+        self.push_window_handlers(self.key_handler, on_activate=self.on_window_activate)
+        self.setup()
+        self.pyglet_window.set_visible()
+        pyglet.app.run()
+
+    def on_window_activate(self) -> bool:
+        if self.is_open:
+            if hasattr(self.state_machine.current_state, "active_element"):
+                screen: Screen = self.state_machine.current_state
+                element: State = screen.active_element
+
+                while element is not None and hasattr(element, "active_element"):
+                    element = element.active_element
+
+                if element is not None and hasattr(element, "name"):
+                    pyglet.clock.schedule_once(lambda dt: speech_manager.output(element.name, interrupt=False, log_message=False), 0.4)
+
+            return EVENT_HANDLED
+
+        self.is_open = True
+        return EVENT_UNHANDLED
+
+    def setup(self) -> None:
+        def _setup() -> None:
+            speech_manager.output(self._caption, interrupt=True, log_message=False)
+            self.set_state()
 
         # Run a series of scheduled jobs to guess at when the screen reader needs to be silenced before start up. All of these calls are needed to account for operating system varients in scheduling.
         # This is to fix a small bug where NVDA attempts to read the name of the executing file and gets interrupted by the caption that is set.
         # The caption in this case wil also hopefully be silenced to duplicate JAWS behavior, so that speaking the title of the window is the responsibility of the application.
+        speech_manager.silence()
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.001)
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.01)
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.05)
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.1)
+        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.15)
         pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.2)
-        pyglet.clock.schedule_once(lambda dt: speech_manager.silence(), 0.3)
-
-        pyglet.clock.schedule_once(lambda dt: self.setup(), 0.4)
-        pyglet.clock.schedule_interval(self.update, 0.01)
-        self.push_window_handlers(self.key_handler)
-        pyglet.app.run()
-
-    def setup(self) -> None:
-        speech_manager.output(self._caption, interrupt=True, log_message=False)
-        if self.state_machine.size() > 0:
-            first_state_key: str = next(iter(self.state_machine.states))
-            self.state_machine.change(first_state_key)
+        pyglet.clock.schedule_once(lambda dt: _setup(), 0.25)
 
     def update(self, delta_time: float) -> None:
         self.state_machine.update(delta_time)
@@ -68,17 +88,25 @@ class Window:
     def change(self, key: str, *args: any, **kwargs: any) -> None:
         self.state_machine.change(key, *args, **kwargs)
 
-    def push_window_handlers(self, handler: KeyHandler) -> None:
-        self.pyglet_window.push_handlers(handler)
+    def push_window_handlers(self, *args, **kwargs) -> None:
+        self.pyglet_window.push_handlers(*args, **kwargs)
 
     def pop_window_handlers(self) -> None:
         if len(self.pyglet_window._event_stack) > 0:
             self.pyglet_window.pop_handlers()
 
     def close(self) -> bool:
+        while len(self.pyglet_window._event_stack) > 0:
+            self.pop_window_handlers()
+
         self.state_machine.clear()
         self.pyglet_window.close()
+        del self.pyglet_window
         return EVENT_HANDLED
+
+    def set_state(self, interrupt_speech: bool = True) -> None:
+        state_key: str =  list(self.state_machine.states)[self.position]
+        self.state_machine.change(state_key, interrupt_speech)
 
     @property
     def caption(self) -> str:

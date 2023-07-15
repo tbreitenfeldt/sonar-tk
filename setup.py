@@ -6,7 +6,7 @@ long_description = (here / 'readme.md').read_text(encoding='utf-8')
 
 setup(
     name='audio_ui', 
-    version='1.0',
+    version='0.1.1',
     description='A library for creating screen reader only user interfaces using Pyglet.',
     url='https://github.com/tbreitenfeldt/audio_ui',
     author='Timothy Breitenfeldt',
@@ -17,12 +17,12 @@ setup(
         'Topic :: Software Development :: Build Tools',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9'
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11'
     ],
     keywords='development, accessibility, screen reader, audio, UI',
-    package_dir={'': 'src'},
-    packages=find_packages(where='src'),  # Required
+    package_dir={'': 'audio_ui'},
+    packages=find_packages(where='audio_ui'),  # Required
     python_requires='>=3.10',
     install_requires=['accessible_output2', 'pyglet', 'pyperclip'],
     project_urls={  # Optional

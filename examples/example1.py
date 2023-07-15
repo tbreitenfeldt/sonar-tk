@@ -30,7 +30,8 @@ class ExampleWindow:
         self.open_dialog: Dialog = self.create_open_dialog(self.save_dialog)
         self.open_dialog_button: Element = Button(self.container, label="Open Dialog 1")
         self.checkbox: Element = Checkbox(self.container, label="Update")
-        self.open_newwindow_button: Element = Button(self.container, label="Open a New Window") 
+        self.open_newwindow_button: Element = Button(self.container, label="Open a New Window")
+        self.grid: Grid = Grid(self.container, "Test",rows=10, columns=10)
 
         self.open_dialog_button.push_handlers(on_submit = lambda b: self.save_dialog.open_dialog(caption="Save"))
         self.checkbox.push_handlers(on_checked = lambda c: speech_manager.output("Updated Item", interrupt=False))
@@ -43,6 +44,7 @@ class ExampleWindow:
         self.container.add("menu2", Menu(self.container, label="Options", has_border=True, reset_position_on_focus=False, items=[{"option1": "Option 1"}, {"option2": "Option 2"}, {"option3": "Option 3"}, {"option4": "Option 4"}]))
         self.container.add("text_box", TextBox(self.container, label="Age", allowed_chars="0123456789"))
         self.container.add("toggle_button", ToggleButton(self.container, label="Update", items=["On", "Off"]))
+        self.container.add("grid", self.grid)
 
         self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.LALT)
         self.container.key_handler.add_key_release(self.menu_bar.open_menu_bar, key=key.RALT)

@@ -3,22 +3,20 @@ import time
 import sys
 import os
 
-# Only used to insure that the audio_ui library is added to the path, not necessary if installed through pip
-path = os.getcwd()
-if os.path.basename(path) == "examples":
-    path = os.path.dirname(path)
-
-sys.path.append(path)
-
 from pyglet.window import key
 from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 
-from audio_ui.window import Window
-from audio_ui.screens import ContainerScreen
-from audio_ui.screens import Dialog
-from audio_ui.utils import Key
-from audio_ui.utils import speech_manager
-from audio_ui.elements import *
+sys.path.insert(0, "..")
+
+try:
+    from audio_ui.window import Window
+    from audio_ui.screens import ContainerScreen
+    from audio_ui.screens import Dialog
+    from audio_ui.utils import Key
+    from audio_ui.utils import speech_manager
+    from audio_ui.elements import Element, Button, Checkbox, TextBox, Menu, MenuBar, ToggleButton, Grid
+except Exception:
+    raise
 
 
 class ExampleWindow:

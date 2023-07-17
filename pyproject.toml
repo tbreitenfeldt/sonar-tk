@@ -10,7 +10,7 @@ authors = [
 readme = "README.md"
 version = "0.1.2"
 description = "A library for creating screen reader only user interfaces using Pyglet."
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["development", "accessibility", "screen reader", "audio UI"]
 license = {file = "LICENSE"}
 classifiers = [
@@ -30,10 +30,11 @@ test = [
     "pytest-mock",
     "pytest-cov",
 ]
-lint = [
+dev = [
     "flake8",
-    "Flake8-pyproject",
     "black",
+    "isort",
+    "pre-commit",
 ]
 
 [project.urls]
@@ -41,6 +42,7 @@ repository = "https://github.com/tbreitenfeldt/audio_ui"
 bugtracker = "https://github.com/tbreitenfeldt/audio_ui/issues"
 
 [tool.black]
+target-version = ['py311']
 line-length = 79
 include = "\\.pyi?$"
 exclude = """
@@ -57,8 +59,6 @@ exclude = """
 )/
 """
 
-[tool.flake8]
-ignore = ["E203", "E266", "E501", "W503", "F403", "F401"]
-max-line-length = 79
-max-complexity = 18
-select = ["B", "C", "E", "F", "W", "T4", "B9"]
+[tool.isort]
+profile = "black"
+multi_line_output = 3

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable
+from typing import Any, Callable
 
 
 class State(ABC):
@@ -8,7 +8,10 @@ class State(ABC):
 
     @abstractmethod
     def setup(
-        self, change_state: Callable[[str, any], None], *args, **kwargs
+        self,
+        change_state: Callable[[str, Any], None],
+        *args: Any,
+        **kwargs: Any,
     ) -> bool:
         """This method is called once when the state changes to initialize the  state before the state starts running. False is returned if this state can not be entered."""
 

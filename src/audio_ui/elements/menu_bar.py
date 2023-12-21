@@ -1,11 +1,27 @@
 from __future__ import annotations
-from typing import Dict, Callable, List, Union
 
-from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+    cast,
+)
+
 from pyglet.window import key
 
-from audio_ui.elements import Element, Menu
-from audio_ui.utils import StateMachine, EmptyState, State, speech_manager, KeyHandler, Key
+from audio_ui.elements.element import Element
+from audio_ui.elements.menu import Menu
+from audio_ui.utils.state_machine import EmptyState, StateMachine
+from audio_ui.utils.state import State
+from audio_ui.utils.key_handler import Key, KeyHandler
+from audio_ui.utils import speech_manager
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class MenuBarItem(Element[str]):
@@ -20,8 +36,11 @@ class MenuBarItem(Element[str]):
         self.menu: Menu = menu
         self.is_expanded: bool = False
 
-    def setup(
-        self, change_state: Callable[[str, any], None], interrupt_speech=False
+    # override
+    def setup(  # type: ignore[override]
+        self,
+        change_state: Callable[[str, Any], None],
+        interrupt_speech: bool = False,
     ) -> bool:
         if self.is_expanded:
             self.menu.setup(change_state)
@@ -30,18 +49,20 @@ class MenuBarItem(Element[str]):
 
         return True
 
-    def exit(self):
+    # override
+    def exit(self) -> bool:
         if self.is_expanded:
             self.menu.exit()
 
         return super().exit()
 
+    # override
     def reset(self) -> None:
         self.is_expanded = False
 
 
 class MenuBar(Element[MenuBarItem]):
-    def __init__(self, parent: State) -> None:
+    def __init__(self, parent: Screen) -> None:
         super().__init__(parent, label="Menu", role="bar", value=None)
         self.is_open: bool = False
         self.is_expanded: bool = False
@@ -56,7 +77,10 @@ class MenuBar(Element[MenuBarItem]):
         self.key_handler.add_key_press(self.previous_menu, key.LEFT)
         self.key_handler.add_key_press(self.close, key.ESCAPE)
 
-    def setup(self, change_state: Callable[[str, any], None]) -> bool:
+    # override
+    def setup(  # type: ignore[override]
+        self, change_state: Callable[[str, Any], None]
+    ) -> bool:
         super().setup(change_state)
         state_key: str = list(self.state_machine.states)[self.position]
         self.state_machine.current_state = self.state_machine.states[state_key]
@@ -65,6 +89,7 @@ class MenuBar(Element[MenuBarItem]):
         )
         return True
 
+    # override
     def exit(self) -> bool:
         if self.is_open:
             self.is_open = False
@@ -77,6 +102,7 @@ class MenuBar(Element[MenuBarItem]):
 
         return True
 
+    # override
     def reset(self) -> None:
         self.is_open = False
         self.collapse_menus()
@@ -88,11 +114,11 @@ class MenuBar(Element[MenuBarItem]):
             self.parent.state_machine.current_state.exit()
             self.parent.state_machine.current_state = self
             self.setup(self.parent.state_machine.change)
-            return EVENT_HANDLED
+            return True
 
-        return EVENT_UNHANDLED
+        return False
 
-    def open_menu(self, key: str = None) -> bool:
+    def open_menu(self, key: Optional[str] = None) -> bool:
         # if key is None, use the current position
         if key is not None:
             index: int = list(self.state_machine.states.keys()).index(key)
@@ -112,33 +138,35 @@ class MenuBar(Element[MenuBarItem]):
             ]
             self.state_machine.current_state.setup(self.change_state)
 
-        return EVENT_HANDLED
+        return True
 
     def expand_menus(self) -> None:
         if not self.is_expanded:
             self.dispatch_event("on_expanded", self)
             self.is_expanded = True
-            for menu in self.state_machine.states.values():
+            for state in self.state_machine.states.values():
+                menu: Menu = cast(Menu, state)
                 menu.is_expanded = True
 
     def collapse_menus(self) -> None:
         if self.is_expanded:
             self.dispatch_event("on_collapsed", self)
             self.is_expanded = False
-            for menu in self.state_machine.states.values():
+            for state in self.state_machine.states.values():
+                menu: Menu = cast(Menu, state)
                 menu.is_expanded = False
 
     def next_menu(self) -> bool:
         self.dispatch_event("on_next_menu", self)
         self.position = (self.position + 1) % self.state_machine.size()
         self.set_state()
-        return EVENT_HANDLED
+        return True
 
     def previous_menu(self) -> bool:
         self.dispatch_event("on_previous_menu", self)
         self.position = (self.position - 1) % self.state_machine.size()
         self.set_state()
-        return EVENT_HANDLED
+        return True
 
     def add_menu(self, key: str, menu: Menu) -> MenuBarItem:
         item: MenuBarItem = MenuBarItem(self, menu)

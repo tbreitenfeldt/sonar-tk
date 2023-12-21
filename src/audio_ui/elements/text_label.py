@@ -1,9 +1,15 @@
-from audio_ui.elements import Element
-from audio_ui.utils import State
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from audio_ui.elements.element import Element
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class TextLabel(Element[str]):
-    def __init__(self, parent: State, label: str) -> None:
+    def __init__(self, parent: Screen, label: str) -> None:
         super().__init__(
             parent=parent,
             label=label,
@@ -12,8 +18,10 @@ class TextLabel(Element[str]):
             use_key_handler=False,
         )
 
+    # override
     def reset(self) -> None:
         pass
 
-    def __repr__(self):
+    # override
+    def __repr__(self) -> str:
         return self.label

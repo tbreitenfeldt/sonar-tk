@@ -4,12 +4,11 @@ Implementing a true singalton class in python is challenging and often not very 
 to enforce they are not to be imported from the outside world.
 """
 
-from typing import List
-import platform
 import os
+import platform
 import shutil
 import sys
-
+from typing import List, Optional
 
 # For accessible_output2, to handle cases when occasionally error is thrown due to genpy temp folder not getting removed.
 try:
@@ -23,8 +22,8 @@ from accessible_output2.outputs.auto import Auto
 from accessible_output2.outputs.base import Output
 
 if platform.system() == "Windows":
-    from accessible_output2.outputs.nvda import NVDA
     from accessible_output2.outputs.jaws import Jaws
+    from accessible_output2.outputs.nvda import NVDA
     from accessible_output2.outputs.sapi5 import SAPI5
 elif platform.system() == "Darwin":
     from accessible_output2.outputs.voiceover import VoiceOver
@@ -99,7 +98,7 @@ def clear_history() -> None:
     _history_position = 0
 
 
-def pop_last_message() -> str:
+def pop_last_message() -> Optional[str]:
     global _speech_history
     global _history_position
 
@@ -122,7 +121,7 @@ def trim_old_history(message_count: int) -> None:
             del _speech_history[0]
 
 
-def next_history() -> str:
+def next_history() -> Optional[str]:
     global _speech_history
     global _history_position
 
@@ -136,7 +135,7 @@ def next_history() -> str:
     return _speech_history[_history_position]
 
 
-def previous_history() -> str:
+def previous_history() -> Optional[str]:
     global _speech_history
     global _history_position
 
@@ -150,7 +149,7 @@ def previous_history() -> str:
     return _speech_history[_history_position]
 
 
-def navigate_to_end_of_history() -> str:
+def navigate_to_end_of_history() -> Optional[str]:
     global _speech_history
     global _history_position
 
@@ -161,7 +160,7 @@ def navigate_to_end_of_history() -> str:
     return _speech_history[_history_position]
 
 
-def navigate_to_beginning_of_history() -> str:
+def navigate_to_beginning_of_history() -> Optional[str]:
     global _speech_history
     global _history_position
 

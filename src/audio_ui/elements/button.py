@@ -1,14 +1,18 @@
-from typing import Callable, List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, List
 
 from pyglet.window import key
-from pyglet.event import EVENT_HANDLED
 
-from audio_ui.utils import State, speech_manager
-from audio_ui.elements import Element
+from audio_ui.elements.element import Element
+from audio_ui.utils import speech_manager
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class Button(Element[str]):
-    def __init__(self, parent: State, label: str) -> None:
+    def __init__(self, parent: Element | Screen, label: str) -> None:
         super().__init__(
             parent=parent, label=label, value=label, role="button"
         )
@@ -20,8 +24,9 @@ class Button(Element[str]):
 
     def submit(self) -> bool:
         self.dispatch_event("on_submit", self)
-        return EVENT_HANDLED
+        return True
 
+    # override
     def reset(self) -> None:
         pass
 

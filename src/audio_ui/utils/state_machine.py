@@ -1,17 +1,23 @@
-from typing import Dict, Callable
+from typing import Any, Callable, Dict, Optional
 
 from .state import State
 
 
 class EmptyState(State):
+    # override
     def setup(
-        self, change_state: Callable[[str, any], None], *args, **kwargs
+        self,
+        change_state: Callable[[str, Any], None],
+        *args: Any,
+        **kwargs: Any,
     ) -> bool:
         return True
 
+    # override
     def update(self, delta_time: float) -> bool:
         return True
 
+    # override
     def exit(self) -> bool:
         return True
 
@@ -28,7 +34,7 @@ class StateMachine:
         state.state_key = key
         self.states[key] = state
 
-    def remove(self, key: str) -> State:
+    def remove(self, key: str) -> Optional[State]:
         if key in self.states:
             item: State = self.states[key]
             del self.states[key]
@@ -45,13 +51,13 @@ class StateMachine:
     def is_empty(self) -> bool:
         return self.size() == 0
 
-    def change(self, key: str, *args: any, **kwargs: any) -> None:
+    def change(self, key: str, *args: Any, **kwargs: Any) -> None:
         if self.current_state.exit():
             next_state: State = self.states[key]
             if next_state.setup(self.change, *args, **kwargs):
                 self.current_state = next_state
 
-    def setup(self, *args, **kwargs) -> bool:
+    def setup(self, *args: Any, **kwargs: Any) -> bool:
         return self.current_state.setup(self.change, *args, **kwargs)
 
     def update(self, delta_time: float) -> bool:

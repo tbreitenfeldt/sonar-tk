@@ -1,18 +1,23 @@
-from typing import List, Callable
+from __future__ import annotations
+
 import re
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
-from pyglet.window import key
-from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 import pyperclip
+from pyglet.window import key
 
-from audio_ui.utils import State, speech_manager, KeyHandler
-from audio_ui.elements import Element
+from audio_ui.elements.element import Element
+from audio_ui.utils.key_handler import KeyHandler
+from audio_ui.utils import speech_manager
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class TextBox(Element):
     def __init__(
         self,
-        parent: State,
+        parent: Screen,
         label: str = "",
         default_value: str = "",
         hidden: bool = False,
@@ -94,17 +99,20 @@ class TextBox(Element):
             )
             self.key_handler.add_on_text_input(self.type_character)
 
+    # override
     @property
-    def value(self) -> str:
+    def value(self) -> Optional[str]:
         return self.get_value()
 
+    # override
     @value.setter
     def value(self, value: str) -> None:
         self.input = list(value)
 
-    def setup(
+    # override
+    def setup(  # type: ignore[override]
         self,
-        change_state: Callable[[str, any], None],
+        change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
         super().setup(change_state, interrupt_speech)
@@ -118,6 +126,7 @@ class TextBox(Element):
         return True
 
     def delete_previous_character(self) -> bool:
+        output_value: str = ""
         if self.input:
             if self.is_selected():
                 self.delete_selection()
@@ -127,7 +136,7 @@ class TextBox(Element):
                         "blank", interrupt=True, log_message=False
                     )
                 else:
-                    output_value: str = self.input[self.position - 1]
+                    output_value = self.input[self.position - 1]
                     if output_value == " ":
                         output_value = "space"
                     speech_manager.output(
@@ -135,7 +144,7 @@ class TextBox(Element):
                     )
 
             elif self.position > 0:
-                output_value: str = self.input[self.position - 1]
+                output_value = self.input[self.position - 1]
 
                 if self.hidden:
                     output_value = "star"
@@ -152,9 +161,10 @@ class TextBox(Element):
         else:
             speech_manager.output("Blank", interrupt=True, log_message=False)
 
-        return EVENT_HANDLED
+        return True
 
     def delete_next_character(self) -> bool:
+        output_value: str = ""
         if self.input:
             if self.is_selected():
                 self.delete_selection()
@@ -164,7 +174,7 @@ class TextBox(Element):
                         "blank", interrupt=True, log_message=False
                     )
                 else:
-                    output_value: str = self.input[self.position]
+                    output_value = self.input[self.position]
                     if output_value == " ":
                         output_value = "space"
                     speech_manager.output(
@@ -172,7 +182,7 @@ class TextBox(Element):
                     )
 
             elif self.position + 1 <= len(self.input) - 1:
-                output_value: str = self.input[self.position + 1]
+                output_value = self.input[self.position + 1]
 
                 if self.hidden:
                     output_value = "star"
@@ -197,7 +207,7 @@ class TextBox(Element):
         else:
             speech_manager.output("Blank", interrupt=True, log_message=False)
 
-        return EVENT_HANDLED
+        return True
 
     def output_value(self) -> bool:
         if not self.hidden:
@@ -209,11 +219,11 @@ class TextBox(Element):
                 "star" * len(self.input), interrupt=True, log_message=False
             )
 
-        return EVENT_HANDLED
+        return True
 
     def next_word(self) -> bool:
         value: str = "".join(self.input)
-        index: str = 0
+        index: int = 0
         word: str = ""
 
         try:
@@ -244,11 +254,11 @@ class TextBox(Element):
         speech_manager.output(word, interrupt=True, log_message=False)
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def previous_word(self) -> bool:
         value: str = "".join(self.input)
-        index: str = 0
+        index: int = 0
         word: str = ""
 
         if self.position > 0:
@@ -278,7 +288,7 @@ class TextBox(Element):
         speech_manager.output(word, interrupt=True, log_message=False)
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def next_character(self) -> bool:
         if (
@@ -313,7 +323,7 @@ class TextBox(Element):
                     )
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def previous_character(self) -> bool:
         if (
@@ -359,7 +369,7 @@ class TextBox(Element):
                     )
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def move_letter_selection_right(self) -> bool:
         selection_text: str = "Selected"
@@ -392,7 +402,7 @@ class TextBox(Element):
             self.position += 1
             self.set_right_selection(previous_position, self.position)
 
-        return EVENT_HANDLED
+        return True
 
     def move_letter_selection_left(self) -> bool:
         selection_text: str = "Selected"
@@ -426,11 +436,11 @@ class TextBox(Element):
 
             self.set_left_selection(self.position, previous_position)
 
-        return EVENT_HANDLED
+        return True
 
     def move_word_selection_right(self) -> bool:
         value: str = self.get_value()
-        index: str = 0
+        index: int = 0
         word: str = ""
         selection_text: str = "Selected"
         previous_position: int = self.position
@@ -460,11 +470,11 @@ class TextBox(Element):
             )
             self.set_right_selection(previous_position, self.position)
 
-        return EVENT_HANDLED
+        return True
 
     def move_word_selection_left(self) -> bool:
         value: str = "".join(self.input)
-        index: str = 0
+        index: int = 0
         word: str = ""
         selection_text: str = "Selected"
         previous_position: int = self.position
@@ -496,7 +506,7 @@ class TextBox(Element):
             )
             self.set_left_selection(self.position, previous_position)
 
-        return EVENT_HANDLED
+        return True
 
     def select_all(self) -> bool:
         if (
@@ -514,11 +524,11 @@ class TextBox(Element):
                 log_message=False,
             )
 
-        return EVENT_HANDLED
+        return True
 
     def submit(self) -> bool:
         self.dispatch_event("on_submit", self)
-        return EVENT_HANDLED
+        return True
 
     def copy_to_clipboard(self) -> bool:
         if self.is_selected():
@@ -533,7 +543,7 @@ class TextBox(Element):
                 log_message=False,
             )
 
-        return EVENT_HANDLED
+        return True
 
     def paste_from_clipboard(self) -> bool:
         value: str = pyperclip.paste()
@@ -548,7 +558,7 @@ class TextBox(Element):
                 "Pasted " + value, interrupt=True, log_message=False
             )
 
-        return EVENT_HANDLED
+        return True
 
     def move_home(self) -> bool:
         self.position = 0
@@ -570,14 +580,14 @@ class TextBox(Element):
                 )
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def move_end(self) -> bool:
         self.position = len(self.input)
         speech_manager.output("blank", interrupt=True, log_message=False)
 
         self.clear_selection()
-        return EVENT_HANDLED
+        return True
 
     def type_character(self, character: str) -> bool:
         if character in self.allowed_chars:
@@ -622,9 +632,9 @@ class TextBox(Element):
                             output_value, interrupt=True, log_message=False
                         )
 
-            return EVENT_HANDLED
+            return True
 
-        return EVENT_UNHANDLED
+        return False
 
     def get_value(self) -> str:
         return "".join(self.input)
@@ -701,6 +711,7 @@ class TextBox(Element):
 
             self.clear_selection()
 
+    # override
     def reset(self) -> None:
         self.value = self.default_value
         self.input = list(self.default_value)

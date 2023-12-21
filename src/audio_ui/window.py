@@ -1,12 +1,17 @@
-import pyglet
-from pyglet.event import EVENT_UNHANDLED, EVENT_HANDLED
-from pyglet.window import key
-from accessible_output2.outputs.auto import Auto
+from typing import Any, Optional, cast
 
-from audio_ui.screens import Screen
-from audio_ui.utils import StateMachine, State, KeyHandler, speech_manager
+import pyglet
+from accessible_output2.outputs.auto import Auto
+from pyglet.window import key
+
+from audio_ui.screens.screen import Screen
+from audio_ui.utils.state import State
+from audio_ui.utils.state_machine import StateMachine
+from audio_ui.utils.key_handler import KeyHandler
+from audio_ui.utils import speech_manager
 
 pyglet.options["debug_gl"] = False
+pyglet.options["shadow_window"] = False
 
 
 class Window:
@@ -23,7 +28,7 @@ class Window:
     def bind_keys(self) -> None:
         if not self.escapable:
             self.key_handler.add_key_press(
-                lambda: EVENT_HANDLED, key.ESCAPE
+                lambda: True, key.ESCAPE
             )  # Remove pyglet default behavior of closing on escape
 
         self.key_handler.add_key_press(self.close, key.W, [key.MOD_CTRL])
@@ -61,7 +66,7 @@ class Window:
     def on_window_activate(self) -> bool:
         if self.is_open:
             if hasattr(self.state_machine.current_state, "active_element"):
-                screen: State = self.state_machine.current_state
+                screen: Screen = cast(Screen, self.state_machine.current_state)
                 element: State = screen.active_element
 
                 while element is not None and hasattr(
@@ -77,10 +82,10 @@ class Window:
                         0.25,
                     )
 
-            return EVENT_HANDLED
+            return True
 
         self.is_open = True
-        return EVENT_UNHANDLED
+        return False
 
     def setup(self) -> None:
         pyglet.clock.schedule_once(lambda dt: self.set_state(), 0.25)
@@ -91,13 +96,13 @@ class Window:
     def add(self, key: str, state: State) -> None:
         self.state_machine.add(key, state)
 
-    def remove(self, key: str) -> State:
+    def remove(self, key: str) -> Optional[State]:
         return self.state_machine.remove(key)
 
-    def change(self, key: str, *args: any, **kwargs: any) -> None:
+    def change(self, key: str, *args: Any, **kwargs: Any) -> None:
         self.state_machine.change(key, *args, **kwargs)
 
-    def push_window_handlers(self, *args, **kwargs) -> None:
+    def push_window_handlers(self, *args: Any, **kwargs: Any) -> None:
         self.pyglet_window.push_handlers(*args, **kwargs)
 
     def pop_window_handlers(self) -> None:
@@ -111,11 +116,12 @@ class Window:
         self.state_machine.clear()
         self.pyglet_window.close()
         del self.pyglet_window
-        return EVENT_HANDLED
+        return True
 
     def set_state(self, interrupt_speech: bool = True) -> None:
-        state_key: str = list(self.state_machine.states)[self.position]
-        self.state_machine.change(state_key, interrupt_speech)
+        if not self.state_machine.is_empty():
+            state_key: str = list(self.state_machine.states)[self.position]
+            self.state_machine.change(state_key, interrupt_speech)
 
     @property
     def caption(self) -> str:

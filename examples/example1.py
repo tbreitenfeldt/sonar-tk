@@ -1,16 +1,16 @@
 import os
 import sys
 import time
-from typing import Callable, List
+from typing import Any, Callable, List, Optional
 
-from pyglet.event import EVENT_HANDLED, EVENT_UNHANDLED
 from pyglet.window import key
 
 sys.path.insert(0, "../src")
 
 try:
-    from audio_ui.elements import (
+    from audio_ui.elements import (  # type: ignore
         Button,
+        Cell,
         Checkbox,
         Element,
         Grid,
@@ -19,9 +19,9 @@ try:
         TextBox,
         ToggleButton,
     )
-    from audio_ui.screens import ContainerScreen, Dialog
-    from audio_ui.utils import Key, speech_manager
-    from audio_ui.window import Window
+    from audio_ui.screens import ContainerScreen, Dialog  # type: ignore
+    from audio_ui.utils import Key, speech_manager  # type: ignore
+    from audio_ui.window import Window  # type: ignore
 except Exception:
     raise
 
@@ -40,7 +40,9 @@ class ExampleWindow:
         self.open_newwindow_button: Element = Button(
             self.container, label="Open a New Window"
         )
-        self.grid: Grid = Grid(self.container, "Test", rows=10, columns=10)
+        self.grid: Grid = Grid(
+            self.container, "Test", rows=10, columns=10, cell_class=Cell
+        )
 
         self.open_dialog_button.push_handlers(
             on_submit=lambda b: self.save_dialog.open_dialog(caption="Save")
@@ -125,13 +127,13 @@ class ExampleWindow:
         dialog.add("checkbox", Checkbox(dialog, "test"))
         return dialog
 
-    def create_open_dialog(self, container: ContainerScreen) -> Dialog:
+    def create_open_dialog(self, container: Dialog) -> Dialog:
         dialog = Dialog(container)
         dialog.add("open_button", Button(dialog, "Open"))
         dialog.add("checkbox", Checkbox(dialog, "Change Name"))
         return dialog
 
-    def create_menu_bar(self, parent) -> Menu:
+    def create_menu_bar(self, parent: ContainerScreen) -> Menu:
         menu_bar: MenuBar = MenuBar(parent)
         file_menu: Menu = Menu(
             parent=menu_bar,
@@ -154,7 +156,7 @@ class ExampleWindow:
         return menu_bar
 
     def onsubmit_file_menu(
-        self, change_state: Callable[[str, any], None], value: str
+        self, change_state: Callable[[str, Any], None], value: str
     ) -> None:
         if value == "open":
             speech_manager.output("Open Menu Item")
@@ -166,7 +168,7 @@ class ExampleWindow:
             self.main_window.close()
 
     def onsubmit_edit_menu(
-        self, change_state: Callable[[str, any], None], value: str
+        self, change_state: Callable[[str, Any], None], value: str
     ) -> None:
         if value == "copy":
             speech_manager.output("Copy Menu Item")
@@ -176,22 +178,22 @@ class ExampleWindow:
             speech_manager.output("Paste Menu Item")
 
     def next_speech_history(self) -> bool:
-        line: str = speech_manager.next_history()
+        line: Optional[str] = speech_manager.next_history()
 
         if line is not None:
             speech_manager.output(line, interrupt=True, log_message=False)
-            return EVENT_UNHANDLED
+            return False
 
-        return EVENT_HANDLED
+        return True
 
     def previous_speech_history(self) -> bool:
-        line: str = speech_manager.previous_history()
+        line: Optional[str] = speech_manager.previous_history()
 
         if line is not None:
             speech_manager.output(line, interrupt=True, log_message=False)
-        return EVENT_UNHANDLED
+        return False
 
-        return EVENT_HANDLED
+        return True
 
     def open_new_window(self, button: Button) -> None:
         window: Window = Window(escapable=True)

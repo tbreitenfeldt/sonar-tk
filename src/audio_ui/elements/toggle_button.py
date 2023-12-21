@@ -1,16 +1,20 @@
-from typing import Callable, List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Callable, List
 
 from pyglet.window import key
-from pyglet.event import EVENT_HANDLED
 
-from audio_ui.utils import State, speech_manager
-from audio_ui.elements import Element
+from audio_ui.elements.element import Element
+from audio_ui.utils import speech_manager
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class ToggleButton(Element[str]):
     def __init__(
         self,
-        parent: State,
+        parent: Screen,
         label: str = "",
         position: int = 0,
         items: List[str] = [],
@@ -25,9 +29,10 @@ class ToggleButton(Element[str]):
         self.key_handler.add_key_press(self.next, key.RETURN)
         self.key_handler.add_key_press(self.next, key.SPACE)
 
-    def setup(
+    # override
+    def setup(  # type: ignore[override]
         self,
-        change_state: Callable[[str, any], None],
+        change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
         super().setup(change_state, interrupt_speech)
@@ -41,11 +46,12 @@ class ToggleButton(Element[str]):
         self.value = self.items[self.position]
         speech_manager.output(self.value, interrupt=True, log_message=False)
         self.dispatch_event("on_change", self)
-        return EVENT_HANDLED
+        return True
 
     def add(self, item: str) -> None:
         self.items.append(item)
 
+    # override
     def reset(self) -> None:
         self.position = self.default_position
 

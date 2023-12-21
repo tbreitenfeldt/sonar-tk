@@ -1,17 +1,34 @@
-from typing import Dict, Callable, List, Union
+from __future__ import annotations
+
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Union,
+    cast,
+)
 
 import pyglet
 from pyglet.window import key
-from pyglet.event import EVENT_HANDLED
 
-from audio_ui.elements import Element, TextLabel
-from audio_ui.utils import StateMachine, EmptyState, State, speech_manager, KeyHandler
+from audio_ui.elements.element import Element
+from audio_ui.elements.text_label import TextLabel
+from audio_ui.utils.state import State
+from audio_ui.utils.state_machine import EmptyState, StateMachine
+from audio_ui.utils.key_handler import KeyHandler
+from audio_ui.utils import speech_manager
+
+if TYPE_CHECKING:
+    from audio_ui.screens.screen import Screen
 
 
 class Menu(Element[str]):
     def __init__(
         self,
-        parent: State,
+        parent: Screen,
         label: str = "",
         items: List[Dict[str, Union[Element, str]]] = [],
         position: int = 0,
@@ -29,7 +46,6 @@ class Menu(Element[str]):
         self.position: int = position
         self.default_position: int = position
         self.typing_buffer: str = ""
-        self.end_of_menu: bool = 0
         self.state_machine: StateMachine = StateMachine()
         self._bind_keys()
 
@@ -56,10 +72,12 @@ class Menu(Element[str]):
         if self.is_first_letter_navigation:
             self.key_handler.add_on_text_input(self.navigate_by_first_letter)
 
+    # override
     @property
-    def value(self) -> str:
+    def value(self) -> Optional[str]:
         return list(self.state_machine.states)[self.position]
 
+    # override
     @value.setter
     def value(self, value: str) -> None:
         index: int = 0
@@ -71,9 +89,10 @@ class Menu(Element[str]):
         self.position = index
         self.state_machine.change(value)
 
-    def setup(
+    # override
+    def setup(  # type: ignore[override]
         self,
-        change_state: Callable[[str, any], None],
+        change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
         super().setup(change_state, interrupt_speech)
@@ -84,10 +103,12 @@ class Menu(Element[str]):
         self.set_state(interrupt_speech=False)
         return True
 
+    # override
     def update(self, delta_time: float) -> bool:
         super().update(delta_time)
         return self.state_machine.update(delta_time)
 
+    # override
     def exit(self) -> bool:
         return self.state_machine.current_state.exit() and super().exit()
 
@@ -107,7 +128,7 @@ class Menu(Element[str]):
             else:
                 self.dispatch_event("on_border", self)
 
-        return EVENT_HANDLED
+        return True
 
     def previous_item(self) -> bool:
         if not self.has_border:
@@ -125,7 +146,7 @@ class Menu(Element[str]):
             else:
                 self.dispatch_event("on_border", self)
 
-        return EVENT_HANDLED
+        return True
 
     def navigate_to_beginning(self) -> bool:
         if self.position != 0:
@@ -133,7 +154,7 @@ class Menu(Element[str]):
             self.position = 0
             self.set_state()
 
-        return EVENT_HANDLED
+        return True
 
     def navigate_to_end(self) -> bool:
         if self.position != self.state_machine.size() - 1:
@@ -141,24 +162,24 @@ class Menu(Element[str]):
             self.position = self.state_machine.size() - 1
             self.set_state()
 
-        return EVENT_HANDLED
+        return True
 
     def submit(self) -> bool:
         self.dispatch_event("on_submit", self)
-        return EVENT_HANDLED
+        return True
 
     def navigate_by_first_letter(self, character: str) -> bool:
         self.typing_buffer += character
         pyglet.clock.unschedule(self._navigate_by_text)
         pyglet.clock.schedule_once(self._navigate_by_text, 0.6)
-        return EVENT_HANDLED
+        return True
 
     def _navigate_by_text(self, dt: float) -> None:
         try:
             self.position = next(
                 i
                 for i, s in enumerate(self.state_machine.states.values())
-                if s.label.startswith(self.typing_buffer)
+                if cast(Element, s).label.startswith(self.typing_buffer)
             )
             self.set_state()
             self.typing_buffer = ""
@@ -178,16 +199,21 @@ class Menu(Element[str]):
         else:
             raise ValueError("Item must be either str or Element.")
 
-    def remove(self, key: str) -> Element:
-        return self.state_machine.remove(key)
+    def remove(self, key: str) -> Optional[Element]:
+        element: Optional[Element] = cast(
+            Element, self.state_machine.remove(key)
+        )
+        return element
 
-    def reset(self):
+    # override
+    def reset(self) -> None:
         self.position = self.default_position
         state_key: str = list(self.state_machine.states)[self.position]
         self.state_machine.current_state = self.state_machine.states[state_key]
 
         for item in self.state_machine.states.values():
-            item.reset()
+            element_item: Element = cast(Element, item)
+            element_item.reset()
 
 
 Menu.register_event_type("on_change")

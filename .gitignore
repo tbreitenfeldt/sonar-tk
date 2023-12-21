@@ -50,3 +50,4 @@ pip-delete-this-directory.txt
 .webassets-cache
 .vscode
 .pytest_cache
+.mypy_cache

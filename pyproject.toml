@@ -3,15 +3,15 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "audio_ui"
+name = "sonartk"
 authors = [
     {name = "Timothy Breitenfeldt", email = "timothyjb310@gmail.com"},
 ]
 readme = "README.md"
 version = "0.1.2"
-description = "A library for creating screen reader only user interfaces using Pyglet."
-requires-python = ">=3.11"
-keywords = ["development", "accessibility", "screen reader", "audio UI"]
+description = "A library used to create audio games built on top of Pyglet."
+requires-python = ">=3.13"
+keywords = ["development", "accessibility", "screen reader", "sonartk", "sonar tk"]
 license = {file = "LICENSE"}
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -22,10 +22,13 @@ dependencies = [
     "accessible_output2",
     "pyglet",
     "pyperclip",
+    "ijson",
+    "pyogg",
 ]
 
 [project.optional-dependencies]
 test = [
+"build",
     "pytest",
     "pytest-mock",
     "pytest-cov",
@@ -34,13 +37,12 @@ dev = [
     "mypy",
     "flake8",
     "black",
-    "isort",
     "pre-commit",
 ]
 
 [project.urls]
-repository = "https://github.com/tbreitenfeldt/audio_ui"
-bugtracker = "https://github.com/tbreitenfeldt/audio_ui/issues"
+repository = "https://github.com/tbreitenfeldt/sonar-tk"
+bugtracker = "https://github.com/tbreitenfeldt/sonar-tk/issues"
 
 [tool.black]
 target-version = ['py311']
@@ -60,11 +62,8 @@ exclude = """
 )/
 """
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-
 [tool.mypy]
+exclude = ["^.venv/", "^test/", "^src/sound/openal_light/"]
 disallow_untyped_defs = true
 check_untyped_defs = true
 warn_return_any = true
@@ -72,5 +71,5 @@ show_error_codes = true
 warn_unused_ignores = false
 
 [[tool.mypy.overrides]]
-module = "pyglet.*,pyperclip.*,accessible_output2.*"
+module = "pyglet.*,pyperclip.*,accessible_output2.*,pyogg.*,ijson.*"
 ignore_missing_imports = true

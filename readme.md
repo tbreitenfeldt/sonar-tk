@@ -1,20 +1,20 @@
-# Audio UI
+# Sonar TK
 
-A python library for creating accessible screen reader only user interfaces using pyglet and accessible_output2. You can create a window and add various UI elements such as buttons, checkboxs, edit boxes, etc...
+A python library for creating audio games. There are 3 separate modules: UI, map building, and sound. These components are brought together in an opinionated module called world. All of these modules are designed to work together, or stand alone.
 
-A utils package is included which provides various useful tools for building games, or other accessible screen reader only user interfaces, such as a simple audio wrapper for pyglet, a speech util that is a wrapper for accessible_output2, and a key manager for wrapping the keyboard behavior of pyglet.
+A utils package is included which provides various useful tools for building games, or other accessible screen reader only user interfaces, such as a speech util that is a wrapper for accessible_output2, state machine classes, and a key manager for wrapping the keyboard behavior of pyglet.
 
 ## Installation
 
-Audio_ui is published on pypi, and can be installed using pip:
+sonartk is published on pypi, and can be installed using pip:
 
 ```
-pip3 install audio_ui
+pip3 install sonartk
 ```
 
 ## Supported Python Versions
 
-This library has been tested using python 3.8.6, although should work on earlier versions of python 3.8, as well as python 3.9.
+This library has been tested using python 3.11.
 
 ## Dependencies
 
@@ -23,10 +23,13 @@ audio_ui depends on a few dependencies for use. These dependencies are listed be
 - [pyglet] (https://pypi.org/project/pyglet/)
 - [accessible_output2] (https://pypi.org/project/accessible-output2/)
 - [pyperclip] (https://pypi.org/project/pyperclip/)
+- [pyogg] (https://pypi.org/project/PyOgg/)
 
 ## Core Modules
 
-The core modules for audio_ui are the window, state_machine, state, and everything in the utils package, including: speech_manager, audio_manager, and key_handler. You can use audio_ui without using any of the UI elements found in the elements package. The screens package contains the container for holding UI elements as well as a dialog module.
+- ui - use to create a window, provide key handling, and a game loop.
+- map-builder - used for reading in maps, and providing helpful methods for traversing the map such as methods for returning near by map object, and path finding.
+- sound - wraps open-al using a python wrapper open-al-light
 
 ## Installing Source
 

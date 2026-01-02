@@ -1,0 +1,26 @@
+[
+    [
+        {"name": "wall", "passable": false},
+        {"name": "grass", "passable": true},
+        {"name": "grass", "passable": true},
+        {"name": "grass", "passable": true}
+    ],
+    [
+        {"name": "wall", "passable": false},
+        {"name": "wall", "passable": false},
+        {"name": "wall", "passable": false},
+        {"name": "grass", "passable": true}
+    ],
+    [
+        {"name": "grass", "passable": true},
+        {"name": "wall", "passable": false},
+        {"name": "wall", "passable": false},
+        {"name": "grass", "passable": true}
+    ],
+    [
+        {"name": "grass", "passable": true},
+        {"name": "grass", "passable": true},
+        {"name": "grass", "passable": true},
+        {"name": "grass", "passable": true}
+    ]
+]

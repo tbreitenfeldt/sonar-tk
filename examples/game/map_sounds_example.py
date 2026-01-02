@@ -1,0 +1,139 @@
+import sys
+from typing import Any, Callable, Optional
+
+from pyglet.window import key
+import pyglet.clock
+
+
+sys.path.insert(0, "../../src")
+
+try:
+    from sonartk.ui.window import Window
+    from sonartk.map_builder.map_2d import load_2d_map
+    from sonartk.map_builder.map_2d import Map2d, MapTile
+    from sonartk.map_builder.map_2d.parser.csv_parser import CSVParser
+    from sonartk.map_builder.map_2d.parser.map_parser import MapParser
+    from sonartk.ui.element.grid import Grid
+    from sonartk.map_builder.map_2d.map_object.character import Character
+    from sonartk.util import Direction
+    from sonartk.sound import sound_manager
+    from sonartk.sound.openal_lite.openal import Player
+    from sonartk.util import Coordinates
+except Exception:
+    raise
+
+tile_reference: dict[str, MapTile] = {
+    "0": MapTile("path"),
+    "1": MapTile("wall", is_passable=False),
+}
+sound_map: dict[str, str] = {"path": "step_dirt.wav", "wall": "wall.wav"}
+
+
+def main() -> None:
+    window: Window = Window(caption="Test 2D Game")
+    character: Character = Character("Test Character", (1, 9), Direction.DOWN)
+    map2d: Map2d = load_2d_map(
+        "Test Map", "test.csv", CSVParser(), tile_mapper, character
+    )
+    grid: Grid = Grid(
+        window,
+        label="",
+        height=map2d.height,
+        width=map2d.width,
+        cells=map2d.tile_map,
+        cell_class=MapTile,
+        property_name="name",
+        speak_coordinates_on_change=False,
+        speak_value_on_change=False,
+    )
+    grid.current_coordinates = map2d.character.coordinates
+    sound_manager.listener.position = (*grid.current_coordinates, 0)
+    map_navigation_player: Player = sound_manager.player_pool.get_player()
+    grid.push_handlers(
+        on_navigation=(
+            lambda grid, direction: on_map_navigation(
+                grid, map2d, direction, sound_map, map_navigation_player
+            )
+        )
+    )
+    grid.push_handlers(
+        on_border=(
+            lambda grid, direction: on_map_border(
+                grid, direction, sound_map, map_navigation_player
+            )
+        )
+    )
+    # Note: current_position would be set here in actual implementation
+    window.add(map2d.name, grid)
+    window.open_window()
+
+
+def tile_mapper(map_value: str) -> MapTile:
+    return tile_reference[map_value]
+
+
+def on_map_navigation(
+    grid: Grid,
+    map2d: Map2d,
+    direction: Direction,
+    sound_map: dict[str, str],
+    map_navigation_player: Player,
+) -> bool:
+    is_handled: bool = False
+
+    try:
+        map2d.character.directional_orientation = direction
+        current_coordinates: Coordinates = grid.current_coordinates
+        new_coordinates, tile = grid.get_next_cell(direction)
+        # current_position used for future 3D sound positioning
+        # current_position: tuple[int] = (*current_coordinates, 0)
+        new_position: tuple[int] = (*new_coordinates, 0)
+        sound_file: str = sound_map[tile.name]
+
+        if tile.is_passable:
+            map2d.change_character_coordinates(
+                current_coordinates, new_coordinates, map2d.character
+            )
+            sound_manager.listener.position = new_position
+            sound_manager.play_sound(
+                sound_file, position=new_position, player=map_navigation_player
+            )
+            is_handled = False  # propigate the event allowing the grid position to change
+        else:
+            play_wall_sound(grid, direction, sound_map, map_navigation_player)
+            is_handled = True  # stop event propigation to prevent grid position from changing
+    except KeyError:
+        pass
+
+    return is_handled
+
+
+def on_map_border(
+    grid: Grid,
+    direction: Direction,
+    sound_map: dict[str, str],
+    map_navigation_player: Player,
+) -> bool:
+    return play_wall_sound(grid, direction, sound_map, map_navigation_player)
+
+
+def play_wall_sound(
+    grid: Grid,
+    direction: Direction,
+    sound_map: dict[str, str],
+    map_navigation_player: Player,
+) -> bool:
+    try:
+        sound_file: str = sound_map["wall"]
+        Coordinates, cell = grid.get_next_cell(direction)
+        sound_manager.play_sound(
+            sound_file,
+            position=(*Coordinates, 0),
+            player=map_navigation_player,
+        )
+        return True
+    except KeyError:
+        return False
+
+
+main()

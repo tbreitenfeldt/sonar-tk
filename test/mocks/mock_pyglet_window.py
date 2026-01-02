@@ -1,9 +1,9 @@
 from typing import List
 
-from audio_ui.utils import KeyHandler
+from audio_ui.util import KeyHandler
+
 
 class MockPygletWindow:
-
     def __init__(self) -> None:
         self.caption: str = ""
         self._event_stack: List[any] = []
@@ -19,4 +19,3 @@ class MockPygletWindow:
 
     def close(self) -> None:
         pass
-

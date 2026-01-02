@@ -2,7 +2,7 @@
 branch = True
 
 [paths]
-source = ./audio_ui/ ./test/
+source = ./src/ ./test/
 
 [report]
 fail_under = 80.0

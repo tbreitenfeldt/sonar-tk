@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class ContainerScreen(Screen):
-    def __init__(self, parent: Window) -> None:
+    def __init__(self, parent: Window | Screen) -> None:
         super().__init__(parent)
 
     # Override
@@ -29,7 +29,7 @@ class ContainerScreen(Screen):
         *args: Any,
         **kwargs: Any,
     ) -> bool:
-        self.push_window_handlers(self.key_handler)
+        self.get_window().push_window_handlers(self.key_handler)
         self.set_state(interrupt_speech=False)
         return True
 
@@ -42,11 +42,11 @@ class ContainerScreen(Screen):
         if not self.state_machine.is_empty():
             self.state_machine.exit()
 
-        self.pop_window_handlers()
+        self.get_window().pop_window_handlers()
         return True
 
     # override
     def close(self) -> bool:
         super().close()
-        self.parent.close()
+        self.parent.close()  # type: ignore[attr-defined]
         return True

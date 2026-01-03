@@ -28,9 +28,7 @@ class TextBox(Element):
         read_only: bool = False,
         text_box_size: int = 80,
     ) -> None:
-        super().__init__(
-            parent=parent, label=label, value=default_value, role="edit"
-        )
+        # Set attributes before super().__init__() since bind_keys() needs them
         self.default_value: str = default_value
         self.input: List[str] = list(default_value)
         self.hidden: bool = hidden
@@ -45,8 +43,12 @@ class TextBox(Element):
         self.right_selection_index: int = -1
         self.selecting_left: bool = False
         self.selecting_right: bool = False
-        self.bind_keys()
 
+        super().__init__(
+            parent=parent, label=label, value=default_value, role="edit"
+        )
+
+    # override
     def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.select_all, key.A, [key.MOD_CTRL])
         self.key_handler.add_key_press(

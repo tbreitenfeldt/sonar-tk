@@ -46,13 +46,12 @@ class Grid(Element[str], Generic[T]):
         speak_value_on_change: bool = True,
         arrow_key_repeat_interval: float = 0.25,
     ) -> None:
-        super().__init__(parent=parent, label=label, role="Grid", value=None)
-
         if height < 0:
             raise ValueError("rows cannot be less than 0")
         if width < 0:
             raise ValueError("columns cannot be less than 0")
 
+        # Set attributes before super().__init__() since bind_keys() needs them
         self.height: int = height
         self.width: int = width
         self.cells: list[T] = cells
@@ -67,10 +66,12 @@ class Grid(Element[str], Generic[T]):
         if not cells:
             self.cells = [self.cell_class() for c in range(width * height)]
 
-        self.push_handlers(on_navigation=self.on_navigation)
-        self._bind_keys()
+        super().__init__(parent=parent, label=label, role="Grid", value=None)
 
-    def _bind_keys(self) -> None:
+        self.push_handlers(on_navigation=self.on_navigation)
+
+    # override
+    def bind_keys(self) -> None:
         self.key_handler.add_key_press(
             self.navigate_up,
             key.UP,
@@ -144,14 +145,16 @@ class Grid(Element[str], Generic[T]):
 
         return True
 
-    def get_cell(self, coordinates: Coordinates) -> T:
+    def get_cell(self, coordinates: Coordinates) -> Optional[T]:
         x, y = coordinates
         if (x < self.width and x >= 0) and (y < self.height and y >= 0):
             return self.cells[y * self.width + x]
 
         return None
 
-    def get_next_cell(self, direction: Direction) -> tuple[Coordinates, T]:
+    def get_next_cell(
+        self, direction: Direction
+    ) -> tuple[Coordinates, Optional[T]]:
         coordinates: Coordinates = (0, 0)
         if direction == Direction.UP:
             coordinates = (self.x, self.y + 1)
@@ -176,7 +179,7 @@ class Grid(Element[str], Generic[T]):
                     "Length of pcell list must be equal to the existing grid width"
                 )
         else:
-            new_row = [self.cellClass() for c in range(self.width)]
+            new_row = [self.cell_class() for c in range(self.width)]  # type: ignore[misc]
 
         self.cells.extend(new_row)
         self.height = len(self.cells)
@@ -248,7 +251,7 @@ class Grid(Element[str], Generic[T]):
     # override
     @value.setter
     def value(self, value: str) -> None:
-        setattr(self.current_cell, self.class_property, value)
+        setattr(self.current_cell, self.property_name, value)
 
 
 Grid.register_event_type("on_border")

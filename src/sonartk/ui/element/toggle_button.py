@@ -23,9 +23,9 @@ class ToggleButton(Element[str]):
         self.items: List[str] = items
         self.position: int = position
         self.default_position: int = position
-        self._bind_keys()
 
-    def _bind_keys(self) -> None:
+    # override
+    def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.next, key.RETURN)
         self.key_handler.add_key_press(self.next, key.SPACE)
 

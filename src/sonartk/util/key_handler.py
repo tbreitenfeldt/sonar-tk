@@ -84,9 +84,12 @@ class KeyHandler:
         self.pressed_key: Optional[Key] = None
         self.is_key_held_down: bool = False
         self.key_interval_counter: float = 0.0
+        self.other_keys_pressed: bool = (
+            False  # Track if other keys were pressed
+        )
         pyglet.clock.schedule_interval(self.update, update_repeat_interval)
 
-    def set_update_check(self, update_repeat_interval=0.01) -> None:
+    def set_update_check(self, update_repeat_interval: float = 0.01) -> None:
         self.update_repeat_interval = update_repeat_interval
         pyglet.clock.unschedule(self.update)
         pyglet.clock.schedule_interval(
@@ -111,6 +114,9 @@ class KeyHandler:
                 pressed_key
             ]
             self.pressed_key = pressed_key
+            self.other_keys_pressed = (
+                False  # Reset flag when a registered key is pressed
+            )
 
             if self.update_repeat_interval and key_repeat_interval:
                 self.is_key_held_down = True
@@ -118,21 +124,32 @@ class KeyHandler:
             else:
                 return callback.call()
         else:
+            # Some other key was pressed - mark it if we're tracking a key release
+            if self.pressed_key is not None:
+                self.other_keys_pressed = True
             return False
 
     def on_key_release(self, symbol: int, modifiers: int) -> bool:
         released_key: Key = Key(symbol, [modifiers])
 
         if self.pressed_key == released_key:
-            callback, key_repeat_interval = self.registered_key_presses[
-                released_key
-            ]
-            self.pressed_key = None
+            self.other_keys_pressed = False  # Reset flag
 
             if self.is_key_held_down:
                 self.is_key_held_down = False
 
             return True
+
+        if released_key in self.registered_key_releases:
+            # Only trigger if no other keys were pressed during the key hold
+            if not self.other_keys_pressed:
+                callback = self.registered_key_releases[released_key]
+                self.other_keys_pressed = False  # Reset flag
+                return callback.call()
+            else:
+                # Other keys were pressed, so don't trigger and reset flag
+                self.other_keys_pressed = False
+                return False
 
         if released_key in self.registered_key_releases:
             callback = self.registered_key_releases[released_key]
@@ -266,8 +283,9 @@ class KeyHandler:
                 f"Unable to find {key} in registered keys to update key_repeat_interval"
             )
 
-        # The format of value is (callback, key_repeat_interval),. Need to modify key_repeat_interval
-        self.registered_key_presses[key][1] = key_repeat_interval
+        # The format of value is [callback, key_repeat_interval]. Need to modify key_repeat_interval
+        callback_data = self.registered_key_presses[key]
+        callback_data[1] = key_repeat_interval  # type: ignore[index]
 
-        if key_repeat_interval and not self.update_key_repeat_interval:
+        if key_repeat_interval and not self.update_repeat_interval:
             self.set_update_check()

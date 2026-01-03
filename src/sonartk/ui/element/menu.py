@@ -7,7 +7,6 @@ from typing import (
     Dict,
     List,
     Optional,
-    Union,
     cast,
 )
 
@@ -31,15 +30,14 @@ class Menu(Element[str]):
         self,
         parent: Screen | MenuBar,
         label: str = "",
-        items: List[Dict[str, Union[Element, str]]] = [],
+        items: List[Dict[str, Element | str]] = [],
         position: int = 0,
         has_border: bool = False,
         is_first_letter_navigation: bool = True,
         is_side_menu: bool = False,
         reset_position_on_focus: bool = True,
     ) -> None:
-        super().__init__(parent=parent, label=label, value="", role="menu")  # type: ignore
-
+        # Set attributes before calling super().__init__() since bind_keys() needs them
         self.has_border: bool = has_border
         self.is_first_letter_navigation: bool = is_first_letter_navigation
         self.is_side_menu: bool = is_side_menu
@@ -48,7 +46,8 @@ class Menu(Element[str]):
         self.default_position: int = position
         self.typing_buffer: str = ""
         self.state_machine: StateMachine = StateMachine()
-        self._bind_keys()
+
+        super().__init__(parent=parent, label=label, value="", role="menu")  # type: ignore
 
         if items:
             for item in items:
@@ -58,7 +57,8 @@ class Menu(Element[str]):
                     k, v = next(iter(item.items()))
                     self.add(k, v)
 
-    def _bind_keys(self) -> None:
+    # override
+    def bind_keys(self) -> None:
         if self.is_side_menu:
             self.key_handler.add_key_press(self.next_item, key.RIGHT)
             self.key_handler.add_key_press(self.previous_item, key.LEFT)
@@ -114,41 +114,36 @@ class Menu(Element[str]):
     def exit(self) -> bool:
         return self.state_machine.current_state.exit() and super().exit()
 
-    def next_item(self) -> bool:
+    def _navigate_item(self, delta: int) -> bool:
+        """
+        Navigate to next/previous item with border handling.
+
+        Args:
+            delta: Direction to navigate (1 for next, -1 for previous)
+        """
         if not self.has_border:
             self.dispatch_event("on_change", self)
-            self.position = (self.position + 1) % self.state_machine.size()
+            self.position = (self.position + delta) % self.state_machine.size()
             self.set_state()
         else:
+            new_position = self.position + delta
             if self.state_machine.size() == 1:
                 self.dispatch_event("on_border", self)
                 self.set_state()
-            elif self.position + 1 < self.state_machine.size():
+            elif 0 <= new_position < self.state_machine.size():
                 self.dispatch_event("on_change", self)
-                self.position += 1
+                self.position = new_position
                 self.set_state()
             else:
                 self.dispatch_event("on_border", self)
 
         return True
+
+    def next_item(self) -> bool:
+        return self._navigate_item(1)
 
     def previous_item(self) -> bool:
-        if not self.has_border:
-            self.dispatch_event("on_change", self)
-            self.position = (self.position - 1) % self.state_machine.size()
-            self.set_state()
-        else:
-            if self.state_machine.size() == 1:
-                self.dispatch_event("on_border", self)
-                self.set_state()
-            elif self.position - 1 >= 0:
-                self.dispatch_event("on_change", self)
-                self.position -= 1
-                self.set_state()
-            else:
-                self.dispatch_event("on_border", self)
-
-        return True
+        return self._navigate_item(-1)
 
     def navigate_to_beginning(self) -> bool:
         if self.position != 0:
@@ -193,7 +188,7 @@ class Menu(Element[str]):
         state_key: str = self.state_machine.keys[self.position]
         self.state_machine.change(state_key, interrupt_speech)
 
-    def add(self, key: str, item: Union[Element, str]) -> None:
+    def add(self, key: str, item: Element | str) -> None:
         if isinstance(item, str):
             self.state_machine.add(key, TextLabel(self, item))  # type: ignore
         elif isinstance(item, Element):
@@ -216,6 +211,13 @@ class Menu(Element[str]):
         for item in self.state_machine.states.values():
             element_item: Element = cast(Element, item)
             element_item.reset()
+
+    @property
+    def active_element(self) -> Optional[State]:
+        """Get the currently active menu item."""
+        if self.state_machine.is_empty():
+            return None
+        return self.state_machine.current_state
 
 
 Menu.register_event_type("on_change")

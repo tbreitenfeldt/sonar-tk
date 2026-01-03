@@ -6,19 +6,17 @@ import pyglet.clock
 from pyglet.window import key
 
 from sonartk.ui.element.element import Element
-from sonartk.ui.screen.screen import Screen
+from sonartk.ui.screen.container_screen import ContainerScreen
 
 if TYPE_CHECKING:
-    from typing import Union
+    from sonartk.ui.screen.screen import Screen
+
 from sonartk.util.state_machine import EmptyState, State
 from sonartk.util.key_handler import KeyHandler
 from sonartk.util import speech_manager
 
-if TYPE_CHECKING:
-    from sonartk.ui.screen.container_screen import ContainerScreen
 
-
-class Dialog(Screen):
+class Dialog(ContainerScreen):
     def __init__(self, parent: Screen) -> None:
         super().__init__(parent)
         self.original_caption: str = ""
@@ -26,46 +24,20 @@ class Dialog(Screen):
 
     def open_dialog(self, caption: str) -> None:
         self.original_state_key = (
-            self.parent.state_machine.current_state.state_key
+            self.parent.state_machine.current_state.state_key  # type: ignore[attr-defined]
         )
-        count: int = self.parent.state_machine.size() + 1
-        self.parent.add(f"dialog-{caption}-{count}", self)
+        count: int = self.parent.state_machine.size() + 1  # type: ignore[attr-defined]
+        self.parent.add(f"dialog-{caption}-{count}", self)  # type: ignore[attr-defined]
         self.original_caption = self.caption
         self.caption = caption + " Dialog"
         pyglet.clock.schedule_once(
-            lambda dt: self.parent.state_machine.change(self.state_key), 0.3
+            lambda dt: self.parent.state_machine.change(self.state_key), 0.3  # type: ignore[attr-defined]
         )
 
     # override
     def bind_keys(self) -> None:
+        super().bind_keys()
         self.key_handler.add_key_press(self.close, key.ESCAPE)
-        self.key_handler.add_key_press(self.next_element, key.TAB)
-        self.key_handler.add_key_press(
-            self.previous_element, key.TAB, [key.MOD_SHIFT]
-        )
-
-    # override
-    def setup(
-        self,
-        change_state: Callable[[str, Any], None],
-        *args: Any,
-        **kwargs: Any,
-    ) -> bool:
-        self.push_window_handlers(self.key_handler)
-        self.set_state(interrupt_speech=False)
-        return True
-
-    # override
-    def update(self, delta_time: float) -> bool:
-        return self.state_machine.update(delta_time)
-
-    # override
-    def exit(self) -> bool:
-        if not self.state_machine.is_empty():
-            self.state_machine.exit()
-
-        self.pop_window_handlers()
-        return True
 
     # override
     def reset(self) -> None:
@@ -75,7 +47,11 @@ class Dialog(Screen):
 
     # override
     def close(self) -> bool:
-        super().close()
+        # Call Screen.close() directly, NOT ContainerScreen.close()
+        # to avoid closing the parent screen
+        from sonartk.ui.screen.screen import Screen
+
+        Screen.close(self)
         self.position = 0
         self.reset()
         self.caption = self.original_caption
@@ -83,7 +59,7 @@ class Dialog(Screen):
         return True
 
     def _reset_states(self) -> None:
-        self.parent.remove(self.state_key)
+        self.parent.remove(self.state_key)  # type: ignore[attr-defined]
         self.state_machine.current_state = EmptyState()
         self.exit()
-        self.parent.state_machine.change(self.original_state_key, False)
+        self.parent.state_machine.change(self.original_state_key, False)  # type: ignore[attr-defined]

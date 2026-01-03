@@ -38,6 +38,11 @@ class MenuBarItem(Element[str]):
         self.is_expanded: bool = False
 
     # override
+    def bind_keys(self) -> None:
+        """No key bindings needed for MenuBarItem."""
+        pass
+
+    # override
     def setup(  # type: ignore[override]
         self,
         change_state: Callable[[str, Any], None],
@@ -65,13 +70,14 @@ class MenuBarItem(Element[str]):
 class MenuBar(Element[MenuBarItem]):
     def __init__(self, parent: Screen) -> None:
         super().__init__(parent, label="Menu", role="bar", value=None)
+        self.parent: Screen = parent  # Override type to be more specific
         self.is_open: bool = False
         self.is_expanded: bool = False
         self.position: int = 0
         self.state_machine: StateMachine = StateMachine()
-        self._bind_keys()
 
-    def _bind_keys(self) -> None:
+    # override
+    def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.open_menu, key.UP)
         self.key_handler.add_key_press(self.open_menu, key.DOWN)
         self.key_handler.add_key_press(self.open_menu, key.RETURN)
@@ -144,9 +150,9 @@ class MenuBar(Element[MenuBarItem]):
             self.state_machine.current_state.setup(self.change_state)
         else:
             self.expand_menus()
-            state_key: str = list(self.state_machine.states)[self.position]
+            state_key_2: str = list(self.state_machine.states)[self.position]
             self.state_machine.current_state = self.state_machine.states[
-                state_key
+                state_key_2
             ]
             self.state_machine.current_state.setup(self.change_state)
 
@@ -158,7 +164,7 @@ class MenuBar(Element[MenuBarItem]):
             self.is_expanded = True
             for state in self.state_machine.states.values():
                 menu: Menu = cast(Menu, state)
-                menu.is_expanded = True
+                menu.is_expanded = True  # type: ignore[attr-defined]
 
     def collapse_menus(self) -> None:
         if self.is_expanded:
@@ -166,7 +172,7 @@ class MenuBar(Element[MenuBarItem]):
             self.is_expanded = False
             for state in self.state_machine.states.values():
                 menu: Menu = cast(Menu, state)
-                menu.is_expanded = False
+                menu.is_expanded = False  # type: ignore[attr-defined]
 
     def next_menu(self) -> bool:
         self.dispatch_event("on_next_menu", self)

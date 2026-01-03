@@ -19,9 +19,9 @@ class Checkbox(Element[bool]):
             parent=parent, label=label, value=value, role="checkbox"
         )
         self.default_value: bool = value
-        self._bind_keys()
 
-    def _bind_keys(self) -> None:
+    # override
+    def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.toggle_state, key.RETURN)
         self.key_handler.add_key_press(self.toggle_state, key.SPACE)
 

@@ -19,6 +19,11 @@ class TextLabel(Element[str]):
         )
 
     # override
+    def bind_keys(self) -> None:
+        """No key bindings needed for TextLabel."""
+        pass
+
+    # override
     def reset(self) -> None:
         pass
 

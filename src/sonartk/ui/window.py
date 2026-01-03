@@ -5,17 +5,20 @@ import pyglet.window
 from pyglet.event import EventDispatcher
 from pyglet.window import key
 
+from sonartk.ui.element.element import Element
+from sonartk.ui.focusable_container import FocusableContainer
+from sonartk.ui.ui_component import UIComponent
 from sonartk.ui.screen.screen import Screen
 from sonartk.util.state import State
 from sonartk.util.state_machine import StateMachine
 from sonartk.util.key_handler import KeyHandler
 from sonartk.util import speech_manager
 
-pyglet.options["debug_gl"] = False
-pyglet.options["shadow_window"] = False
+pyglet.options.debug_gl = False
+pyglet.options.shadow_window = False
 
 
-class Window(EventDispatcher):
+class Window(UIComponent, EventDispatcher):
     def __init__(
         self,
         caption: str = "",
@@ -24,7 +27,7 @@ class Window(EventDispatcher):
         close_children_on_close: bool = True,
     ):
         self.escapable: bool = escapable
-        self.parent: Optional["Window"] = parent
+        self.parent = parent
         self.close_children_on_close: bool = close_children_on_close
         self.children: list["Window"] = []
         self.state_machine: StateMachine = StateMachine()
@@ -58,7 +61,7 @@ class Window(EventDispatcher):
         if caption:
             self._caption = caption
 
-        self.pyglet_window = pyglet.window.Window(
+        self.pyglet_window = pyglet.window.Window(  # type: ignore[abstract]
             caption=self._caption,
             width=width,
             height=height,
@@ -76,20 +79,26 @@ class Window(EventDispatcher):
         pyglet.app.run()
 
     def on_window_activate(self) -> bool:
+        """Handle window activation - announce the currently focused element."""
         if self.is_open:
-            if hasattr(self.state_machine.current_state, "active_element"):
-                screen: Screen = cast(Screen, self.state_machine.current_state)
-                element: State = screen.active_element
+            current_state: State = self.state_machine.current_state
+
+            # Drill down to find the deepest active element
+            if hasattr(current_state, "active_element"):
+                element: Optional[FocusableContainer] = cast(
+                    FocusableContainer, current_state
+                )
 
                 while element is not None and hasattr(
                     element, "active_element"
                 ):
-                    element = element.active_element
+                    element = getattr(element, "active_element", None)  # type: ignore[assignment]
 
                 if element is not None and hasattr(element, "name"):
+                    element_name = getattr(element, "name")
                     pyglet.clock.schedule_once(
                         lambda dt: speech_manager.output(
-                            element.name, interrupt=False, log_message=False
+                            element_name, interrupt=False, log_message=False
                         ),
                         0.25,
                     )
@@ -115,14 +124,54 @@ class Window(EventDispatcher):
     def change(self, key: str, *args: Any, **kwargs: Any) -> None:
         self.state_machine.change(key, *args, **kwargs)
 
+    def get_window(self) -> "Window":
+        """Return this window (base case for parent chain traversal)."""
+        return self
+
     def push_window_handlers(self, *args: Any, **kwargs: Any) -> None:
         self.pyglet_window.push_handlers(*args, **kwargs)
 
     def pop_window_handlers(self) -> None:
-        try:
-            self.pyglet_window.pop_handlers()
-        except AssertionError:
-            pass
+        """
+        Pop a handler from the event stack.
+
+        Raises:
+            RuntimeError: If attempting to pop from an empty stack
+        """
+        if len(self.pyglet_window._event_stack) == 0:
+            raise RuntimeError(
+                "Attempted to pop handler from empty stack! "
+                "More pops than pushes detected. This usually means "
+                "a state's exit() method is popping handlers it didn't push."
+            )
+        self.pyglet_window.pop_handlers()
+
+    def get_handler_stack_size(self) -> int:
+        """Get the current number of handlers on the event stack."""
+        return len(self.pyglet_window._event_stack)
+
+    def check_handler_leaks(self, expected_count: int = 3) -> None:
+        """
+        Check for handler leaks and log warnings.
+
+        Args:
+            expected_count: Number of handlers expected to be on the stack.
+                Default is 3 (on_close, on_activate, window key_handler).
+
+        Call this in development/debug mode after state transitions to
+        detect states that forgot to pop their handlers.
+        """
+        actual = self.get_handler_stack_size()
+        if actual > expected_count:
+            leaked = actual - expected_count
+            import sys
+
+            print(
+                f"WARNING: Possible handler leak detected! "
+                f"Expected {expected_count} handlers, found {actual} "
+                f"({leaked} leaked).",
+                file=sys.stderr,
+            )
 
     def close(self) -> bool:
         # Close children if configured
@@ -132,15 +181,19 @@ class Window(EventDispatcher):
                     child.close()
 
         # Remove from parent's children list
-        if self.parent is not None and self in self.parent.children:
-            self.parent.children.remove(self)
+        if self.parent and hasattr(self.parent, "children") and self in self.parent.children:  # type: ignore[attr-defined]
+            self.parent.children.remove(self)  # type: ignore[attr-defined]
 
         self.dispatch_event("on_close", self)
-        while len(self.pyglet_window._event_stack) > 0:
-            self.pop_window_handlers()
 
+        # Exit states BEFORE clearing handlers so they can clean up properly
         self.state_machine.exit()
         self.state_machine.clear()
+
+        # Pop all remaining handlers - use pyglet's pop directly since we're cleaning up
+        while len(self.pyglet_window._event_stack) > 0:
+            self.pyglet_window.pop_handlers()
+
         self.pyglet_window.close()
         del self.pyglet_window
 

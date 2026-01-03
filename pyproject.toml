@@ -63,7 +63,7 @@ exclude = """
 """
 
 [tool.mypy]
-exclude = ["^.venv/", "^test/", "^src/sound/openal_light/"]
+exclude = ["^.venv/", "^test/", "^src/sonartk/sound/openal_lite/"]
 disallow_untyped_defs = true
 check_untyped_defs = true
 warn_return_any = true

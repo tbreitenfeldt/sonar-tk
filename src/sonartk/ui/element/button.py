@@ -16,9 +16,9 @@ class Button(Element[str]):
         super().__init__(
             parent=parent, label=label, value=label, role="button"
         )
-        self._bind_keys()
 
-    def _bind_keys(self) -> None:
+    # override
+    def bind_keys(self) -> None:
         self.key_handler.add_key_press(self.submit, key.RETURN)
         self.key_handler.add_key_press(self.submit, key.SPACE)
 

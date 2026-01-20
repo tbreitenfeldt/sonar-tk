@@ -16,7 +16,6 @@ try:
         Element,
         Grid,
         Menu,
-        MenuBar,
         TextBox,
         ToggleButton,
     )
@@ -31,7 +30,6 @@ class ExampleWindow:
     def __init__(self) -> None:
         self.main_window: Window = Window()
         self.container: ContainerScreen = ContainerScreen(self.main_window)
-        self.menu_bar: MenuBar = self.create_menu_bar(self.container)
         self.save_dialog: Dialog = self.create_save_dialog(self.container)
         self.open_dialog: Dialog = self.create_open_dialog(self.save_dialog)
         self.open_dialog_button: Element = Button(
@@ -96,21 +94,6 @@ class ExampleWindow:
         )
         self.container.add("grid", self.grid)
 
-        self.container.key_handler.add_key_release(
-            self.menu_bar.open_menu_bar, key=key.LALT
-        )
-        self.container.key_handler.add_key_release(
-            self.menu_bar.open_menu_bar, key=key.RALT
-        )
-        self.container.key_handler.add_key_press(
-            lambda: self.menu_bar.open_menu("file_menu"), key.F, [key.MOD_ALT]
-        )
-        self.container.key_handler.add_key_press(
-            lambda: self.menu_bar.open_menu("edit_menu"), key.E, [key.MOD_ALT]
-        )
-        self.container.key_handler.add_key_press(
-            lambda: self.menu_bar.open_menu("help_menu"), key.H, [key.MOD_ALT]
-        )
         self.container.key_handler.add_key_press(
             self.next_speech_history, key.PAGEDOWN, [key.MOD_CTRL]
         )
@@ -136,50 +119,6 @@ class ExampleWindow:
         dialog.add("open_button", Button(dialog, "Open"))
         dialog.add("checkbox", Checkbox(dialog, "Change Name"))
         return dialog
-
-    def create_menu_bar(self, parent: ContainerScreen) -> MenuBar:
-        menu_bar: MenuBar = MenuBar(parent)
-        file_menu: Menu = Menu(
-            parent=menu_bar,
-            label="File",
-            items=[{"open": "Open"}, {"save": "Save"}, {"exit": "Exit"}],
-        )
-        menu_bar.add_menu("file_menu", file_menu)
-        edit_menu: Menu = Menu(
-            parent=menu_bar,
-            label="Edit",
-            items=[{"copy": "Copy"}, {"cut": "Cut"}, {"paste": "Paste"}],
-        )
-        menu_bar.add_menu("edit_menu", edit_menu)
-        help_menu: Menu = Menu(
-            parent=menu_bar,
-            label="Help",
-            items=[{"get_help": "Get Help"}, {"about": "About..."}],
-        )
-        menu_bar.add_menu("help_menu", help_menu)
-        return menu_bar
-
-    def onsubmit_file_menu(
-        self, change_state: Callable[[str, Any], None], value: str
-    ) -> None:
-        if value == "open":
-            speech_manager.output("Open Menu Item")
-        elif value == "save":
-            speech_manager.output("save Menu Item")
-        elif value == "exit":
-            speech_manager.output("Exiting!")
-            time.sleep(1)
-            self.main_window.close()
-
-    def onsubmit_edit_menu(
-        self, change_state: Callable[[str, Any], None], value: str
-    ) -> None:
-        if value == "copy":
-            speech_manager.output("Copy Menu Item")
-        elif value == "cut":
-            speech_manager.output("Cut Menu Item")
-        elif value == "paste":
-            speech_manager.output("Paste Menu Item")
 
     def next_speech_history(self) -> bool:
         line: Optional[str] = speech_manager.next_history()

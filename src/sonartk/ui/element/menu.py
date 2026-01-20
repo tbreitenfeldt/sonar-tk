@@ -22,13 +22,12 @@ from sonartk.util import speech_manager
 
 if TYPE_CHECKING:
     from sonartk.ui.screen.screen import Screen
-    from sonartk.ui.element.menu_bar import MenuBar
 
 
 class Menu(Element[str]):
     def __init__(
         self,
-        parent: Screen | MenuBar,
+        parent: Screen,
         label: str = "",
         items: List[Dict[str, Element | str]] = [],
         position: int = 0,

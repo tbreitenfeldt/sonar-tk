@@ -34,6 +34,13 @@ class ContainerScreen(Screen):
         return True
 
     # override
+    def set_state(self, interrupt_speech: bool = True) -> None:
+        """Set the current element state."""
+        if not self.state_machine.is_empty():
+            state_key: str = self.state_machine.keys[self.position]
+            self.state_machine.change(state_key, interrupt_speech)
+
+    # override
     def update(self, delta_time: float) -> bool:
         return self.state_machine.update(delta_time)
 

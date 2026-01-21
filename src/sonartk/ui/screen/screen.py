@@ -11,7 +11,7 @@ from sonartk.util.state import State
 from sonartk.util.state_machine import EmptyState, StateMachine
 from sonartk.util.key_handler import KeyHandler
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from sonartk.ui.window import Window
 
     class HasCaption(Protocol):

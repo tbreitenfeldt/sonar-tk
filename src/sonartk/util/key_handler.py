@@ -151,10 +151,6 @@ class KeyHandler:
                 self.other_keys_pressed = False
                 return False
 
-        if released_key in self.registered_key_releases:
-            callback = self.registered_key_releases[released_key]
-            return callback.call()
-
         return False
 
     def on_text(self, text: str) -> bool:
@@ -283,9 +279,9 @@ class KeyHandler:
                 f"Unable to find {key} in registered keys to update key_repeat_interval"
             )
 
-        # The format of value is [callback, key_repeat_interval]. Need to modify key_repeat_interval
-        callback_data = self.registered_key_presses[key]
-        callback_data[1] = key_repeat_interval  # type: ignore[index]
+        # Update the key_repeat_interval by replacing the tuple
+        callback, _ = self.registered_key_presses[key]
+        self.registered_key_presses[key] = (callback, key_repeat_interval)
 
         if key_repeat_interval and not self.update_repeat_interval:
             self.set_update_check()

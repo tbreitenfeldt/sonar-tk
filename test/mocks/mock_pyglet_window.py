@@ -1,12 +1,12 @@
-from typing import List
+from typing import Any, List
 
-from audio_ui.util import KeyHandler
+from sonartk.util import KeyHandler
 
 
 class MockPygletWindow:
     def __init__(self) -> None:
         self.caption: str = ""
-        self._event_stack: List[any] = []
+        self._event_stack: List[Any] = []
 
     def push_handlers(self, key_handler: KeyHandler) -> None:
         self._event_stack.append(key_handler)

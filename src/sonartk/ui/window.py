@@ -55,6 +55,7 @@ class Window(UIComponent, EventDispatcher):
         width: int = 640,
         height: int = 480,
         fullscreen: bool = False,
+        speak_current_element_on_window_focus: bool = True,
     ) -> None:
         if not caption and not self._caption:
             raise ValueError("No caption was set for the window")
@@ -70,9 +71,12 @@ class Window(UIComponent, EventDispatcher):
         )
 
         self.push_window_handlers(on_close=self.close)
-        self.push_window_handlers(on_activate=self.on_window_activate)
         self.push_window_handlers(self.key_handler)
 
+        if speak_current_element_on_window_focus:
+            self.push_window_handlers(on_activate=self.on_window_activate)
+
+        self.dispatch_event("on_open", self)
         pyglet.clock.schedule_interval(self.update, 0.01)
         self.setup()
         self.pyglet_window.set_visible()
@@ -226,5 +230,6 @@ class Window(UIComponent, EventDispatcher):
                 )
 
 
+Window.register_event_type("on_open")
 Window.register_event_type("on_update")
 Window.register_event_type("on_close")

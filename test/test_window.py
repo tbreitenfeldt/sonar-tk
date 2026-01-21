@@ -4,10 +4,10 @@ import pyglet
 import pytest
 from pytest_mock import MockerFixture
 
-from audio_ui import Window
-from audio_ui import State
-from audio_ui.util import KeyHandler, Key
-from audio_ui.util import speech_manager
+from sonartk.ui import Window
+from sonartk.util import State
+from sonartk.util import KeyHandler, Key
+from sonartk.util import speech_manager
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
@@ -32,11 +32,11 @@ def titled_window() -> Window:
 
 def test_bind_keys_without_escape(
     mocker: MockerFixture, default_window: Window
-):
-    mocker.patch("audio_ui.window.Window.close", return_value=True)
+) -> None:
+    mocker.patch("sonartk.ui.window.Window.close", return_value=True)
     key_handler: KeyHandler = default_window.key_handler
     key_handler_add_key_press_mock = mocker.patch(
-        "audio_ui.utils.key_handler.KeyHandler.add_key_press"
+        "sonartk.util.key_handler.KeyHandler.add_key_press"
     )
     default_window.bind_keys()
     assert len(key_handler.registered_key_presses) == 3
@@ -45,23 +45,23 @@ def test_bind_keys_without_escape(
     assert key_handler_add_key_press_mock.call_args_list[2][0][0]() is True
 
 
-def test_bind_keys_with_escape(escapable_window: Window):
+def test_bind_keys_with_escape(escapable_window: Window) -> None:
     key_handler: KeyHandler = escapable_window.key_handler
     assert len(key_handler.registered_key_presses) == 2
 
 
 def test_open_window_with_empty_caption(
     mocker: MockerFixture, default_window: Window
-):
+) -> None:
     speech_manager_silence_mock = mocker.patch(
-        "audio_ui.utils.speech_manager.silence"
+        "sonartk.util.speech_manager.silence"
     )
     pyglet_schedule_once_mocker = mocker.patch("pyglet.clock.schedule_once")
     pyglet_schedule_interval_mock = mocker.patch(
         "pyglet.clock.schedule_interval"
     )
-    window_setup_mock = mocker.patch("audio_ui.window.Window.setup")
-    window_update_mock = mocker.patch("audio_ui.window.Window.update")
+    window_setup_mock = mocker.patch("sonartk.ui.window.Window.setup")
+    window_update_mock = mocker.patch("sonartk.ui.window.Window.update")
     mocker.patch("pyglet.app.run")
     default_window.open_window(caption="test")
     assert default_window.caption == "test"
@@ -90,12 +90,12 @@ def test_open_window_with_empty_caption(
     assert len(default_window.pyglet_window._event_stack) == 1
 
 
-def test_open_window_with_caption_error(default_window: Window):
+def test_open_window_with_caption_error(default_window: Window) -> None:
     with pytest.raises(ValueError):
         default_window.open_window()
 
 
-def test_setup(mocker: MockerFixture, default_window: Window):
+def test_setup(mocker: MockerFixture, default_window: Window) -> None:
     mocker.patch("accessible_output2.outputs.auto.Auto.output")
     starting_state: State = default_window.state_machine.current_state
     default_window.state_machine.add("test", MockState())
@@ -108,7 +108,9 @@ def test_setup(mocker: MockerFixture, default_window: Window):
     )
 
 
-def test_setup_withoutstates(mocker: MockerFixture, default_window: Window):
+def test_setup_withoutstates(
+    mocker: MockerFixture, default_window: Window
+) -> None:
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.output", return_value=None
     )
@@ -117,30 +119,30 @@ def test_setup_withoutstates(mocker: MockerFixture, default_window: Window):
     assert len(default_window.state_machine.states) == 0
 
 
-def test_update(mocker: MockerFixture, default_window: Window):
+def test_update(mocker: MockerFixture, default_window: Window) -> None:
     state_machine_update_mock = mocker.patch(
-        "audio_ui.state_machine.StateMachine.update", return_value=True
+        "sonartk.util.state_machine.StateMachine.update", return_value=True
     )
     dt: float = 0.1
     default_window.update(dt)
     state_machine_update_mock.assert_called_with(dt)
 
 
-def test_add(mocker: MockerFixture, default_window: Window):
+def test_add(mocker: MockerFixture, default_window: Window) -> None:
     state_machine_add_mock = mocker.patch(
-        "audio_ui.state_machine.StateMachine.add"
+        "sonartk.util.state_machine.StateMachine.add"
     )
     key: str = "test"
-    state: MockState = MockState
+    state: MockState = MockState()
     default_window.add(key, state)
     state_machine_add_mock.assert_called_with(key, state)
 
 
 def test_that_state_machine_remove_is_called(
     mocker: MockerFixture, default_window: Window
-):
+) -> None:
     state_machine_remove_mock = mocker.patch(
-        "audio_ui.state_machine.StateMachine.remove"
+        "sonartk.util.state_machine.StateMachine.remove"
     )
     key: str = "test"
     state: MockState = MockState()
@@ -149,19 +151,19 @@ def test_that_state_machine_remove_is_called(
     state_machine_remove_mock.assert_called_with(key)
 
 
-def test_remove_return(mocker: MockerFixture, default_window: Window):
+def test_remove_return(mocker: MockerFixture, default_window: Window) -> None:
     key: str = "test"
     state: MockState = MockState()
     default_window.state_machine.states[key] = state
-    result: State = default_window.remove(key)
+    result: State | None = default_window.remove(key)
     assert result == state
 
 
 def test_that_state_machine_change_is_called(
     mocker: MockerFixture, default_window: Window
-):
+) -> None:
     state_machine_change_mock = mocker.patch(
-        "audio_ui.state_machine.StateMachine.change"
+        "sonartk.util.state_machine.StateMachine.change"
     )
     key: str = "test"
     state: MockState = MockState()
@@ -170,7 +172,7 @@ def test_that_state_machine_change_is_called(
     state_machine_change_mock.assert_called_with(key)
 
 
-def test_change(mocker: MockerFixture, default_window: Window):
+def test_change(mocker: MockerFixture, default_window: Window) -> None:
     key: str = "test"
     state: MockState = MockState()
     default_window.state_machine.states[key] = state
@@ -178,8 +180,8 @@ def test_change(mocker: MockerFixture, default_window: Window):
     assert default_window.state_machine.current_state == state
 
 
-def test_push_handlers(mocker: MockerFixture, default_window: Window):
-    default_window.pyglet_window = MockPygletWindow()
+def test_push_handlers(mocker: MockerFixture, default_window: Window) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     pyglet_push_handlers_mock = mocker.patch(
         "test.test_window.MockPygletWindow.push_handlers"
     )
@@ -188,21 +190,21 @@ def test_push_handlers(mocker: MockerFixture, default_window: Window):
     pyglet_push_handlers_mock.assert_called_with(key_handler)
 
 
-def test_pop_handlers(mocker: MockerFixture, default_window: Window):
-    default_window.pyglet_window = MockPygletWindow()
+def test_pop_handlers(mocker: MockerFixture, default_window: Window) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     pyglet__pop_handlers_mock = mocker.patch(
         "test.test_window.MockPygletWindow.pop_handlers"
     )
     key_handler: KeyHandler = KeyHandler()
-    default_window.pyglet_window._event_stack.append(key_handler)
+    default_window.pyglet_window._event_stack.append(key_handler)  # type: ignore[union-attr]
     default_window.pop_window_handlers()
     pyglet__pop_handlers_mock.assert_called_with()
 
 
 def test_pop_handlers_with_empty_stack(
     mocker: MockerFixture, default_window: Window
-):
-    default_window.pyglet_window = MockPygletWindow()
+) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     pyglet__pop_handlers_mock = mocker.patch(
         "test.test_window.MockPygletWindow.pop_handlers"
     )
@@ -210,10 +212,10 @@ def test_pop_handlers_with_empty_stack(
     assert not pyglet__pop_handlers_mock.called
 
 
-def test_close(mocker: MockerFixture, default_window: Window):
-    default_window.pyglet_window = MockPygletWindow()
+def test_close(mocker: MockerFixture, default_window: Window) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     stateMachineClearMock = mocker.patch(
-        "audio_ui.state_machine.StateMachine.clear"
+        "sonartk.util.state_machine.StateMachine.clear"
     )
     pygletWindowCloseMock = mocker.patch(
         "test.test_window.MockPygletWindow.close"
@@ -223,22 +225,22 @@ def test_close(mocker: MockerFixture, default_window: Window):
     pygletWindowCloseMock.assert_called_with()
 
 
-def test_get_caption(titled_window: Window):
+def test_get_caption(titled_window: Window) -> None:
     assert titled_window.caption == "test"
 
 
 def test_set_caption_with_jaws_active(
     mocker: MockerFixture, default_window: Window
-):
-    default_window.pyglet_window = MockPygletWindow()
+) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.output", return_value=None
     )
     mocker.patch(
-        "audio_ui.utils.speech_manager.is_jaws_active", return_value=True
+        "sonartk.util.speech_manager.is_jaws_active", return_value=True
     )
     speech_manager_output_mock = mocker.patch(
-        "audio_ui.utils.speech_manager.output"
+        "sonartk.util.speech_manager.output"
     )
     title: str = "test"
     default_window.caption = title
@@ -250,16 +252,16 @@ def test_set_caption_with_jaws_active(
 
 def test_set_caption_with_jaws_not_active(
     mocker: MockerFixture, default_window: Window
-):
-    default_window.pyglet_window = MockPygletWindow()
+) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.output", return_value=None
     )
     mocker.patch(
-        "audio_ui.utils.speech_manager.is_jaws_active", return_value=False
+        "sonartk.util.speech_manager.is_jaws_active", return_value=False
     )
     speech_manager_output_mock = mocker.patch(
-        "audio_ui.utils.speech_manager.output"
+        "sonartk.util.speech_manager.output"
     )
     title: str = "test"
     default_window.caption = title
@@ -267,6 +269,8 @@ def test_set_caption_with_jaws_not_active(
     assert not speech_manager_output_mock.called
 
 
-def test_with_empty_caption(mocker: MockerFixture, titled_window: Window):
+def test_with_empty_caption(
+    mocker: MockerFixture, titled_window: Window
+) -> None:
     titled_window.caption = ""
     assert titled_window._caption == "test"

@@ -676,6 +676,31 @@ def test_key_handler_on_key_release_unreleased_tracked_key() -> None:
 
     # Release the tracked key (not in registered_key_releases)
     assert handler.on_key_release(key.W, 0)
+
+    def test_callback_call_with_none_callback() -> None:
+        """Test Callback.call() returns False when callback is set to None."""
+        cb: Callback = Callback(lambda: True)
+        cb.callback = None  # type: ignore[assignment]
+        assert not cb.call()
+
+    def test_add_key_press_raises_for_invalid_key_type(
+        default_key_handler: KeyHandler,
+    ) -> None:
+        """Test add_key_press raises ValueError for non-int, non-Key types."""
+        with pytest.raises(
+            ValueError, match="MKey must be either of type Key or int"
+        ):
+            default_key_handler.add_key_press(lambda: True, key=1.5)  # type: ignore[arg-type]
+
+    def test_add_key_release_raises_for_invalid_key_type(
+        default_key_handler: KeyHandler,
+    ) -> None:
+        """Test add_key_release raises ValueError for non-int, non-Key types."""
+        with pytest.raises(
+            ValueError, match="MKey must be either of type Key or int"
+        ):
+            default_key_handler.add_key_release(lambda: True, key=1.5)  # type: ignore[arg-type]
+
     assert not handler.other_keys_pressed
 
 

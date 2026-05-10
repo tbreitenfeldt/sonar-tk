@@ -638,6 +638,27 @@ def test_on_window_activate_element_without_name(
     assert not schedule_mock.called
 
 
+def test_close_with_sound_manager_non_callable_cleanup(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    """Test close() when sound_manager module exists but cleanup is not callable."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+
+    mocker.patch("sonartk.util.state_machine.StateMachine.exit")
+    mocker.patch("sonartk.util.state_machine.StateMachine.clear")
+
+    sound_manager_mock = mocker.MagicMock()
+    sound_manager_mock.cleanup = "not_a_callable"  # Not callable
+    sys.modules["sonartk.sound.sound_manager"] = sound_manager_mock
+
+    result = default_window.close()
+    assert result is True
+    # cleanup was not called since it's not callable
+    assert sound_manager_mock.cleanup == "not_a_callable"
+
+    del sys.modules["sonartk.sound.sound_manager"]
+
+
 def test_on_window_activate_element_is_none(
     mocker: MockerFixture, default_window: Window
 ) -> None:

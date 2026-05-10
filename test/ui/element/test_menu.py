@@ -1322,3 +1322,87 @@ def test_menu_value_as_state_key(menu_with_items: Menu) -> None:
     # Position 2 should have value "option3"
     menu_with_items.position = 2
     assert menu_with_items.value == "option3"
+
+
+# _navigate_item with has_border=True, valid navigation (lines 133-135)
+
+
+def test_navigate_item_border_menu_valid_next(screen: Screen) -> None:
+    """Test _navigate_item with has_border=True moves to valid next position."""
+    items: List[Dict[str, str]] = [{"a": "A"}, {"b": "B"}, {"c": "C"}]
+    menu = Menu(screen, "Menu", items=items, has_border=True)  # type: ignore[arg-type]
+    menu.position = 0  # Not at border
+
+    change_called = False
+
+    @menu.event  # type: ignore[misc]
+    def on_change(m: Menu) -> None:
+        nonlocal change_called
+        change_called = True
+
+    result = menu.next_item()
+    assert result is True
+    assert menu.position == 1
+    assert change_called is True
+
+
+def test_navigate_item_border_menu_valid_previous(screen: Screen) -> None:
+    """Test _navigate_item with has_border=True moves to valid previous position."""
+    items: List[Dict[str, str]] = [{"a": "A"}, {"b": "B"}, {"c": "C"}]
+    menu = Menu(screen, "Menu", items=items, has_border=True)  # type: ignore[arg-type]
+    menu.position = 2  # Not at first
+
+    result = menu.previous_item()
+    assert result is True
+    assert menu.position == 1
+
+
+# _navigate_by_text Tests (lines 174-184)
+
+
+def test_navigate_by_text_success(menu_with_items: Menu) -> None:
+    """Test _navigate_by_text navigates to matching item."""
+    menu_with_items.position = 2  # Start at last item
+    menu_with_items.typing_buffer = "Option 2"
+
+    change_called = False
+
+    @menu_with_items.event  # type: ignore[misc]
+    def on_change(m: Menu) -> None:
+        nonlocal change_called
+        change_called = True
+
+    menu_with_items._navigate_by_text(0.0)
+
+    assert menu_with_items.position == 1  # "Option 2" is at index 1
+    assert menu_with_items.typing_buffer == ""
+    assert change_called is True
+
+
+def test_navigate_by_text_failure(menu_with_items: Menu) -> None:
+    """Test _navigate_by_text dispatches on_letter_navigation_fail when no match."""
+    menu_with_items.typing_buffer = "XYZ"  # No item starts with "XYZ"
+
+    fail_called = False
+
+    @menu_with_items.event  # type: ignore[misc]
+    def on_letter_navigation_fail(m: Menu) -> None:
+        nonlocal fail_called
+        fail_called = True
+
+    menu_with_items._navigate_by_text(0.0)
+
+    assert fail_called is True
+
+
+# value.setter loop completion without break (branch 85->90)
+
+
+def test_value_setter_loop_completes_without_match(screen: Screen) -> None:
+    """Test value setter when key is not found - loop exhausts without break."""
+    items: List[Dict[str, str]] = [{"a": "A"}, {"b": "B"}]
+    menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
+    # When value is not found, loop completes without break (index stays at len)
+    # state_machine.change() will raise since "c" is not a valid key
+    with pytest.raises(Exception):
+        menu.value = "c"  # Not in menu

@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Dialog class."""
-
 from typing import Any, Callable
 from unittest.mock import MagicMock
 

@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Screen module."""
-
 from typing import Any, Callable
 from unittest.mock import MagicMock
 

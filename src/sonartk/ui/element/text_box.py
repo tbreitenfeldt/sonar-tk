@@ -250,9 +250,6 @@ class TextBox(Element):
             self.position = index
             word = "blank"
 
-        if word == " ":
-            word = "space"
-
         speech_manager.output(word, interrupt=True, log_message=False)
 
         self.clear_selection()
@@ -284,7 +281,7 @@ class TextBox(Element):
         word = value[self.position : index]
         if self.hidden:
             word = "Star " * len(word)
-        elif word == " " or (word == "" and value[self.position] == " "):
+        elif word == "" and value[self.position] == " ":
             word = "space"
 
         speech_manager.output(word, interrupt=True, log_message=False)
@@ -394,7 +391,7 @@ class TextBox(Element):
                     output_value: str = (
                         self.input[self.position] + " " + selection_text
                     )
-                    if output_value.isupper():
+                    if self.input[self.position].isupper():
                         output_value = "Cap " + self.input[self.position]
                     speech_manager.output(
                         output_value, interrupt=True, log_message=False
@@ -427,11 +424,10 @@ class TextBox(Element):
                         log_message=False,
                     )
                 else:
-                    output_value: str = (
-                        self.input[self.position] + " " + selection_text
-                    )
+                    output_value: str = self.input[self.position]
                     if output_value.isupper():
                         output_value = "Cap " + output_value
+                    output_value = output_value + " " + selection_text
                     speech_manager.output(
                         output_value, interrupt=True, log_message=False
                     )
@@ -671,10 +667,6 @@ class TextBox(Element):
                 self.clear_selection()
         elif self.selecting_right:
             self.right_selection_index = next_position
-        else:
-            raise ValueError(
-                "selecting_left and selecting_right can not both be true."
-            )
 
     def set_left_selection(
         self, previous_position: int, next_position: int
@@ -689,10 +681,6 @@ class TextBox(Element):
             self.right_selection_index = previous_position
             if self.left_selection_index >= self.right_selection_index:
                 self.clear_selection()
-        else:
-            raise ValueError(
-                "selecting_left and selecting_right can not both be true."
-            )
 
     def delete_selection(self) -> None:
         if self.is_selected():

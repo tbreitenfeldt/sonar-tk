@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Grid class."""
-
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 from unittest.mock import MagicMock

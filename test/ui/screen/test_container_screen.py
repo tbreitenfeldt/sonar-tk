@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the ContainerScreen module."""
-
 from typing import Any, Callable
 
 import pytest

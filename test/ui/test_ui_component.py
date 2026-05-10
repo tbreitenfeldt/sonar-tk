@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the UIComponent module."""
-
 from typing import Optional
 
 import pytest

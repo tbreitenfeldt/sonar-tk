@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Button class."""
-
 from typing import Any, Callable
 
 import pytest

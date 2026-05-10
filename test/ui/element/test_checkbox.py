@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Checkbox class."""
-
 from typing import Any
 
 import pytest

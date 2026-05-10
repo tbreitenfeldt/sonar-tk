@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Element class."""
-
 from typing import Any, Callable, Optional
 from unittest.mock import MagicMock
 

@@ -1,5 +1,3 @@
-"""Comprehensive unit tests for the Menu class."""
-
 from typing import Any, Callable, Dict, List, Optional
 from unittest.mock import MagicMock
 

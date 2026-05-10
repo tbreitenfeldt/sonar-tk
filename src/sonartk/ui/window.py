@@ -202,9 +202,10 @@ class Window(UIComponent, EventDispatcher):
         del self.pyglet_window
 
         if "sonartk.sound.sound_manager" in sys.modules:
-            from sonartk.sound import sound_manager
-
-            sound_manager.cleanup()
+            sound_manager = sys.modules["sonartk.sound.sound_manager"]
+            cleanup = getattr(sound_manager, "cleanup", None)
+            if callable(cleanup):
+                cleanup()
 
         return True
 

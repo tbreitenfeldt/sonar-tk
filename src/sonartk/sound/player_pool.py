@@ -54,7 +54,7 @@ class PlayerPool:
         index: int = self._active_players.index(player)
         del self._active_players[index]
         self._idle_players.append(player)
-        self._idle_player_pool_size -= 1
+        self._idle_player_pool_size += 1
 
     def destroy(self) -> None:
         for player in self._idle_players:

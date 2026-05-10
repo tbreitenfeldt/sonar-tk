@@ -1,5 +1,7 @@
 [run]
 branch = True
+omit =
+    src/sonartk/sound/openal_lite/openal.py
 
 [paths]
 source = ./src/ ./test/

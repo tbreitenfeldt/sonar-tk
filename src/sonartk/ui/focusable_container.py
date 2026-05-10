@@ -23,4 +23,4 @@ class FocusableContainer(Protocol):
             The State that currently has focus within this container,
             or None if the container is empty or has no active element.
         """
-        ...
+        ...  # pragma: no cover

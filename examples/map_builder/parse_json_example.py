@@ -1,7 +1,10 @@
 import sys
+from pathlib import Path
 
 
-sys.path.insert(0, "../src")
+EXAMPLE_DIR = Path(__file__).resolve().parent
+PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
+sys.path.insert(0, str(PROJECT_SRC))
 
 
 try:
@@ -13,7 +16,7 @@ except Exception:
 
 def main() -> None:
     parser = JSONParser()
-    parser.open("./test.json")
+    parser.open(str(EXAMPLE_DIR / "test.json"))
 
     while True:
         try:

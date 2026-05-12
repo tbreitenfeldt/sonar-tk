@@ -1,18 +1,21 @@
 import sys
-from typing import Any, Callable, Optional
+from pathlib import Path
+from typing import cast
 
 from pyglet.window import key
 import pyglet.clock
 
 
-sys.path.insert(0, "../../src")
+EXAMPLE_DIR = Path(__file__).resolve().parent
+PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
+sys.path.insert(0, str(PROJECT_SRC))
 
 try:
     from sonartk.ui.window import Window
+    from sonartk.ui.screen import ContainerScreen
     from sonartk.map_builder.map_2d import load_2d_map
     from sonartk.map_builder.map_2d import Map2d, MapTile
     from sonartk.map_builder.map_2d.parser.csv_parser import CSVParser
-    from sonartk.map_builder.map_2d.parser.map_parser import MapParser
     from sonartk.ui.element.grid import Grid
     from sonartk.map_builder.map_2d.map_object.character import Character
     from sonartk.util import Direction
@@ -26,17 +29,21 @@ tile_reference: dict[str, MapTile] = {
     "0": MapTile("path"),
     "1": MapTile("wall", is_passable=False),
 }
-sound_map: dict[str, str] = {"path": "step_dirt.wav", "wall": "wall.wav"}
 
 
 def main() -> None:
     window: Window = Window(caption="Test 2D Game")
+    container = ContainerScreen(window)
     character: Character = Character("Test Character", (1, 9), Direction.DOWN)
     map2d: Map2d = load_2d_map(
-        "Test Map", "test.csv", CSVParser(), tile_mapper, character
+        "Test Map",
+        str(EXAMPLE_DIR / "test.csv"),
+        CSVParser(),
+        tile_mapper,
+        character,
     )
     grid: Grid = Grid(
-        window,
+        container,
         label="",
         height=map2d.height,
         width=map2d.width,
@@ -64,7 +71,8 @@ def main() -> None:
         )
     )
     # Note: current_position would be set here in actual implementation
-    window.add(map2d.name, grid)
+    container.add("grid", grid)
+    window.add(map2d.name, container)
     window.open_window()
 
 
@@ -85,9 +93,12 @@ def on_map_navigation(
         map2d.character.directional_orientation = direction
         current_coordinates: Coordinates = grid.current_coordinates
         new_coordinates, tile = grid.get_next_cell(direction)
+        if tile is None:
+            return True
+
         # current_position used for future 3D sound positioning
-        # current_position: tuple[int] = (*current_coordinates, 0)
-        new_position: tuple[int] = (*new_coordinates, 0)
+        # current_position would be (*current_coordinates, 0)
+        new_position = cast(tuple[int], (*new_coordinates, 0))
         sound_file: str = sound_map[tile.name]
 
         if tile.is_passable:
@@ -125,15 +136,21 @@ def play_wall_sound(
 ) -> bool:
     try:
         sound_file: str = sound_map["wall"]
-        Coordinates, cell = grid.get_next_cell(direction)
+        next_coordinates, _ = grid.get_next_cell(direction)
         sound_manager.play_sound(
             sound_file,
-            position=(*Coordinates, 0),
+            position=cast(tuple[int], (*next_coordinates, 0)),
             player=map_navigation_player,
         )
         return True
     except KeyError:
         return False
+
+
+sound_map = {
+    "path": str(EXAMPLE_DIR / "step_dirt.wav"),
+    "wall": str(EXAMPLE_DIR / "wall.wav"),
+}
 
 
 main()

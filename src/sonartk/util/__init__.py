@@ -19,3 +19,16 @@ class Direction(Enum):
     DIAGONAL_LOWER_LEFT = 6
     LEFT = 7
     DIAGONAL_UPPER_LEFT = 8
+
+
+__all__ = [
+    "Callback",
+    "Coordinates",
+    "Direction",
+    "EmptyState",
+    "Key",
+    "KeyHandler",
+    "State",
+    "StateMachine",
+    "speech_manager",
+]

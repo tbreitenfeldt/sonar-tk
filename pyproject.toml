@@ -7,7 +7,7 @@ name = "sonartk"
 authors = [
     {name = "Timothy Breitenfeldt", email = "timothyjb310@gmail.com"},
 ]
-readme = "README.md"
+readme = "readme.md"
 version = "0.1.2"
 description = "A library used to create audio games built on top of Pyglet."
 requires-python = ">=3.13"

@@ -1,58 +1,93 @@
 # Sonar TK
 
-A python library for creating audio games. There are 3 separate modules: UI, map building, and sound. These components are brought together in an opinionated module called world. All of these modules are designed to work together, or stand alone.
+Sonar TK is a Python library for creating audio-first games and accessible,
+screen-reader-oriented interactive applications.
 
-A utils package is included which provides various useful tools for building games, or other accessible screen reader only user interfaces, such as a speech util that is a wrapper for accessible_output2, state machine classes, and a key manager for wrapping the keyboard behavior of pyglet.
+The project is organized into focused packages:
+
+- ui: windowing, focus, screens, and interactive UI elements.
+- map_builder: 2D map loading, tiles, map objects, and parsers.
+- sound: sound playback and OpenAL integration helpers.
+- util: speech, key handling, shared state/state machine primitives, and
+  core utility types.
+
+For common game composition, Sonar TK also provides a top-level builder API.
 
 ## Installation
 
-sonartk is published on pypi, and can be installed using pip:
+Install from PyPI:
 
-```
-pip3 install sonartk
-```
+	pip install sonartk
 
 ## Supported Python Versions
 
-This library has been tested using python 3.11.
+Sonar TK currently requires Python 3.13 or newer.
+
+## Top-Level API
+
+The top-level package exposes high-level entry points:
+
+	from sonartk import Window, MapGridGameBuilder, BuiltMapGridGame
+
+- Window: primary application window.
+- MapGridGameBuilder: composition helper for map + grid game wiring.
+- BuiltMapGridGame: typed return object from the builder.
+
+## Package-Level APIs
+
+Use package imports when you want lower-level control:
+
+	from sonartk.ui import Window
+	from sonartk.map_builder import Map2d, MapTile, load_2d_map
+	from sonartk.sound import sound_manager
+	from sonartk.util import Direction, Coordinates, KeyHandler
+
+UI remains focused on UI primitives. Cross-domain composition helpers belong at
+top level (for example, MapGridGameBuilder).
+
+## Public API Reference
+
+The following exports are the intended stable import surface:
+
+- sonartk: Window, MapGridGameBuilder, BuiltMapGridGame
+- sonartk.ui: UIComponent, FocusableContainer, Window
+- sonartk.map_builder: Map2d, MapTile, load_2d_map
+- sonartk.map_builder.map_2d: Map2d, MapTile, load_2d_map
+- sonartk.map_builder.map_2d.map_object: MapObject, Character
+- sonartk.map_builder.map_2d.parser: MapParser, CSVParser, JSONParser
+- sonartk.sound: sound_manager
+- sonartk.util: Callback, Coordinates, Direction, EmptyState, Key,
+  KeyHandler, State, StateMachine, speech_manager
+
+If you need symbols outside this list, import from the concrete module path
+and treat those imports as lower-level/internal APIs.
 
 ## Dependencies
 
-audio_ui depends on a few dependencies for use. These dependencies are listed below:
+Core runtime dependencies include:
 
-- [pyglet] (https://pypi.org/project/pyglet/)
-- [accessible_output2] (https://pypi.org/project/accessible-output2/)
-- [pyperclip] (https://pypi.org/project/pyperclip/)
-- [pyogg] (https://pypi.org/project/PyOgg/)
+- pyglet
+- accessible_output2
+- pyperclip
+- ijson
+- pyogg
 
-## Core Modules
+## Source Setup
 
-- ui - use to create a window, provide key handling, and a game loop.
-- map-builder - used for reading in maps, and providing helpful methods for traversing the map such as methods for returning near by map object, and path finding.
-- sound - wraps open-al using a python wrapper open-al-light
+Clone the repository:
 
-## Installing Source
+https://github.com/tbreitenfeldt/sonar-tk
 
-First clone the repository from:
+Install dependencies:
 
-[https://github.com/tbreitenfeldt/audio_ui] (https://github.com/tbreitenfeldt/audio_ui)
+	pip install -r requirements.txt
 
-then install the dependencies with pip:
+## Running Tests
 
-```
-pip install -r requirements.txt
-```
+Run the test suite with pytest:
 
-Run the tests using
-[nose2] (https://pypi.org/project/nose2/).
-First install nose2 using pip:
+	pytest
 
-```
-pip install nose2
-```
+Run coverage locally:
 
-Then run the tests from the main directory by running:
-
-```
-nose2
-```
+	pytest --cov=src --cov-report=term-missing

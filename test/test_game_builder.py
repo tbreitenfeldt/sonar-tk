@@ -2,13 +2,13 @@ from typing import Generic, TypeVar
 
 import pytest
 
-from sonartk.game_builder import MapGridGameBuilder
 from sonartk.map_builder.map_2d import Map2d, MapTile
 from sonartk.map_builder.map_2d.map_object.character import Character
 from sonartk.map_builder.map_2d.parser.map_parser import MapParser
 from sonartk.map_builder.map_2d.parser.stop_parsing_exception import (
     StopParsingException,
 )
+from sonartk.orchestration.game_builder import MapGridGameBuilder
 from sonartk.ui.element.grid import Grid
 from sonartk.ui.screen.container_screen import ContainerScreen
 from sonartk.ui.window import Window

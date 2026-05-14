@@ -1,13 +1,13 @@
-from sonartk.orchestration import (
+from sonartk.orchestration.game_builder import (
     BuiltMapGridGame,
     MapGridGameBuilder,
+)
+from sonartk.orchestration.map_sound_navigation import (
     MapSoundNavigationController,
 )
-from sonartk.ui.window import Window
 
 __all__ = [
-    "Window",
-    "MapGridGameBuilder",
     "BuiltMapGridGame",
+    "MapGridGameBuilder",
     "MapSoundNavigationController",
 ]

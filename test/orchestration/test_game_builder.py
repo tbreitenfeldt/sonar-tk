@@ -44,6 +44,13 @@ def tile_mapper(value: str) -> MapTile:
     return MapTile("path")
 
 
+def _loaded_map() -> Map2d:
+    character = Character("Hero", (0, 0), Direction.DOWN)
+    map2d = Map2d("loaded", character)
+    map2d.add_row([MapTile("path")])
+    return map2d
+
+
 def test_build_raises_if_map_not_configured() -> None:
     builder = MapGridGameBuilder[str](caption="Test")
 
@@ -74,9 +81,7 @@ def test_build_wires_window_screen_grid_with_defaults() -> None:
 
 
 def test_with_loaded_map_is_supported() -> None:
-    character = Character("Hero", (0, 0), Direction.DOWN)
-    map2d = Map2d("loaded", character)
-    map2d.add_row([MapTile("path")])
+    map2d = _loaded_map()
 
     built = (
         MapGridGameBuilder[str](caption="Test").with_loaded_map(map2d).build()
@@ -84,6 +89,26 @@ def test_with_loaded_map_is_supported() -> None:
 
     assert built.map2d is map2d
     assert built.grid.current_coordinates == (0, 0)
+
+
+def test_build_raises_if_window_already_contains_screen_key() -> None:
+    builder = MapGridGameBuilder[str](caption="Test").with_loaded_map(
+        _loaded_map()
+    )
+    builder.window.add("main", ContainerScreen(builder.window))
+
+    with pytest.raises(RuntimeError, match="already contains a state"):
+        builder.build()
+
+
+def test_build_raises_if_screen_already_contains_grid_key() -> None:
+    builder = MapGridGameBuilder[str](caption="Test").with_loaded_map(
+        _loaded_map()
+    )
+    builder.screen.add("grid", ContainerScreen(builder.screen))
+
+    with pytest.raises(RuntimeError, match="already contains a state"):
+        builder.build()
 
 
 def test_navigation_and_border_handlers_are_attached() -> None:

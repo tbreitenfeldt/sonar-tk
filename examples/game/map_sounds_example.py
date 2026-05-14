@@ -11,9 +11,7 @@ PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
 sys.path.insert(0, str(PROJECT_SRC))
 
 try:
-    from sonartk.ui.window import Window
-    from sonartk.ui.screen import ContainerScreen
-    from sonartk.map_builder.map_2d import load_2d_map
+    from sonartk.game_builder import MapGridGameBuilder
     from sonartk.map_builder.map_2d import Map2d, MapTile
     from sonartk.map_builder.map_2d.parser.csv_parser import CSVParser
     from sonartk.ui.element.grid import Grid
@@ -32,47 +30,46 @@ tile_reference: dict[str, MapTile] = {
 
 
 def main() -> None:
-    window: Window = Window(caption="Test 2D Game")
-    container = ContainerScreen(window)
     character: Character = Character("Test Character", (1, 9), Direction.DOWN)
-    map2d: Map2d = load_2d_map(
-        "Test Map",
-        str(EXAMPLE_DIR / "test.csv"),
-        CSVParser(),
-        tile_mapper,
-        character,
-    )
-    grid: Grid = Grid(
-        container,
-        label="",
-        height=map2d.height,
-        width=map2d.width,
-        cells=map2d.tile_map,
-        cell_class=MapTile,
-        property_name="name",
-        speak_coordinates_on_change=False,
-        speak_value_on_change=False,
-    )
-    grid.current_coordinates = map2d.character.coordinates
-    sound_manager.listener.position = (*grid.current_coordinates, 0)
     map_navigation_player: Player = sound_manager.player_pool.get_player()
-    grid.push_handlers(
-        on_navigation=(
+    builder = MapGridGameBuilder[str](caption="Test 2D Game").with_map(
+        map_name="Test Map",
+        file_name=str(EXAMPLE_DIR / "test.csv"),
+        parser=CSVParser(),
+        tile_mapper=tile_mapper,
+        character=character,
+    )
+
+    game = (
+        builder.with_grid_options(
+            label="",
+            speak_coordinates_on_change=False,
+            speak_value_on_change=False,
+        )
+        .on_navigation(
             lambda grid, direction: on_map_navigation(
-                grid, map2d, direction, sound_map, map_navigation_player
+                grid,
+                builder.map2d,
+                direction,
+                sound_map,
+                map_navigation_player,
             )
         )
-    )
-    grid.push_handlers(
-        on_border=(
+        .on_border(
             lambda grid, direction: on_map_border(
-                grid, direction, sound_map, map_navigation_player
+                grid,
+                direction,
+                sound_map,
+                map_navigation_player,
             )
         )
+        .build()
     )
-    # Note: current_position would be set here in actual implementation
-    container.add("grid", grid)
-    window.add(map2d.name, container)
+
+    grid: Grid = game.grid
+    window = game.window
+
+    sound_manager.listener.position = (*grid.current_coordinates, 0)
     window.open_window()
 
 
@@ -153,4 +150,5 @@ sound_map = {
 }
 
 
-main()
+if __name__ == "__main__":
+    main()

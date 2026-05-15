@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import pyperclip
 from pyglet.window import key
 
 from sonartk.ui.element.element import Element
-from sonartk.util.key_handler import KeyHandler
 from sonartk.util import speech_manager
 
 if TYPE_CHECKING:
@@ -50,6 +48,7 @@ class TextBox(Element):
 
     # override
     def bind_keys(self) -> None:
+        """Bind editing, navigation, clipboard, and selection shortcuts."""
         self.key_handler.add_key_press(self.select_all, key.A, [key.MOD_CTRL])
         self.key_handler.add_key_press(
             self.move_word_selection_right,
@@ -104,11 +103,13 @@ class TextBox(Element):
     # override
     @property
     def value(self) -> Optional[str]:
+        """Return the current textbox content as a string."""
         return self.get_value()
 
     # override
     @value.setter
     def value(self, value: str) -> None:
+        """Return the current textbox content as a string."""
         self.input = list(value)
 
     # override
@@ -117,6 +118,7 @@ class TextBox(Element):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
+        """Announce current content and read-only state when focused."""
         super().setup(change_state, interrupt_speech)
         output_value: str = self.get_value()
         if output_value == "":
@@ -128,6 +130,7 @@ class TextBox(Element):
         return True
 
     def delete_previous_character(self) -> bool:
+        """Delete the character before the cursor or current selection."""
         output_value: str = ""
         if self.input:
             if self.is_selected():
@@ -166,6 +169,7 @@ class TextBox(Element):
         return True
 
     def delete_next_character(self) -> bool:
+        """Delete the character at or after the cursor or current selection."""
         output_value: str = ""
         if self.input:
             if self.is_selected():
@@ -212,6 +216,7 @@ class TextBox(Element):
         return True
 
     def output_value(self) -> bool:
+        """Speak the full textbox value, masking characters when hidden."""
         if not self.hidden:
             speech_manager.output(
                 self.get_value(), interrupt=True, log_message=False
@@ -224,6 +229,7 @@ class TextBox(Element):
         return True
 
     def next_word(self) -> bool:
+        """Move to the next word boundary and announce the word at that position."""
         value: str = "".join(self.input)
         index: int = 0
         word: str = ""
@@ -256,6 +262,7 @@ class TextBox(Element):
         return True
 
     def previous_word(self) -> bool:
+        """Move to the previous word boundary and announce the word at that position."""
         value: str = "".join(self.input)
         index: int = 0
         word: str = ""
@@ -290,6 +297,7 @@ class TextBox(Element):
         return True
 
     def next_character(self) -> bool:
+        """Move cursor right and announce the newly focused character."""
         if (
             self.left_selection_index == 0
             and self.right_selection_index == len(self.input)
@@ -325,6 +333,7 @@ class TextBox(Element):
         return True
 
     def previous_character(self) -> bool:
+        """Move cursor left and announce the newly focused character."""
         if (
             self.left_selection_index == 0
             and self.right_selection_index == len(self.input)
@@ -371,6 +380,7 @@ class TextBox(Element):
         return True
 
     def move_letter_selection_right(self) -> bool:
+        """Extend or shrink selection one character to the right."""
         selection_text: str = "Selected"
 
         if self.selecting_left:
@@ -404,6 +414,7 @@ class TextBox(Element):
         return True
 
     def move_letter_selection_left(self) -> bool:
+        """Extend or shrink selection one character to the left."""
         selection_text: str = "Selected"
 
         if self.selecting_right:
@@ -437,6 +448,7 @@ class TextBox(Element):
         return True
 
     def move_word_selection_right(self) -> bool:
+        """Extend or shrink selection one word to the right."""
         value: str = self.get_value()
         index: int = 0
         word: str = ""
@@ -471,6 +483,7 @@ class TextBox(Element):
         return True
 
     def move_word_selection_left(self) -> bool:
+        """Extend or shrink selection one word to the left."""
         value: str = "".join(self.input)
         index: int = 0
         word: str = ""
@@ -507,6 +520,7 @@ class TextBox(Element):
         return True
 
     def select_all(self) -> bool:
+        """Select the entire textbox content and announce the selection."""
         if (
             self.input
             and self.left_selection_index != 0
@@ -525,10 +539,12 @@ class TextBox(Element):
         return True
 
     def submit(self) -> bool:
+        """Emit the submit event for the textbox value."""
         self.dispatch_event("on_submit", self)
         return True
 
     def copy_to_clipboard(self) -> bool:
+        """Copy current selection to the clipboard when a selection exists."""
         if self.is_selected():
             pyperclip.copy(
                 self.get_value()[
@@ -544,6 +560,7 @@ class TextBox(Element):
         return True
 
     def paste_from_clipboard(self) -> bool:
+        """Insert clipboard text at the cursor when size limits allow."""
         value: str = pyperclip.paste()
 
         if len(value) + len(self.input) <= self.text_box_size:
@@ -559,6 +576,7 @@ class TextBox(Element):
         return True
 
     def move_home(self) -> bool:
+        """Move the cursor to the beginning and announce the first character."""
         self.position = 0
         if not self.input:
             speech_manager.output("blank", interrupt=True, log_message=False)
@@ -581,6 +599,7 @@ class TextBox(Element):
         return True
 
     def move_end(self) -> bool:
+        """Move the cursor to the end and announce blank."""
         self.position = len(self.input)
         speech_manager.output("blank", interrupt=True, log_message=False)
 
@@ -588,6 +607,7 @@ class TextBox(Element):
         return True
 
     def type_character(self, character: str) -> bool:
+        """Insert an allowed character and perform speech feedback."""
         if character in self.allowed_chars:
             if self.is_selected():
                 self.delete_selection()
@@ -635,14 +655,17 @@ class TextBox(Element):
         return False
 
     def get_value(self) -> str:
+        """Return the textbox content by joining the internal character buffer."""
         return "".join(self.input)
 
     def is_selected(self) -> bool:
+        """Return whether any text range is currently selected."""
         return (
             self.left_selection_index > -1 or self.right_selection_index > -1
         )
 
     def clear_selection(self) -> None:
+        """Clear selection tracking and announce unselection when needed."""
         if self.left_selection_index > -1 or self.right_selection_index > -1:
             if self.left_selection_index != self.right_selection_index:
                 speech_manager.output(
@@ -657,6 +680,7 @@ class TextBox(Element):
     def set_right_selection(
         self, previous_position: int, next_position: int
     ) -> None:
+        """Update selection bounds while extending selection rightward."""
         if not self.selecting_left and not self.selecting_right:
             self.selecting_right = True
             self.left_selection_index = previous_position
@@ -671,6 +695,7 @@ class TextBox(Element):
     def set_left_selection(
         self, previous_position: int, next_position: int
     ) -> None:
+        """Update selection bounds while extending selection leftward."""
         if not self.selecting_left and not self.selecting_right:
             self.selecting_left = True
             self.left_selection_index = previous_position
@@ -683,6 +708,7 @@ class TextBox(Element):
                 self.clear_selection()
 
     def delete_selection(self) -> None:
+        """Delete the currently selected character range."""
         if self.is_selected():
             counter: int = 0
             index: int = 0
@@ -703,6 +729,7 @@ class TextBox(Element):
 
     # override
     def reset(self) -> None:
+        """Restore default value and clear cursor and selection state."""
         self.value = self.default_value
         self.input = list(self.default_value)
         self.position = 0

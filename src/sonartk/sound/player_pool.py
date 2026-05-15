@@ -1,6 +1,4 @@
-from typing import Self
 from collections import deque
-import time
 
 from sonartk.sound.openal_lite.openal import Player
 
@@ -23,16 +21,19 @@ class PlayerPool:
 
     @property
     def idle_player_pool_size(self) -> int:
+        """Return the idle player pool size."""
         return self._idle_player_pool_size
 
     @idle_player_pool_size.setter
     def idle_player_pool_size(self, idle_player_pool_size: int) -> None:
+        """Set the idle player pool size."""
         self._idle_players = deque(
             [Player() for _ in range(idle_player_pool_size)]
         )
         self._idle_player_pool_size = idle_player_pool_size
 
     def get_player(self) -> Player:
+        """Get player."""
         if len(self._idle_players) - 1 <= self.min_remaining_idle_players:
             if self.total_alocated_players + 1 >= self.max_pool_size:
                 raise RuntimeError(
@@ -50,6 +51,7 @@ class PlayerPool:
         return player
 
     def unload_player(self, player: Player) -> None:
+        """Unload player."""
         player.reset()
         index: int = self._active_players.index(player)
         del self._active_players[index]
@@ -57,6 +59,7 @@ class PlayerPool:
         self._idle_player_pool_size += 1
 
     def destroy(self) -> None:
+        """Destroy."""
         for player in self._idle_players:
             player.delete()
         for player in self._active_players:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from pyglet.window import key
 
@@ -22,10 +22,12 @@ class Checkbox(Element[bool]):
 
     # override
     def bind_keys(self) -> None:
+        """Bind keys."""
         self.key_handler.add_key_press(self.toggle_state, key.RETURN)
         self.key_handler.add_key_press(self.toggle_state, key.SPACE)
 
     def toggle_state(self) -> bool:
+        """Toggle state."""
         self.value = not self.value
         self.dispatch_event("on_change", self)
 
@@ -40,11 +42,13 @@ class Checkbox(Element[bool]):
 
     # override
     def reset(self) -> None:
+        """Reset."""
         self.value = self.default_value
 
     # override
     @property
     def name(self) -> str:
+        """Return the name."""
         output_value: str = "Checked" if self.value else "Unchecked"
         return f"{self.label} {self.role} {output_value}"
 

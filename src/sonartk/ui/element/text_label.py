@@ -25,6 +25,7 @@ class TextLabel(Element[str]):
 
     # override
     def reset(self) -> None:
+        """Reset."""
         pass
 
     # override

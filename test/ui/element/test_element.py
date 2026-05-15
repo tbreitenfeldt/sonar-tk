@@ -1,5 +1,4 @@
-from typing import Any, Callable, Optional
-from unittest.mock import MagicMock
+from typing import Any, Optional
 
 import pytest
 from pytest_mock import MockerFixture

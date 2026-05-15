@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, cast, TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pyglet.clock
 from pyglet.window import key
@@ -11,9 +11,7 @@ from sonartk.ui.screen.container_screen import ContainerScreen
 if TYPE_CHECKING:
     from sonartk.ui.screen.screen import Screen
 
-from sonartk.util.state_machine import EmptyState, State
-from sonartk.util.key_handler import KeyHandler
-from sonartk.util import speech_manager
+from sonartk.util.state_machine import EmptyState
 
 
 class Dialog(ContainerScreen):
@@ -23,6 +21,7 @@ class Dialog(ContainerScreen):
         self.original_state_key: str = ""
 
     def open_dialog(self, caption: str) -> None:
+        """Attach this dialog to the parent and switch focus into it."""
         self.original_state_key = (
             self.parent.state_machine.current_state.state_key  # type: ignore[attr-defined]
         )
@@ -36,11 +35,13 @@ class Dialog(ContainerScreen):
 
     # override
     def bind_keys(self) -> None:
+        """Bind dialog-specific keys, including escape-to-close behavior."""
         super().bind_keys()
         self.key_handler.add_key_press(self.close, key.ESCAPE)
 
     # override
     def reset(self) -> None:
+        """Reset all dialog child elements to their default values."""
         for state in self.state_machine.states.values():
             element: Element = cast(Element, state)
             element.reset()
@@ -49,6 +50,7 @@ class Dialog(ContainerScreen):
     def close(self) -> bool:
         # Call Screen.close() directly, NOT ContainerScreen.close()
         # to avoid closing the parent screen
+        """Close the dialog, restore caption, and return focus to the prior state."""
         from sonartk.ui.screen.screen import Screen
 
         Screen.close(self)

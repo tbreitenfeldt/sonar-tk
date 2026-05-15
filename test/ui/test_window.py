@@ -1,14 +1,11 @@
 import sys
 
-import pyglet
 import pytest
 from pytest_mock import MockerFixture
 from pyglet.window import key
 
 from sonartk.ui import Window
-from sonartk.util import State
-from sonartk.util import KeyHandler, Key
-from sonartk.util import speech_manager
+from sonartk.util import State, KeyHandler
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
 

@@ -11,14 +11,17 @@ class EmptyState(State):
         *args: Any,
         **kwargs: Any,
     ) -> bool:
+        """Perform no-op setup for the empty placeholder state."""
         return True
 
     # override
     def update(self, delta_time: float) -> bool:
+        """Perform no-op update for the empty placeholder state."""
         return True
 
     # override
     def exit(self) -> bool:
+        """Perform no-op exit for the empty placeholder state."""
         return True
 
 
@@ -71,9 +74,11 @@ class StateMachine:
         self.current_state = EmptyState()
 
     def size(self) -> int:
+        """Return the number of registered states."""
         return len(self.states)
 
     def is_empty(self) -> bool:
+        """Return whether no states are currently registered."""
         return self.size() == 0
 
     def contains(self, key: str) -> bool:
@@ -99,10 +104,13 @@ class StateMachine:
                 self.current_state = next_state
 
     def setup(self, *args: Any, **kwargs: Any) -> bool:
+        """Run setup on the current active state."""
         return self.current_state.setup(self.change, *args, **kwargs)
 
     def update(self, delta_time: float) -> bool:
+        """Run one update tick on the current active state."""
         return self.current_state.update(delta_time)
 
     def exit(self) -> bool:
+        """Run exit on the current active state."""
         return self.current_state.exit()

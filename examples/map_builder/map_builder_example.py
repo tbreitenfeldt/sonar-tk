@@ -36,7 +36,7 @@ def main() -> None:
     print(map2d.find_path((1, 9), (0, 0)))
     window: Window = Window(caption="Map Test")
     grid: Grid = Grid(
-        window,
+        window,  # type: ignore[arg-type]
         label="",
         height=map2d.height,
         width=map2d.width,

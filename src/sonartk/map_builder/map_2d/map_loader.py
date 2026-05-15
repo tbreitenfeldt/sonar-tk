@@ -1,4 +1,4 @@
-from typing import Any, Callable, TypeVar
+from typing import Callable, TypeVar
 
 from sonartk.map_builder.map_2d.map_2d import Map2d
 from sonartk.map_builder.map_2d.map_object.character import Character
@@ -18,6 +18,7 @@ def load_2d_map(
     mapper: Callable[[T], MapTile],
     character: Character,
 ) -> Map2d:
+    """Load a 2D map file with a parser and convert each parsed entry to a MapTile."""
     map2d: Map2d = Map2d(map_name, character)
     parser.open(file_name)
 

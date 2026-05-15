@@ -7,4 +7,5 @@ class MapObject:
         self.coordinates: Coordinates = coordinates
 
     def interact(self) -> None:
+        """Interact."""
         pass

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -10,14 +9,13 @@ from typing import (
     Optional,
     Self,
     Type,
-    TypeAlias,
     TypeVar,
 )
 
 from pyglet.window import key
 
 from sonartk.ui.element.element import Element
-from sonartk.util import Coordinates, Direction, KeyHandler, speech_manager
+from sonartk.util import Coordinates, Direction, speech_manager
 from sonartk.util.key_handler import Key
 
 if TYPE_CHECKING:
@@ -72,6 +70,7 @@ class Grid(Element[str], Generic[T]):
 
     # override
     def bind_keys(self) -> None:
+        """Bind directional keys used to navigate between grid cells."""
         self.key_handler.add_key_press(
             self.navigate_up,
             key.UP,
@@ -94,6 +93,7 @@ class Grid(Element[str], Generic[T]):
         )
 
     def navigate_up(self) -> bool:
+        """Move one row up, or emit a border event at the top edge."""
         if (self.y + 1) < self.height:
             self.dispatch_event("on_navigation", self, Direction.UP)
         else:
@@ -102,6 +102,7 @@ class Grid(Element[str], Generic[T]):
         return True
 
     def navigate_down(self) -> bool:
+        """Move one row down, or emit a border event at the bottom edge."""
         if (self.y - 1) >= 0:
             self.dispatch_event("on_navigation", self, Direction.DOWN)
         else:
@@ -110,6 +111,7 @@ class Grid(Element[str], Generic[T]):
         return True
 
     def navigate_left(self) -> bool:
+        """Move one column left, or emit a border event at the left edge."""
         if (self.x - 1) >= 0:
             self.dispatch_event("on_navigation", self, Direction.LEFT)
         else:
@@ -118,6 +120,7 @@ class Grid(Element[str], Generic[T]):
         return True
 
     def navigate_right(self) -> bool:
+        """Move one column right, or emit a border event at the right edge."""
         if (self.x + 1) < self.width:
             self.dispatch_event("on_navigation", self, Direction.RIGHT)
         else:
@@ -126,6 +129,7 @@ class Grid(Element[str], Generic[T]):
         return True
 
     def on_navigation(self, grid: Self, direction: Direction) -> bool:
+        """Apply movement, then optionally announce value and coordinates."""
         if direction == Direction.UP:
             self.y += 1
         elif direction == Direction.DOWN:
@@ -146,6 +150,7 @@ class Grid(Element[str], Generic[T]):
         return True
 
     def get_cell(self, coordinates: Coordinates) -> Optional[T]:
+        """Return the cell at coordinates, or None when out of bounds."""
         x, y = coordinates
         if (x < self.width and x >= 0) and (y < self.height and y >= 0):
             return self.cells[y * self.width + x]
@@ -155,6 +160,7 @@ class Grid(Element[str], Generic[T]):
     def get_next_cell(
         self, direction: Direction
     ) -> tuple[Coordinates, Optional[T]]:
+        """Return the next coordinates and cell for a movement direction."""
         coordinates: Coordinates = (0, 0)
         if direction == Direction.UP:
             coordinates = (self.x, self.y + 1)
@@ -172,6 +178,7 @@ class Grid(Element[str], Generic[T]):
         raise ValueError("Invalid Direction for get_next_cell")
 
     def add_row(self, row: list[T] = []) -> None:
+        """Append a row to the grid, validating width compatibility."""
         new_row: list[T] = row
         if row:
             if len(row) != self.width:
@@ -190,12 +197,14 @@ class Grid(Element[str], Generic[T]):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = False,
     ) -> bool:
+        """Initialize the grid for focus and emit an initial change event."""
         super().setup(change_state, interrupt_speech)
         self.dispatch_event("on_change", self)
         return True
 
     # override
     def reset(self) -> None:
+        """Clear all grid state, including coordinates and cell storage."""
         self.x = 0
         self.y = 0
         self.width = 0
@@ -204,12 +213,14 @@ class Grid(Element[str], Generic[T]):
 
     @property
     def arrow_key_repeat_interval(self) -> float:
+        """Return the repeat interval used for arrow-key navigation."""
         return self._arrow_key_repeat_interval
 
     @arrow_key_repeat_interval.setter
     def arrow_key_repeat_interval(
         self, arrow_key_repeat_interval: float
     ) -> None:
+        """Return the repeat interval used for arrow-key navigation."""
         self._arrow_key_repeat_interval = arrow_key_repeat_interval
         self.key_handler.update_repeat_interval_for_key(
             key=Key(key.UP), key_repeat_interval=arrow_key_repeat_interval
@@ -226,14 +237,17 @@ class Grid(Element[str], Generic[T]):
 
     @property
     def current_cell(self) -> T:
+        """Return the cell at the current cursor coordinates."""
         return self.cells[self.y * self.width + self.x]
 
     @property
     def current_coordinates(self) -> tuple[int, int]:
+        """Return the current cursor coordinates as (x, y)."""
         return (self.x, self.y)
 
     @current_coordinates.setter
     def current_coordinates(self, coordinates: tuple[int, int]) -> None:
+        """Return the current cursor coordinates as (x, y)."""
         x, y = coordinates
         if x >= self.width or x < 0:
             raise ValueError(f"x is out of bounds. x: {x} (0 - {self.width})")
@@ -246,11 +260,13 @@ class Grid(Element[str], Generic[T]):
     # override
     @property
     def value(self) -> Optional[str]:
+        """Return the configured property from the current cell as text."""
         return str(getattr(self.current_cell, self.property_name))
 
     # override
     @value.setter
     def value(self, value: str) -> None:
+        """Return the configured property from the current cell as text."""
         setattr(self.current_cell, self.property_name, value)
 
 

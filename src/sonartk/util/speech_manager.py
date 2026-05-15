@@ -40,6 +40,7 @@ _screenreader = Auto()
 def output(
     message: str, interrupt: bool = False, log_message: bool = True
 ) -> None:
+    """Send a message to the active screen reader and optionally store it in history."""
     global _screenreader
     global _speech_history
 
@@ -51,6 +52,7 @@ def output(
 
 
 def silence() -> None:
+    """Stop current speech output on the active screen reader."""
     global _screenreader
 
     if platform.system() == "Windows" and isinstance(
@@ -62,35 +64,41 @@ def silence() -> None:
 
 
 def get_current_screenreader() -> Output:
+    """Return the currently selected accessible_output2 output instance."""
     global _screenreader
     return _screenreader.get_first_available_output()
 
 
 def is_nvda_active() -> bool:
+    """Return whether NVDA is the active screen reader output."""
     return platform.system() == "Windows" and isinstance(
         get_current_screenreader(), NVDA
     )
 
 
 def is_jaws_active() -> bool:
+    """Return whether JAWS is the active screen reader output."""
     return platform.system() == "Windows" and isinstance(
         get_current_screenreader(), Jaws
     )
 
 
 def is_voiceover_active() -> bool:
+    """Return whether VoiceOver is the active screen reader output."""
     return platform.system() == "Darwin" and isinstance(
         get_current_screenreader(), VoiceOver
     )
 
 
 def is_sapi_active() -> bool:
+    """Return whether SAPI5 is the active screen reader output."""
     return platform.system() == "Windows" and isinstance(
         get_current_screenreader(), SAPI5
     )
 
 
 def clear_history() -> None:
+    """Clear all stored speech history and reset history navigation position."""
     global _speech_history
     global _history_position
     _speech_history.clear()
@@ -99,6 +107,7 @@ def clear_history() -> None:
 
 
 def pop_last_message() -> Optional[str]:
+    """Remove and return the most recent history message, if available."""
     global _speech_history
     global _history_position
 
@@ -110,6 +119,7 @@ def pop_last_message() -> Optional[str]:
 
 
 def trim_old_history(message_count: int) -> None:
+    """Remove the oldest history entries up to the requested count."""
     global _speech_history
     global _history_position
 
@@ -122,6 +132,7 @@ def trim_old_history(message_count: int) -> None:
 
 
 def next_history() -> Optional[str]:
+    """Move forward in speech history and return the current message."""
     global _speech_history
     global _history_position
 
@@ -136,6 +147,7 @@ def next_history() -> Optional[str]:
 
 
 def previous_history() -> Optional[str]:
+    """Move backward in speech history and return the current message."""
     global _speech_history
     global _history_position
 
@@ -150,6 +162,7 @@ def previous_history() -> Optional[str]:
 
 
 def navigate_to_end_of_history() -> Optional[str]:
+    """Jump to the newest history message and return it."""
     global _speech_history
     global _history_position
 
@@ -161,6 +174,7 @@ def navigate_to_end_of_history() -> Optional[str]:
 
 
 def navigate_to_beginning_of_history() -> Optional[str]:
+    """Jump to the oldest history message and return it."""
     global _speech_history
     global _history_position
 
@@ -172,5 +186,6 @@ def navigate_to_beginning_of_history() -> Optional[str]:
 
 
 def get_speech_history() -> List[str]:
+    """Return the in-memory speech history list."""
     global _speech_history
     return _speech_history

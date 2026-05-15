@@ -52,7 +52,6 @@ import os
 from pathlib import Path
 import struct
 
-
 OPEN_AL_DLL_PATH = Path(__file__).parent.resolve().__str__()
 OPEN_AL_DLL = os.path.join(OPEN_AL_DLL_PATH, "bin", "OpenAL32.dll")
 if struct.calcsize("P") * 8 == 64:

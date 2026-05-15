@@ -4,7 +4,6 @@ from pytest_mock import MockerFixture
 
 from sonartk.sound import sound_manager
 
-
 # play_music Tests
 
 

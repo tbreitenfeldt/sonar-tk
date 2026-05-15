@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Generic,
     Optional,
     TypeVar,
-    cast,
 )
 
 from pyglet.event import EventDispatcher
@@ -16,9 +14,6 @@ from pyglet.event import EventDispatcher
 from sonartk.ui.ui_component import UIComponent
 from sonartk.util.state import State
 from sonartk.util import KeyHandler, speech_manager
-
-if TYPE_CHECKING:
-    from sonartk.ui.screen.screen import Screen
 
 V = TypeVar("V")
 
@@ -53,6 +48,7 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = False,
     ) -> bool:
+        """Setup."""
         if self.label:
             speech_manager.output(
                 self.name, interrupt=interrupt_speech, log_message=False
@@ -66,11 +62,13 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
 
     # override
     def update(self, delta_time: float) -> bool:
+        """Update."""
         self.dispatch_event("on_update", self, delta_time)
         return True
 
     # override
     def exit(self) -> bool:
+        """Exit."""
         self.dispatch_event("on_lose_focus", self)
         if self.use_key_handler:
             self.get_window().pop_window_handlers()
@@ -79,18 +77,22 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
 
     @abstractmethod
     def reset(self) -> None:
+        """Reset."""
         pass
 
     @property
     def value(self) -> Optional[V]:
+        """Return the value."""
         return self._value
 
     @value.setter
     def value(self, value: V) -> None:
+        """Set the value."""
         self._value = value
 
     @property
     def name(self) -> str:
+        """Return the name."""
         return f"{self.label} {self.role}"
 
 

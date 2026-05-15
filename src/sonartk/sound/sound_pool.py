@@ -11,6 +11,7 @@ class SoundPool:
         self.pool: dict[str, LoadSound | BufferSound] = {}
 
     def load(self, path: str) -> LoadSound | BufferSound:
+        """Load."""
         if path in self.pool:
             return self.pool[path]
 
@@ -34,6 +35,7 @@ class SoundPool:
         return sound
 
     def destroy(self) -> None:
+        """Destroy."""
         for sound in self.pool.values():
             sound.delete()
         self.pool.clear()

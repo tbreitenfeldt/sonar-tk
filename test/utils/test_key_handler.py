@@ -4,7 +4,6 @@ import functools
 
 import pytest
 from pytest_mock import MockerFixture
-from unittest import mock
 from pyglet.window import key
 
 from sonartk.util.key_handler import Key
@@ -245,9 +244,9 @@ def test_key_handler_on_key_release(default_key_handler: KeyHandler) -> None:
         symbol=key.W, modifiers=[key.MOD_CTRL, key.MOD_SHIFT]
     )
     registered_callback: Callback = Callback(lambda: True)
-    default_key_handler.registered_key_releases[
-        key_release
-    ] = registered_callback
+    default_key_handler.registered_key_releases[key_release] = (
+        registered_callback
+    )
     assert default_key_handler.on_key_release(
         symbol=key.W,
         modifiers=functools.reduce(
@@ -264,9 +263,9 @@ def test_key_handler_on_key_release_not_found(
         symbol=key.W, modifiers=[key.MOD_CTRL, key.MOD_SHIFT]
     )
     registered_callback: Callback = Callback(lambda: True)
-    default_key_handler.registered_key_releases[
-        key_release
-    ] = registered_callback
+    default_key_handler.registered_key_releases[key_release] = (
+        registered_callback
+    )
     assert not default_key_handler.on_key_release(
         symbol=key.W, modifiers=functools.reduce(operator.ior, [key.MOD_CTRL])
     )
@@ -321,9 +320,9 @@ def test_key_handler_on_key_release_after_key_held_down(
     key_handler_with_repete.update(0.01)
     assert test_value == 1
     # Register key release handler and release the key
-    key_handler_with_repete.registered_key_releases[
-        key_press
-    ] = registered_callback
+    key_handler_with_repete.registered_key_releases[key_press] = (
+        registered_callback
+    )
     assert key_handler_with_repete.on_key_release(
         symbol=key.W,
         modifiers=functools.reduce(

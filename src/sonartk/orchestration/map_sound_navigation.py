@@ -24,8 +24,7 @@ class _SoundServiceLike(Protocol):
         sound_file: str,
         position: SoundPosition,
         player: Player,
-    ) -> None:
-        ...
+    ) -> None: ...
 
 
 class MapSoundNavigationController:

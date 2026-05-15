@@ -7,12 +7,12 @@ T = TypeVar("T")
 class MapParser(ABC, Generic[T]):
     @abstractmethod
     def open(self, file_name: str) -> None:
-        """Opens a file using the provided file name."""
+        """Open the source file and initialize parser state."""
 
     @abstractmethod
     def read(self) -> list[T]:
-        """Reads one row of a 2d map. This method is expected to be called from a loop."""
+        """Read and return the next map row; raise StopParsingException when exhausted."""
 
     @abstractmethod
     def close(self) -> None:
-        """Close the file."""
+        """Release any file handles or parser resources."""

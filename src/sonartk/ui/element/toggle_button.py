@@ -26,6 +26,7 @@ class ToggleButton(Element[str]):
 
     # override
     def bind_keys(self) -> None:
+        """Bind keys."""
         self.key_handler.add_key_press(self.next, key.RETURN)
         self.key_handler.add_key_press(self.next, key.SPACE)
 
@@ -35,6 +36,7 @@ class ToggleButton(Element[str]):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
+        """Setup."""
         super().setup(change_state, interrupt_speech)
         speech_manager.output(
             self.items[self.position], interrupt=False, log_message=False
@@ -42,6 +44,7 @@ class ToggleButton(Element[str]):
         return True
 
     def next(self) -> bool:
+        """Next."""
         self.position = (self.position + 1) % len(self.items)
         self.value = self.items[self.position]
         speech_manager.output(self.value, interrupt=True, log_message=False)
@@ -49,10 +52,12 @@ class ToggleButton(Element[str]):
         return True
 
     def add(self, item: str) -> None:
+        """Add."""
         self.items.append(item)
 
     # override
     def reset(self) -> None:
+        """Reset."""
         self.position = self.default_position
 
 

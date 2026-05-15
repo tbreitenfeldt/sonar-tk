@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
-from unittest.mock import MagicMock
+from typing import Any
 
 import pytest
 from pyglet.window import key
@@ -10,8 +9,7 @@ from sonartk.ui.element.element import Element
 from sonartk.ui.element.grid import Cell, Grid
 from sonartk.ui.ui_component import UIComponent
 from sonartk.ui.window import Window
-from sonartk.util import Coordinates, Direction, KeyHandler
-from sonartk.util.key_handler import Key
+from sonartk.util import Direction, KeyHandler
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
 

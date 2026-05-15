@@ -1,5 +1,3 @@
-from typing import Any, Callable
-
 import pytest
 from pyglet.window import key
 from pytest_mock import MockerFixture

@@ -1,8 +1,7 @@
-from typing import Any, Optional, Callable, TypeAlias
+from typing import Optional, Callable
 from collections import deque
 
 from sonartk.map_builder.map_2d.map_object.character import Character
-from sonartk.map_builder.map_2d.parser.map_parser import MapParser
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.map_builder.map_2d.map_object import MapObject
 from sonartk.util import Coordinates
@@ -20,6 +19,7 @@ class Map2d:
         self.add_character(character.coordinates, character)
 
     def add_row(self, row: list[MapTile]) -> None:
+        """Insert a map row and update map dimensions."""
         if self.tile_map and self.width != len(row):
             raise IndexError(
                 f"The width of the new row must match the width of the map.  Row Width: {len(row)} - Map Width: {len(self.tile_map)}"
@@ -31,6 +31,7 @@ class Map2d:
         self.tile_map[:0] = row
 
     def get_tile(self, coordinates: Coordinates) -> MapTile:
+        """Return the tile at coordinates, raising on out-of-range access."""
         x, y = coordinates
         if x >= self.width or x < 0:
             raise IndexError(
@@ -46,6 +47,7 @@ class Map2d:
     def add_character(
         self, coordinates: Coordinates, character: Character
     ) -> None:
+        """Register a character at the provided coordinates."""
         self.characters[coordinates] = character
 
     def change_character_coordinates(
@@ -54,6 +56,7 @@ class Map2d:
         new_coordinates: Coordinates,
         character: Character,
     ) -> None:
+        """Move a character registration to new coordinates."""
         if current_coordinates not in self.characters:
             raise LookupError(
                 f"The coordinates {current_coordinates} are not found in the characters list {self.characters}"  # noqa: E713
@@ -65,6 +68,7 @@ class Map2d:
     def add_map_object(
         self, coordinates: Coordinates, map_object: MapObject
     ) -> None:
+        """Register a map object at the provided coordinates."""
         self.objects[coordinates] = map_object
 
     def change_map_object_coordinates(
@@ -73,6 +77,7 @@ class Map2d:
         new_coordinates: Coordinates,
         map_object: MapObject,
     ) -> None:
+        """Move a map object registration to new coordinates."""
         if current_coordinates not in self.objects:
             raise LookupError(
                 f"The coordinates {current_coordinates} are not found in the objects list {self.objects}"  # noqa: E713
@@ -95,6 +100,7 @@ class Map2d:
         ],
         tile_names: list[str] = [],
     ) -> None:
+        """Inspect tiles around a starting point and invoke an action for each."""
         x, y = starting_coordinates
         for i in range(1, self.character.radius):
             self.check_coordinates_for_object(
@@ -136,6 +142,7 @@ class Map2d:
         ],
         tile_names: list[str] = [],
     ) -> None:
+        """Resolve entities at coordinates and call the supplied action."""
         if self.is_coordinates_in_range(coordinates):
             map_object: Optional[MapObject] = (
                 self.objects[coordinates]
@@ -157,6 +164,7 @@ class Map2d:
     def find_path(
         self, start: Coordinates, end: Coordinates
     ) -> list[Coordinates]:
+        """Find and return a passable coordinate path between two points."""
         queue: deque = deque()
         visited: dict[Coordinates, None] = {}
         queue.append((start, []))  # startpoint, and empty path
@@ -180,6 +188,7 @@ class Map2d:
     def get_adjacent_passable_coordinates(
         self, coordinates: Coordinates
     ) -> list[Coordinates]:
+        """Return cardinally adjacent coordinates that are passable."""
         x, y = coordinates
         adjacent_coordinates: list[tuple[int, int]] = []
         # north
@@ -198,6 +207,7 @@ class Map2d:
         return adjacent_coordinates
 
     def is_tile_passable(self, coordinates: Coordinates) -> bool:
+        """Return whether a tile can currently be traversed."""
         if self.is_coordinates_in_range(coordinates):
             tile: MapTile = self.get_tile(coordinates)
             return tile.is_passable and (
@@ -207,6 +217,7 @@ class Map2d:
         return False
 
     def is_coordinates_in_range(self, coordinates: Coordinates) -> bool:
+        """Return whether coordinates are within map bounds."""
         return (
             coordinates[0] >= 0
             and coordinates[0] < self.width

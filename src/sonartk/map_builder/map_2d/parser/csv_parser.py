@@ -15,14 +15,17 @@ class CSVParser(MapParser[str]):
         self.csv_reader: Any = None
 
     def open(self, file_name: str) -> None:
+        """Open a CSV file and prepare a row iterator using the configured delimiter."""
         self.file = open(file_name)
         self.csv_reader = csv.reader(self.file, delimiter=self.delimiter)
 
     def read(self) -> list[str]:
+        """Read and return the next CSV row, or raise StopParsingException at EOF."""
         try:
             return next(self.csv_reader)
         except StopIteration:
             raise StopParsingException
 
     def close(self) -> None:
+        """Close the currently open CSV file handle."""
         cast(TextIOWrapper, self.file).close()

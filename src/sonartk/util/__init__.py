@@ -1,11 +1,9 @@
 from enum import Enum
 from typing import TypeAlias
 
-import sonartk.util.speech_manager
 from sonartk.util.key_handler import Callback, Key, KeyHandler
 from sonartk.util.state import State
 from sonartk.util.state_machine import EmptyState, StateMachine
-
 
 Coordinates: TypeAlias = tuple[int, int]
 

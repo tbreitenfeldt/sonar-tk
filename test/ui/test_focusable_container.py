@@ -1,4 +1,5 @@
 """Unit tests for the FocusableContainer protocol."""
+
 from typing import Any, Callable, Optional
 
 import pytest
@@ -9,10 +10,8 @@ from sonartk.ui.screen.container_screen import ContainerScreen
 from sonartk.ui.screen.screen import Screen
 from sonartk.ui.window import Window
 from sonartk.util.state import State
-from sonartk.util.state_machine import StateMachine
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
-
 
 # Test implementations of FocusableContainer
 

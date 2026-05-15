@@ -1,8 +1,6 @@
 import functools
-import math
 import operator
-import time
-from typing import Any, Callable, Dict, List, Optional, Self, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 import pyglet
 from pyglet.window import key
@@ -52,6 +50,7 @@ class Callback:
         self.internal_args: List[str] = []
 
     def call(self) -> bool:
+        """Invoke the callback with internal and user-provided arguments."""
         if self.callback is not None:
             args: List[str] = self.internal_args + self.user_args
             kwargs: Dict[str, str] = self.user_kwargs
@@ -90,6 +89,7 @@ class KeyHandler:
         pyglet.clock.schedule_interval(self.update, update_repeat_interval)
 
     def set_update_check(self, update_repeat_interval: float = 0.01) -> None:
+        """Configure and schedule the periodic key-repeat update loop."""
         self.update_repeat_interval = update_repeat_interval
         pyglet.clock.unschedule(self.update)
         pyglet.clock.schedule_interval(
@@ -97,6 +97,7 @@ class KeyHandler:
         )
 
     def update(self, dt: float) -> None:
+        """Trigger repeat callbacks while a registered key is held down."""
         if self.is_key_held_down:
             callback, key_repeat_interval = self.registered_key_presses[
                 cast(Key, self.pressed_key)
@@ -107,6 +108,7 @@ class KeyHandler:
             )  # convert to seconds
 
     def on_key_press(self, symbol: int, modifiers: int) -> bool:
+        """Handle key-press events and dispatch matching registered callbacks."""
         pressed_key: Key = Key(symbol, [modifiers])
 
         if pressed_key in self.registered_key_presses:
@@ -130,6 +132,7 @@ class KeyHandler:
             return False
 
     def on_key_release(self, symbol: int, modifiers: int) -> bool:
+        """Handle key-release events and dispatch release callbacks when valid."""
         released_key: Key = Key(symbol, [modifiers])
 
         if self.pressed_key == released_key:
@@ -154,6 +157,7 @@ class KeyHandler:
         return False
 
     def on_text(self, text: str) -> bool:
+        """Handle text-input events and invoke the registered text callback."""
         if self.registered_text_input:
             self.registered_text_input.internal_args.append(text)
             return self.registered_text_input.call()
@@ -161,6 +165,7 @@ class KeyHandler:
         return False
 
     def on_text_motion(self, motion: int) -> bool:
+        """Handle text-motion events and invoke matching motion callbacks."""
         motion_key: Key = Key(motion)
 
         if motion_key in self.registered_text_motions:
@@ -178,6 +183,7 @@ class KeyHandler:
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        """Register a callback for a key-press combination."""
         registered_callback: Optional[Callback] = None
         if isinstance(key, int):
             key_press: Key = Key(key, modifiers)
@@ -211,6 +217,7 @@ class KeyHandler:
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        """Register a callback for a key-release combination."""
         registered_callback: Optional[Callback] = None
         if isinstance(key, int):
             key_release: Key = Key(key, modifiers)
@@ -230,12 +237,14 @@ class KeyHandler:
     def add_on_text_input(
         self, callback: Callable, *args: Any, **kwargs: Any
     ) -> None:
+        """Register the callback used for incoming text input."""
         registered_callback: Callback = Callback(callback, *args, **kwargs)
         self.registered_text_input = registered_callback
 
     def add_text_motion(
         self, callback: Callable, key: int | Key, *args: Any, **kwargs: Any
     ) -> None:
+        """Register a callback for text motion keys."""
         registered_callback: Optional[Callback] = None
         if isinstance(key, int):
             motion_key: Key = Key(key)
@@ -248,6 +257,7 @@ class KeyHandler:
             raise ValueError("MKey must be either of type Key or int.")
 
     def remove_key_press(self, key: Key) -> bool:
+        """Remove a registered key-press callback."""
         if key in self.registered_key_presses:
             del self.registered_key_presses[key]
             return True
@@ -255,6 +265,7 @@ class KeyHandler:
         return False
 
     def remove_key_release(self, key: Key) -> bool:
+        """Remove a registered key-release callback."""
         if key in self.registered_key_releases:
             del self.registered_key_releases[key]
             return True
@@ -262,9 +273,11 @@ class KeyHandler:
         return False
 
     def remove_on_text_input(self) -> None:
+        """Clear the registered text-input callback."""
         self.registered_text_input = None
 
     def remove_text_motion(self, key: Key) -> bool:
+        """Remove a registered text-motion callback."""
         if key in self.registered_text_motions:
             del self.registered_text_motions[key]
             return True
@@ -274,6 +287,7 @@ class KeyHandler:
     def update_repeat_interval_for_key(
         self, key: Key, key_repeat_interval: float
     ) -> None:
+        """Update repeat timing for a previously registered key-press binding."""
         if key not in self.registered_key_presses:
             raise ValueError(
                 f"Unable to find {key} in registered keys to update key_repeat_interval"

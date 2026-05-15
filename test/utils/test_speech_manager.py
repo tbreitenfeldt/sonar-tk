@@ -420,7 +420,7 @@ def test_genpy_cleanup_exception_handling(
             del sys.modules["sonartk.util.speech_manager"]
 
         # Import the module - this will execute the try/except block
-        import sonartk.util.speech_manager as test_sm
+        import sonartk.util.speech_manager
 
         # If we got here, the exception was handled correctly (lines 18-19 executed)
         assert True
@@ -446,6 +446,6 @@ def test_genpy_cleanup_exception_handling(
         # Restore speech_manager module
         import sonartk.util.speech_manager
 
-        sys.modules[
-            "sonartk.util.speech_manager"
-        ] = sonartk.util.speech_manager
+        sys.modules["sonartk.util.speech_manager"] = (
+            sonartk.util.speech_manager
+        )

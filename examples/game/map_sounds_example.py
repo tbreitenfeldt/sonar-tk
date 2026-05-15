@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 EXAMPLE_DIR = Path(__file__).resolve().parent
 PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
 sys.path.insert(0, str(PROJECT_SRC))

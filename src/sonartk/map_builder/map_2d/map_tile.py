@@ -8,6 +8,7 @@ class MapTile:
         self.is_jumpable: bool = False
 
     def interact(self) -> None:
+        """Interact."""
         pass
 
     def __str__(self) -> str:

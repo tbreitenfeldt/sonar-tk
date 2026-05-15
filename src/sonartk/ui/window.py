@@ -5,10 +5,8 @@ import pyglet.window
 from pyglet.event import EventDispatcher
 from pyglet.window import key
 
-from sonartk.ui.element.element import Element
 from sonartk.ui.focusable_container import FocusableContainer
 from sonartk.ui.ui_component import UIComponent
-from sonartk.ui.screen.screen import Screen
 from sonartk.util.state import State
 from sonartk.util.state_machine import StateMachine
 from sonartk.util.key_handler import KeyHandler
@@ -43,6 +41,7 @@ class Window(UIComponent, EventDispatcher):
         self.bind_keys()
 
     def bind_keys(self) -> None:
+        """Register window-level keyboard shortcuts and escape behavior."""
         if not self.escapable:
             # Remove pyglet default behavior of closing on escape
             self.key_handler.add_key_press(lambda: True, key.ESCAPE)
@@ -57,6 +56,7 @@ class Window(UIComponent, EventDispatcher):
         fullscreen: bool = False,
         speak_current_element_on_window_focus: bool = True,
     ) -> None:
+        """Create, initialize, and start the pyglet event loop for this window."""
         if not caption and not self._caption:
             raise ValueError("No caption was set for the window")
         if caption:
@@ -113,19 +113,24 @@ class Window(UIComponent, EventDispatcher):
         return False
 
     def setup(self) -> None:
+        """Schedule initial state activation after the window opens."""
         pyglet.clock.schedule_once(lambda dt: self.set_state(), 0.25)
 
     def update(self, delta_time: float) -> None:
+        """Dispatch update events and advance the active state each frame."""
         self.dispatch_event("on_update", self, delta_time)
         self.state_machine.update(delta_time)
 
     def add(self, key: str, state: State) -> None:
+        """Register a named state in this window's state machine."""
         self.state_machine.add(key, state)
 
     def remove(self, key: str) -> Optional[State]:
+        """Remove and return a previously registered state by key."""
         return self.state_machine.remove(key)
 
     def change(self, key: str, *args: Any, **kwargs: Any) -> None:
+        """Switch to another registered state, forwarding optional arguments."""
         self.state_machine.change(key, *args, **kwargs)
 
     def get_window(self) -> "Window":
@@ -133,6 +138,7 @@ class Window(UIComponent, EventDispatcher):
         return self
 
     def push_window_handlers(self, *args: Any, **kwargs: Any) -> None:
+        """Push one or more event handlers onto the pyglet handler stack."""
         self.pyglet_window.push_handlers(*args, **kwargs)
 
     def pop_window_handlers(self) -> None:
@@ -179,6 +185,7 @@ class Window(UIComponent, EventDispatcher):
 
     def close(self) -> bool:
         # Close children if configured
+        """Close this window, clean up states and handlers, and optionally close child windows."""
         if self.close_children_on_close:
             for child in self.children[:]:
                 if hasattr(child, "pyglet_window"):
@@ -210,16 +217,19 @@ class Window(UIComponent, EventDispatcher):
         return True
 
     def set_state(self, interrupt_speech: bool = True) -> None:
+        """Activate the state at the current window position when available."""
         if not self.state_machine.is_empty():
             state_key: str = self.state_machine.keys[self.position]
             self.state_machine.change(state_key, interrupt_speech)
 
     @property
     def caption(self) -> str:
+        """Return the current window caption."""
         return self._caption
 
     @caption.setter
     def caption(self, caption: str) -> None:
+        """Return the current window caption."""
         if caption != "":
             self._caption = caption
             self.pyglet_window.set_caption(caption)

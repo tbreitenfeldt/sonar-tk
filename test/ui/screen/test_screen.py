@@ -1,5 +1,4 @@
 from typing import Any, Callable
-from unittest.mock import MagicMock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -416,8 +415,6 @@ def test_bind_keys_is_called_during_initialization(
 
 def test_bind_keys_is_abstract() -> None:
     """Test that bind_keys is an abstract method."""
-    from abc import abstractmethod
-
     assert hasattr(Screen.bind_keys, "__isabstractmethod__")
     assert Screen.bind_keys.__isabstractmethod__ is True
 

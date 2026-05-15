@@ -16,9 +16,7 @@ from pyglet.window import key
 from sonartk.ui.element.element import Element
 from sonartk.ui.element.text_label import TextLabel
 from sonartk.util.state import State
-from sonartk.util.state_machine import EmptyState, StateMachine
-from sonartk.util.key_handler import KeyHandler
-from sonartk.util import speech_manager
+from sonartk.util.state_machine import StateMachine
 
 if TYPE_CHECKING:
     from sonartk.ui.screen.screen import Screen
@@ -58,6 +56,7 @@ class Menu(Element[str]):
 
     # override
     def bind_keys(self) -> None:
+        """Bind keyboard controls for navigation, submission, and text lookup."""
         if self.is_side_menu:
             self.key_handler.add_key_press(self.next_item, key.RIGHT)
             self.key_handler.add_key_press(self.previous_item, key.LEFT)
@@ -76,11 +75,13 @@ class Menu(Element[str]):
     # override
     @property
     def value(self) -> Optional[str]:
+        """Return the key of the currently selected menu item."""
         return list(self.state_machine.states)[self.position]
 
     # override
     @value.setter
     def value(self, value: str) -> None:
+        """Return the key of the currently selected menu item."""
         index: int = 0
         for k in self.state_machine.states.keys():
             if k == value:
@@ -96,6 +97,7 @@ class Menu(Element[str]):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = True,
     ) -> bool:
+        """Prepare menu focus state and activate the current item."""
         super().setup(change_state, interrupt_speech)
 
         if self.reset_position_on_focus:
@@ -106,11 +108,13 @@ class Menu(Element[str]):
 
     # override
     def update(self, delta_time: float) -> bool:
+        """Update both the base element and the active menu item state."""
         super().update(delta_time)
         return self.state_machine.update(delta_time)
 
     # override
     def exit(self) -> bool:
+        """Exit the active menu item and then exit this menu element."""
         return self.state_machine.current_state.exit() and super().exit()
 
     def _navigate_item(self, delta: int) -> bool:
@@ -139,12 +143,15 @@ class Menu(Element[str]):
         return True
 
     def next_item(self) -> bool:
+        """Move to the next menu item, honoring border behavior."""
         return self._navigate_item(1)
 
     def previous_item(self) -> bool:
+        """Move to the previous menu item, honoring border behavior."""
         return self._navigate_item(-1)
 
     def navigate_to_beginning(self) -> bool:
+        """Jump focus to the first menu item."""
         if self.position != 0:
             self.dispatch_event("on_change", self)
             self.position = 0
@@ -153,6 +160,7 @@ class Menu(Element[str]):
         return True
 
     def navigate_to_end(self) -> bool:
+        """Jump focus to the last menu item."""
         if self.position != self.state_machine.size() - 1:
             self.dispatch_event("on_change", self)
             self.position = self.state_machine.size() - 1
@@ -161,10 +169,12 @@ class Menu(Element[str]):
         return True
 
     def submit(self) -> bool:
+        """Emit the submit event for the currently selected item."""
         self.dispatch_event("on_submit", self)
         return True
 
     def navigate_by_first_letter(self, character: str) -> bool:
+        """Queue incremental first-letter navigation from typed text."""
         self.typing_buffer += character
         pyglet.clock.unschedule(self._navigate_by_text)
         pyglet.clock.schedule_once(self._navigate_by_text, 0.6)
@@ -184,10 +194,12 @@ class Menu(Element[str]):
             self.dispatch_event("on_letter_navigation_fail", self)
 
     def set_state(self, interrupt_speech: bool = True) -> None:
+        """Activate the state associated with the current menu position."""
         state_key: str = self.state_machine.keys[self.position]
         self.state_machine.change(state_key, interrupt_speech)
 
     def add(self, key: str, item: Element | str) -> None:
+        """Add a menu item state from text or an Element instance."""
         if isinstance(item, str):
             self.state_machine.add(key, TextLabel(self, item))  # type: ignore
         elif isinstance(item, Element):
@@ -196,6 +208,7 @@ class Menu(Element[str]):
             raise ValueError("Item must be either str or Element.")
 
     def remove(self, key: str) -> Optional[Element]:
+        """Remove and return a menu item by key."""
         element: Optional[Element] = cast(
             Element, self.state_machine.remove(key)
         )
@@ -203,6 +216,7 @@ class Menu(Element[str]):
 
     # override
     def reset(self) -> None:
+        """Restore default position and reset all menu item elements."""
         self.position = self.default_position
         state_key: str = list(self.state_machine.states)[self.position]
         self.state_machine.current_state = self.state_machine.states[state_key]

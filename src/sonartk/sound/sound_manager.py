@@ -8,8 +8,6 @@ from sonartk.sound.openal_lite.openal import (
 )
 from sonartk.sound.player_pool import PlayerPool
 from sonartk.sound.sound_pool import SoundPool
-from sonartk.util import Direction
-
 
 # Important that this is initialized first before any sounds
 listener: Listener = Listener()
@@ -19,6 +17,10 @@ music_player: Player = Player()
 
 
 def play_music(path: str, loop: bool = True) -> None:
+    """Load and play background music.
+
+    Any currently playing music is stopped and replaced.
+    """
     if music_player.playing():
         music_player.stop()
         music_player.remove()
@@ -29,14 +31,17 @@ def play_music(path: str, loop: bool = True) -> None:
 
 
 def pause_music() -> None:
+    """Pause the currently playing music track."""
     music_player.pause()
 
 
 def resume_music() -> None:
+    """Resume playback of the paused music track."""
     music_player.play()
 
 
 def stop_music() -> None:
+    """Stop playback of the current music track."""
     music_player.stop()
 
 
@@ -49,6 +54,10 @@ def play_sound(
     effects: list[Any] = [],
     filters: list[Any] = [],
 ) -> Player:
+    """Play a sound effect.
+
+    Supports optional player reuse, positional audio, effects, and filters.
+    """
     if isinstance(sound, str):
         sound = sound_pool.load(sound)
     if player is None:
@@ -79,6 +88,7 @@ def play_sound(
 
 
 def cleanup() -> None:
+    """Release all shared audio resources managed by the sound subsystem."""
     sound_pool.destroy()
     player_pool.destroy()
     listener.delete()

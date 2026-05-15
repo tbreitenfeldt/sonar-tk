@@ -21,7 +21,7 @@ try:
         ToggleButton,
     )
     from sonartk.ui.screen import ContainerScreen, Dialog  # type: ignore
-    from sonartk.util import Key, speech_manager  # type: ignore
+    from sonartk.util import speech_manager  # type: ignore
     from sonartk.ui import Window  # type: ignore
 except Exception:
     raise

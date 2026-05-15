@@ -28,7 +28,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-"build",
+    "build",
     "pytest",
     "pytest-mock",
     "pytest-cov",
@@ -45,7 +45,7 @@ repository = "https://github.com/tbreitenfeldt/sonar-tk"
 bugtracker = "https://github.com/tbreitenfeldt/sonar-tk/issues"
 
 [tool.black]
-target-version = ['py311']
+target-version = ['py313']
 line-length = 79
 include = "\\.pyi?$"
 exclude = """

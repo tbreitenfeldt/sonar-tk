@@ -15,11 +15,16 @@ The project is organized into focused packages:
 
 For common game composition, Sonar TK also provides a top-level builder API.
 
+If you only need core primitives (for example, UI-only or UI+sound projects),
+you can ignore `orchestration` entirely.
+
 ## Installation
 
 Install from PyPI:
 
-	pip install sonartk
+```bash
+pip install sonartk
+```
 
 ## Supported Python Versions
 
@@ -29,12 +34,14 @@ Sonar TK currently requires Python 3.13 or newer.
 
 The top-level package exposes high-level entry points:
 
-	from sonartk import (
-	    Window,
-	    MapGridGameBuilder,
-	    BuiltMapGridGame,
-	    MapSoundNavigationController,
-	)
+```python
+from sonartk import (
+    Window,
+    MapGridGameBuilder,
+    BuiltMapGridGame,
+    MapSoundNavigationController,
+)
+```
 
 - Window: primary application window.
 - MapGridGameBuilder: composition helper for map + grid game wiring.
@@ -45,14 +52,26 @@ The top-level package exposes high-level entry points:
 
 Use package imports when you want lower-level control:
 
-	from sonartk.ui import Window
-	from sonartk.map_builder import Map2d, MapTile, load_2d_map
-	from sonartk.orchestration import MapGridGameBuilder, MapSoundNavigationController
-	from sonartk.sound import sound_manager
-	from sonartk.util import Direction, Coordinates, KeyHandler
+```python
+from sonartk.ui import Window
+from sonartk.map_builder import Map2d, MapTile, load_2d_map
+from sonartk.orchestration import (
+    MapGridGameBuilder,
+    MapSoundNavigationController,
+)
+from sonartk.sound import sound_manager
+from sonartk.util import Direction, Coordinates, KeyHandler
+```
 
 UI remains focused on UI primitives. Cross-domain composition helpers belong at
 top level (for example, MapGridGameBuilder).
+
+The explicit orchestration package path is also supported:
+
+```python
+from sonartk.orchestration import MapGridGameBuilder
+from sonartk.orchestration import MapSoundNavigationController
+```
 
 ## Public API Reference
 
@@ -90,14 +109,20 @@ https://github.com/tbreitenfeldt/sonar-tk
 
 Install dependencies:
 
-	pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
 ## Running Tests
 
 Run the test suite with pytest:
 
-	pytest
+```bash
+pytest
+```
 
 Run coverage locally:
 
-	pytest --cov=src --cov-report=term-missing
+```bash
+pytest --cov=src --cov-report=term-missing
+```

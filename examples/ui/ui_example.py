@@ -1,12 +1,13 @@
-import os
 import sys
-import time
-from typing import Any, Callable, List, Optional
+from pathlib import Path
+from typing import Optional
 
 import pyglet.clock
 from pyglet.window import key
 
-sys.path.insert(0, "../../src")
+EXAMPLE_DIR = Path(__file__).resolve().parent
+PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
+sys.path.insert(0, str(PROJECT_SRC))
 
 try:
     from sonartk.ui.element import (  # type: ignore
@@ -136,8 +137,6 @@ class ExampleWindow:
             speech_manager.output(line, interrupt=True, log_message=False)
         return False
 
-        return True
-
     def open_new_window(self, button: Button) -> None:
         window: Window = Window(escapable=True, parent=self.main_window)
         container: ContainerScreen = ContainerScreen(window)
@@ -164,4 +163,9 @@ class ExampleWindow:
         window.open_window(caption="A new window")
 
 
-ExampleWindow()
+def main() -> None:
+    ExampleWindow()
+
+
+if __name__ == "__main__":
+    main()

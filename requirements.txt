@@ -1,5 +1,5 @@
-accessible_output2
-pyglet
-pyperclip
-ijson
-pyogg
+accessible-output2==0.17
+pyglet==2.0.20
+pyperclip==1.9.0
+ijson==3.3.0
+PyOgg==0.6.14a1

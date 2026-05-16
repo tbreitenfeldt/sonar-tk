@@ -2,6 +2,8 @@ from typing import Any, Callable, Dict, Optional
 
 from .state import State
 
+TransitionCallback = Callable[[str], None]
+
 
 class EmptyState(State):
     # override
@@ -30,6 +32,8 @@ class StateMachine:
         self.states: Dict[str, State] = {}
         self.current_state: State = EmptyState()
         self.keys: list[str] = []
+        self._pending_state: Optional[State] = None
+        self._transition_callback: Optional[TransitionCallback] = None
 
     def add(self, key: str, state: State) -> None:
         """Add a state to the machine. Raises ValueError if key already exists."""
@@ -72,6 +76,7 @@ class StateMachine:
         self.states.clear()
         self.keys.clear()
         self.current_state = EmptyState()
+        self._pending_state = None
 
     def size(self) -> int:
         """Return the number of registered states."""
@@ -84,6 +89,18 @@ class StateMachine:
     def contains(self, key: str) -> bool:
         """Check if a state with the given key exists in the machine."""
         return key in self.states
+
+    def set_transition_callback(
+        self, callback: Optional[TransitionCallback]
+    ) -> None:
+        """Register a callback to be called after each successful state transition."""
+        self._transition_callback = callback
+
+    def get_debug_state(self) -> State:
+        """Return the effective active state, including in-progress transitions."""
+        if self._pending_state is not None:
+            return self._pending_state
+        return self.current_state
 
     def change(self, key: str, *args: Any, **kwargs: Any) -> None:
         """
@@ -100,8 +117,14 @@ class StateMachine:
         next_state: State = self.states[key]
 
         if self.current_state.exit():
-            if next_state.setup(self.change, *args, **kwargs):
-                self.current_state = next_state
+            self._pending_state = next_state
+            try:
+                if next_state.setup(self.change, *args, **kwargs):
+                    self.current_state = next_state
+                    if self._transition_callback:
+                        self._transition_callback(key)
+            finally:
+                self._pending_state = None
 
     def setup(self, *args: Any, **kwargs: Any) -> bool:
         """Run setup on the current active state."""

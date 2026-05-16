@@ -27,7 +27,7 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
         value: Optional[V],
         use_key_handler: bool = True,
     ) -> None:
-        self.parent = parent
+        super().__init__(parent)
         self.label: str = label
         self.role: str = role
         self._value: Optional[V] = value
@@ -48,7 +48,14 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
         change_state: Callable[[str, Any], None],
         interrupt_speech: bool = False,
     ) -> bool:
-        """Setup."""
+        """
+        Setup the element as the active focused state.
+
+        Safe transition note:
+            setup() is called after the previous state's exit() succeeds. Keep
+            setup behavior minimal and deterministic where possible so failures
+            do not leave the state machine and handler stack out of sync.
+        """
         if self.label:
             speech_manager.output(
                 self.name, interrupt=interrupt_speech, log_message=False
@@ -68,7 +75,13 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
 
     # override
     def exit(self) -> bool:
-        """Exit."""
+        """
+        Exit the element and remove focus resources.
+
+        Safe transition note:
+            exit() runs before the next state's setup(). Return False to block
+            transitions that would leave this element in an invalid state.
+        """
         self.dispatch_event("on_lose_focus", self)
         if self.use_key_handler:
             self.get_window().pop_window_handlers()

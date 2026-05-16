@@ -19,7 +19,40 @@ class UIComponent(ABC):
     operations.
     """
 
-    parent: Optional["UIComponent"]
+    _parent: Optional["UIComponent"]
+
+    def __init__(self, parent: Optional["UIComponent"] = None) -> None:
+        self.parent = parent
+
+    @property
+    def parent(self) -> Optional["UIComponent"]:
+        """Return this component's parent in the UI hierarchy."""
+        return self._parent
+
+    @parent.setter
+    def parent(self, value: Optional["UIComponent"]) -> None:
+        """
+        Set this component's parent with basic hierarchy validation.
+
+        Raises:
+            TypeError: If value is not a UIComponent or None
+            ValueError: If the assignment would create a circular parent chain
+        """
+        if value is not None and not isinstance(value, UIComponent):
+            raise TypeError("parent must be a UIComponent or None")
+
+        seen_ids: set[int] = {id(self)}
+        current = value
+        while current is not None:
+            current_id = id(current)
+            if current_id in seen_ids:
+                raise ValueError(
+                    "Circular parent chain detected while assigning parent"
+                )
+            seen_ids.add(current_id)
+            current = current.parent
+
+        self._parent = value
 
     def get_window(self) -> Window:
         """

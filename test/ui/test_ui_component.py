@@ -287,3 +287,28 @@ def test_multiple_calls_to_get_window_return_same_instance() -> None:
     assert result1 is result2
     assert result2 is result3
     assert result1 is window
+
+
+def test_parent_must_be_ui_component_or_none() -> None:
+    """Test that assigning a non-UIComponent parent raises TypeError."""
+    component = ConcreteUIComponent()
+
+    with pytest.raises(TypeError):
+        component.parent = "invalid"  # type: ignore[assignment]
+
+
+def test_parent_cannot_reference_self() -> None:
+    """Test that assigning self as parent raises ValueError."""
+    component = ConcreteUIComponent()
+
+    with pytest.raises(ValueError, match="Circular parent chain detected"):
+        component.parent = component
+
+
+def test_parent_cannot_create_circular_chain() -> None:
+    """Test that reparenting cannot create ancestor cycles."""
+    parent = ConcreteUIComponent()
+    child = ConcreteUIComponent(parent=parent)
+
+    with pytest.raises(ValueError, match="Circular parent chain detected"):
+        parent.parent = child

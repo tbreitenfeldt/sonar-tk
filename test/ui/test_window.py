@@ -5,6 +5,8 @@ from pytest_mock import MockerFixture
 from pyglet.window import key
 
 from sonartk.ui import Window
+from sonartk.ui.element import Button
+from sonartk.ui.screen import ContainerScreen
 from sonartk.util import State, KeyHandler
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
@@ -320,6 +322,182 @@ def test_check_handler_leaks_with_leak(default_window: Window, capsys: pytest.Ca
     captured = capsys.readouterr()
     assert "WARNING" in captured.err
     assert "2 leaked" in captured.err
+
+
+def test_check_handler_leaks_uses_window_baseline_by_default(
+    default_window: Window, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Test leak checker defaults to window baseline when provided."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 2
+    for _ in range(2):
+        default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    default_window.check_handler_leaks()
+    captured = capsys.readouterr()
+    assert "WARNING" not in captured.err
+
+
+def test_check_handler_leaks_default_reports_against_baseline(
+    default_window: Window, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Test default leak checker message uses computed baseline expected count."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 2
+    for _ in range(5):
+        default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    default_window.check_handler_leaks()
+    captured = capsys.readouterr()
+    assert "WARNING" in captured.err
+    assert "Expected 2" in captured.err
+    assert "3 leaked" in captured.err
+
+
+def test_validate_handler_stack_without_pyglet_window(
+    default_window: Window,
+) -> None:
+    """Test stack validation when pyglet window has not been created yet."""
+    is_valid, message = default_window._validate_handler_stack()
+    assert not is_valid
+    assert "No pyglet window" in message
+
+
+def test_validate_handler_stack_valid(default_window: Window) -> None:
+    """Test stack validation returns valid when expected and actual match."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 2
+    for _ in range(2):
+        default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    is_valid, message = default_window._validate_handler_stack()
+    assert is_valid
+    assert "expected=2" in message
+
+
+def test_validate_handler_stack_mismatch(default_window: Window) -> None:
+    """Test stack validation reports mismatch details."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 2
+    default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    is_valid, message = default_window._validate_handler_stack()
+    assert not is_valid
+    assert "Handler stack mismatch" in message
+    assert "expected=2" in message
+    assert "actual=1" in message
+
+
+def test_validate_handler_stack_public_wrapper(
+    default_window: Window,
+) -> None:
+    """Test public wrapper returns the same validation result."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 1
+    default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    is_valid, message = default_window.validate_handler_stack()
+    assert is_valid
+    assert "Handler stack valid" in message
+
+
+def test_validate_handler_stack_uses_pending_nested_states(
+    default_window: Window,
+) -> None:
+    """Test validation counts nested handlers during in-progress setup."""
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    default_window._window_base_handler_count = 3
+
+    container = ContainerScreen(default_window)
+    button = Button(container, label="Open Dialog")
+    container.add("open_dialog_button", button)
+    default_window.add("container", container)
+
+    default_window.state_machine._pending_state = container
+    container.state_machine._pending_state = button
+
+    for _ in range(5):
+        default_window.pyglet_window._event_stack.append(KeyHandler())  # type: ignore[union-attr]
+
+    is_valid, message = default_window._validate_handler_stack()
+
+    assert is_valid
+    assert "expected=5" in message
+    assert "actual=5" in message
+
+
+def test_set_debug_mode_toggles(default_window: Window) -> None:
+    """Test debug mode setter toggles the debug flag."""
+    assert default_window.debug_mode is False
+    default_window.set_debug_mode(True)
+    assert default_window.debug_mode is True
+    default_window.set_debug_mode(False)
+    assert default_window.debug_mode is False
+
+
+def test_set_debug_mode_logs_state_changes(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    """Test set_debug_mode logs when enabled/disabled."""
+    log_mock = mocker.patch.object(default_window, "_debug_log")
+
+    default_window.set_debug_mode(True)
+    assert log_mock.call_count == 1
+    assert "enabled" in log_mock.call_args[0][0].lower()
+
+    log_mock.reset_mock()
+    default_window.set_debug_mode(False)
+    assert log_mock.call_count == 1
+    assert "disabled" in log_mock.call_args[0][0].lower()
+
+
+def test_debug_mode_logs_on_construction(
+    mocker: MockerFixture,
+) -> None:
+    """Test debug mode logs startup message when enabled via constructor."""
+    log_mock = mocker.patch("sonartk.ui.window.Window._debug_log")
+
+    Window(caption="test", debug_mode=True)
+    # Constructor calls _debug_log once for startup
+    assert log_mock.call_count >= 1
+
+
+def test_change_runs_debug_validation_when_enabled(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    """Test change triggers handler validation logging in debug mode."""
+    default_window.set_debug_mode(True)
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+
+    default_window.state_machine.add("test", MockState())
+    log_mock = mocker.patch.object(default_window, "_debug_log")
+
+    default_window.change("test")
+
+    # Should log validation results
+    assert log_mock.called
+    # Check that one of the logs mentions validation result
+    logged_messages = [call[0][0] for call in log_mock.call_args_list]
+    assert any("after change" in msg for msg in logged_messages)
+
+
+def test_set_state_runs_debug_validation_when_enabled(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    """Test set_state triggers handler validation logging in debug mode."""
+    default_window.set_debug_mode(True)
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+
+    default_window.state_machine.add("test", MockState())
+    log_mock = mocker.patch.object(default_window, "_debug_log")
+
+    default_window.set_state()
+
+    # Should log validation results
+    assert log_mock.called
+    # set_state transitions are logged via the shared state-machine callback
+    logged_messages = [call[0][0] for call in log_mock.call_args_list]
+    assert any("after change" in msg for msg in logged_messages)
 
 
 def test_close_with_children(mocker: MockerFixture) -> None:
@@ -711,21 +889,14 @@ def test_close_not_in_parent_children(mocker: MockerFixture) -> None:
     child_window.close()
 
 
-def test_close_parent_without_children_attribute(
+def test_parent_validation_rejects_non_ui_component(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    """Test close when parent doesn't have children attribute"""
-    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
-
-    # Create a mock parent without children attribute
+    """Test parent setter rejects non-UIComponent values."""
     mock_parent = mocker.MagicMock(spec=[])
-    default_window.parent = mock_parent
 
-    mocker.patch("sonartk.util.state_machine.StateMachine.exit")
-    mocker.patch("sonartk.util.state_machine.StateMachine.clear")
-
-    # Should not raise any errors
-    default_window.close()
+    with pytest.raises(TypeError, match="parent must be a UIComponent"):
+        default_window.parent = mock_parent
 
 
 def test_close_child_without_pyglet_window(mocker: MockerFixture) -> None:

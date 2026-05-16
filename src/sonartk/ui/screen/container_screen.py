@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable, cast
 
 from pyglet.window import key
 
 from sonartk.ui.screen.screen import Screen
-
-if TYPE_CHECKING:
-    from sonartk.ui.window import Window
+from sonartk.ui.window import Window
 
 
 class ContainerScreen(Screen):
@@ -59,5 +57,9 @@ class ContainerScreen(Screen):
     def close(self) -> bool:
         """Close this screen and then close its parent container."""
         super().close()
-        self.parent.close()  # type: ignore[attr-defined]
+        if self.parent is None:
+            return True
+
+        parent = cast(Screen | Window, self.parent)
+        parent.close()
         return True

@@ -37,6 +37,15 @@ class State(ABC):
             - Design states to be idempotent: Ensure states can handle being in a
               post-exit condition gracefully
 
+                Safe Transition Checklist:
+                        1. Validate preconditions in setup() before expensive or irreversible work
+                        2. Keep setup()/exit() side effects narrow and predictable
+                        3. Perform state-local cleanup in exit() only when transition should proceed
+                        4. Return False from exit() for recoverable conditions where transition
+                             would break user interaction
+                        5. Avoid relying on timing delays between exit() and setup(); use explicit
+                             state transitions where possible
+
     Attributes:
         state_key: Identifier assigned by StateMachine when the state is registered
     """

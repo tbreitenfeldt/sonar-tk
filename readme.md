@@ -126,3 +126,51 @@ Run coverage locally:
 ```bash
 pytest --cov=src --cov-report=term-missing
 ```
+
+## Window Debugging
+
+Window includes optional runtime diagnostics for handler-stack issues.
+
+Enable debug mode when creating the window:
+
+```python
+from sonartk import Window
+
+window = Window(caption="My Game", debug_mode=True)
+```
+
+When debug mode is enabled, you'll see startup message and validation output on stderr:
+
+```
+[Window debug] Debug mode enabled - handler stack validation active
+[Window debug] after change('menu_screen'): Handler stack valid (expected=3, actual=3)
+[Window debug] after set_state('button_0'): Handler stack valid (expected=4, actual=4)
+```
+
+Or toggle it at runtime:
+
+```python
+window.set_debug_mode(True)  # Logs: Debug mode enabled - handler stack validation active
+window.set_debug_mode(False) # Logs: Debug mode disabled
+```
+
+When debug mode is enabled, window automatically logs handler-stack validation
+after:
+
+- Window.change(...)
+- Window.set_state(...)
+
+This shows you the handler stack state (expected vs actual count) at each transition,
+making it easy to spot when a state's exit() or setup() is not managing handlers
+correctly.
+
+You can run checks manually at any time:
+
+```python
+is_valid, message = window.validate_handler_stack()
+if not is_valid:
+    print(message)
+
+# Optional leak check helper (defaults to window baseline handlers)
+window = Window(debug_mode=True, debug_stream=debug_stream)
+```

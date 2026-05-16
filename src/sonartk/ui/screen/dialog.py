@@ -1,16 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import pyglet.clock
 from pyglet.window import key
 
 from sonartk.ui.element.element import Element
 from sonartk.ui.screen.container_screen import ContainerScreen
-
-if TYPE_CHECKING:
-    from sonartk.ui.screen.screen import Screen
-
+from sonartk.ui.screen.screen import Screen
 from sonartk.util.state_machine import EmptyState
 
 
@@ -22,15 +19,14 @@ class Dialog(ContainerScreen):
 
     def open_dialog(self, caption: str) -> None:
         """Attach this dialog to the parent and switch focus into it."""
-        self.original_state_key = (
-            self.parent.state_machine.current_state.state_key  # type: ignore[attr-defined]
-        )
-        count: int = self.parent.state_machine.size() + 1  # type: ignore[attr-defined]
-        self.parent.add(f"dialog-{caption}-{count}", self)  # type: ignore[attr-defined]
+        parent = cast(Screen, self.parent)
+        self.original_state_key = parent.state_machine.current_state.state_key
+        count: int = parent.state_machine.size() + 1
+        parent.add(f"dialog-{caption}-{count}", self)
         self.original_caption = self.caption
         self.caption = caption + " Dialog"
         pyglet.clock.schedule_once(
-            lambda dt: self.parent.state_machine.change(self.state_key), 0.3  # type: ignore[attr-defined]
+            lambda dt: parent.state_machine.change(self.state_key), 0.3
         )
 
     # override
@@ -61,7 +57,8 @@ class Dialog(ContainerScreen):
         return True
 
     def _reset_states(self) -> None:
-        self.parent.remove(self.state_key)  # type: ignore[attr-defined]
+        parent = cast(Screen, self.parent)
+        parent.remove(self.state_key)
         self.state_machine.current_state = EmptyState()
         self.exit()
-        self.parent.state_machine.change(self.original_state_key, False)  # type: ignore[attr-defined]
+        parent.state_machine.change(self.original_state_key, False)

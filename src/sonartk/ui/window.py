@@ -1,4 +1,4 @@
-from typing import Any, Optional, cast
+from typing import Any, Optional, TextIO, cast
 import sys
 
 import pyglet.window
@@ -8,7 +8,7 @@ from pyglet.window import key
 from sonartk.ui.focusable_container import FocusableContainer
 from sonartk.ui.ui_component import UIComponent
 from sonartk.util.state import State
-from sonartk.util.state_machine import StateMachine
+from sonartk.util.state_machine import EmptyState, StateMachine
 from sonartk.util.key_handler import KeyHandler
 from sonartk.util import speech_manager
 
@@ -23,9 +23,11 @@ class Window(UIComponent, EventDispatcher):
         escapable: bool = False,
         parent: Optional["Window"] = None,
         close_children_on_close: bool = True,
+        debug_mode: bool = False,
+        debug_stream: Optional[TextIO] = None,
     ):
         self.escapable: bool = escapable
-        self.parent = parent
+        super().__init__(parent)
         self.close_children_on_close: bool = close_children_on_close
         self.children: list["Window"] = []
         self.state_machine: StateMachine = StateMachine()
@@ -33,10 +35,22 @@ class Window(UIComponent, EventDispatcher):
         self.key_handler: KeyHandler = KeyHandler()
         self._caption: str = caption
         self.is_open: bool = False
+        self._window_base_handler_count: int = 0
+        self.debug_mode: bool = debug_mode
+        self._debug_stream: Optional[TextIO] = debug_stream
+
+        if self.debug_mode:
+            self._debug_log(
+                "Debug mode enabled - handler stack validation active"
+            )
+            # Register state transition callback for debug logging
+            self.state_machine.set_transition_callback(
+                self._on_state_transition
+            )
 
         # Register with parent if provided
-        if self.parent is not None:
-            self.parent.children.append(self)
+        if parent is not None:
+            parent.children.append(self)
 
         self.bind_keys()
 
@@ -72,9 +86,11 @@ class Window(UIComponent, EventDispatcher):
 
         self.push_window_handlers(on_close=self.close)
         self.push_window_handlers(self.key_handler)
+        self._window_base_handler_count = 2
 
         if speak_current_element_on_window_focus:
             self.push_window_handlers(on_activate=self.on_window_activate)
+            self._window_base_handler_count += 1
 
         self.dispatch_event("on_open", self)
         pyglet.clock.schedule_interval(self.update, 0.01)
@@ -160,28 +176,133 @@ class Window(UIComponent, EventDispatcher):
         """Get the current number of handlers on the event stack."""
         return len(self.pyglet_window._event_stack)
 
-    def check_handler_leaks(self, expected_count: int = 3) -> None:
+    def check_handler_leaks(
+        self, expected_count: Optional[int] = None
+    ) -> None:
         """
         Check for handler leaks and log warnings.
 
         Args:
             expected_count: Number of handlers expected to be on the stack.
-                Default is 3 (on_close, on_activate, window key_handler).
+                If not provided, uses this window's baseline handler count
+                captured during open_window(). If baseline is unavailable,
+                falls back to 3.
 
         Call this in development/debug mode after state transitions to
         detect states that forgot to pop their handlers.
         """
-        actual = self.get_handler_stack_size()
-        if actual > expected_count:
-            leaked = actual - expected_count
-            import sys
-
-            print(
-                f"WARNING: Possible handler leak detected! "
-                f"Expected {expected_count} handlers, found {actual} "
-                f"({leaked} leaked).",
-                file=sys.stderr,
+        expected = expected_count
+        if expected is None:
+            expected = (
+                self._window_base_handler_count
+                if self._window_base_handler_count > 0
+                else 3
             )
+
+        actual = self.get_handler_stack_size()
+        if actual > expected:
+            leaked = actual - expected
+            self._debug_log(
+                f"WARNING: Possible handler leak detected! "
+                f"Expected {expected} handlers, found {actual} "
+                f"({leaked} leaked).",
+            )
+
+    def validate_handler_stack(self) -> tuple[bool, str]:
+        """
+        Public wrapper for handler stack validation diagnostics.
+
+        Returns:
+            A tuple where item 1 indicates validity and item 2 provides a
+            diagnostic message.
+        """
+        return self._validate_handler_stack()
+
+    def set_debug_mode(self, enabled: bool = True) -> None:
+        """Enable or disable runtime debug checks for this window."""
+        self.debug_mode = enabled
+        if enabled:
+            self._debug_log(
+                "Debug mode enabled - handler stack validation active"
+            )
+            self.state_machine.set_transition_callback(
+                self._on_state_transition
+            )
+        else:
+            self._debug_log("Debug mode disabled")
+            self.state_machine.set_transition_callback(None)
+
+    def _debug_log(self, message: str) -> None:
+        """Write a debug message to the configured stream."""
+        stream = (
+            self._debug_stream
+            if self._debug_stream is not None
+            else sys.stderr
+        )
+        print(f"[Window debug] {message}", file=stream)
+
+    def _on_state_transition(self, state_key: str) -> None:
+        """Callback invoked after each state transition when debug mode is enabled."""
+        _, message = self._validate_handler_stack()
+        self._debug_log(f"after change('{state_key}'): {message}")
+
+    def _validate_handler_stack(self) -> tuple[bool, str]:
+        """
+        Validate handler stack depth against the active state chain.
+
+        This debug helper estimates how many handlers should be registered
+        based on the active state tree and compares that to the actual pyglet
+        event stack depth.
+
+        Returns:
+            A tuple where item 1 indicates validity and item 2 provides a
+            diagnostic message.
+        """
+        if not hasattr(self, "pyglet_window"):
+            return False, "No pyglet window is available for validation"
+
+        expected = self._window_base_handler_count
+        current: Optional[State] = self.state_machine.get_debug_state()
+
+        while current is not None:
+            if hasattr(current, "key_handler"):
+                expected += 1
+
+            next_state = self._get_nested_debug_state(current)
+            if isinstance(next_state, State):
+                current = next_state
+                continue
+
+            current = None
+
+        actual = len(self.pyglet_window._event_stack)
+        if actual == expected:
+            return (
+                True,
+                f"Handler stack valid (expected={expected}, actual={actual})",
+            )
+
+        return (
+            False,
+            "Handler stack mismatch "
+            f"(expected={expected}, actual={actual})",
+        )
+
+    def _get_nested_debug_state(self, state: State) -> Optional[State]:
+        """Return the effective nested child state for validation walks."""
+        state_machine = getattr(state, "state_machine", None)
+        if isinstance(state_machine, StateMachine):
+            nested_state = state_machine.get_debug_state()
+            if not isinstance(nested_state, EmptyState):
+                return nested_state
+            return None
+
+        active_element = getattr(state, "active_element", None)
+        if isinstance(active_element, EmptyState):
+            return None
+        if isinstance(active_element, State):
+            return active_element
+        return None
 
     def close(self) -> bool:
         # Close children if configured

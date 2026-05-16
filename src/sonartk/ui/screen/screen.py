@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Optional, Protocol, cast
 
 from pyglet.event import EventDispatcher
 
@@ -11,24 +11,43 @@ from sonartk.util.state import State
 from sonartk.util.state_machine import StateMachine
 from sonartk.util.key_handler import KeyHandler
 
+
+class HasCaption(Protocol):
+    @property
+    def caption(self) -> str: ...
+
+    @caption.setter
+    def caption(self, value: str) -> None: ...
+
+
 if TYPE_CHECKING:  # pragma: no cover
     from sonartk.ui.window import Window
-
-    class HasCaption(Protocol):
-        @property
-        def caption(self) -> str: ...
-
-        @caption.setter
-        def caption(self, value: str) -> None: ...
 
 
 class Screen(UIComponent, State, EventDispatcher):
     def __init__(self, parent: Window | Screen) -> None:
-        self.parent: HasCaption = parent  # type: ignore[assignment]
+        super().__init__(parent)
         self.position: int = 0
         self.state_machine: StateMachine = StateMachine()
         self.key_handler: KeyHandler = KeyHandler()
         self.bind_keys()
+
+        # Register transition callback so nested state changes are logged
+        window = self.get_window()
+        if hasattr(window, "debug_mode") and window.debug_mode:
+            self.state_machine.set_transition_callback(
+                self._on_child_state_transition
+            )
+
+    def _on_child_state_transition(self, state_key: str) -> None:
+        """Callback for logging child element state transitions."""
+        window = self.get_window()
+        if hasattr(window, "debug_mode") and window.debug_mode:
+            is_valid, message = window.validate_handler_stack()
+            if hasattr(window, "_debug_log"):
+                window._debug_log(
+                    f"after screen '{self.state_key}' change('{state_key}'): {message}"
+                )
 
     def close(self) -> bool:
         """Emit the close event for this screen."""
@@ -77,12 +96,14 @@ class Screen(UIComponent, State, EventDispatcher):
     @property
     def caption(self) -> str:
         """Get or set the caption through the parent window."""
-        return self.parent.caption
+        parent = cast(HasCaption, self.parent)
+        return parent.caption
 
     @caption.setter
     def caption(self, caption: str) -> None:
         """Get or set the caption through the parent window."""
-        self.parent.caption = caption
+        parent = cast(HasCaption, self.parent)
+        parent.caption = caption
 
     @property
     def active_element(self) -> State:

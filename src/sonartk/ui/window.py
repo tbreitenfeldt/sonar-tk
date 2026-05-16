@@ -116,6 +116,8 @@ class Window(UIComponent, EventDispatcher):
 
                 if element is not None and hasattr(element, "name"):
                     element_name = getattr(element, "name")
+                    # Delay label speech so window-title announcement is less likely
+                    # to interrupt the currently focused element's label.
                     pyglet.clock.schedule_once(
                         lambda dt: speech_manager.output(
                             element_name, interrupt=False, log_message=False
@@ -130,6 +132,8 @@ class Window(UIComponent, EventDispatcher):
 
     def setup(self) -> None:
         """Schedule initial state activation after the window opens."""
+        # Delay initial state setup to reduce title speech interrupting first
+        # focused-element speech when the window opens.
         pyglet.clock.schedule_once(lambda dt: self.set_state(), 0.25)
 
     def update(self, delta_time: float) -> None:

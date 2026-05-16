@@ -25,6 +25,8 @@ class Dialog(ContainerScreen):
         parent.add(f"dialog-{caption}-{count}", self)
         self.original_caption = self.caption
         self.caption = caption + " Dialog"
+        # Delay focus shift so dialog-caption speech is less likely to interrupt
+        # the first focused element label inside the dialog.
         pyglet.clock.schedule_once(
             lambda dt: parent.state_machine.change(self.state_key), 0.3
         )
@@ -53,6 +55,8 @@ class Dialog(ContainerScreen):
         self.position = 0
         self.reset()
         self.caption = self.original_caption
+        # Delay parent refocus so restored parent caption/title speech is less
+        # likely to interrupt the focused element label in the parent.
         pyglet.clock.schedule_once(lambda db: self._reset_states(), 0.3)
         return True
 

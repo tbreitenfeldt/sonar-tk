@@ -675,32 +675,320 @@ def test_key_handler_on_key_release_unreleased_tracked_key() -> None:
 
     # Release the tracked key (not in registered_key_releases)
     assert handler.on_key_release(key.W, 0)
-
-    def test_callback_call_with_none_callback() -> None:
-        """Test Callback.call() returns False when callback is set to None."""
-        cb: Callback = Callback(lambda: True)
-        cb.callback = None  # type: ignore[assignment]
-        assert not cb.call()
-
-    def test_add_key_press_raises_for_invalid_key_type(
-        default_key_handler: KeyHandler,
-    ) -> None:
-        """Test add_key_press raises ValueError for non-int, non-Key types."""
-        with pytest.raises(
-            ValueError, match="MKey must be either of type Key or int"
-        ):
-            default_key_handler.add_key_press(lambda: True, key=1.5)  # type: ignore[arg-type]
-
-    def test_add_key_release_raises_for_invalid_key_type(
-        default_key_handler: KeyHandler,
-    ) -> None:
-        """Test add_key_release raises ValueError for non-int, non-Key types."""
-        with pytest.raises(
-            ValueError, match="MKey must be either of type Key or int"
-        ):
-            default_key_handler.add_key_release(lambda: True, key=1.5)  # type: ignore[arg-type]
-
     assert not handler.other_keys_pressed
+
+
+def test_callback_call_with_none_callback() -> None:
+    """Test Callback.call() returns False when callback is set to None."""
+    cb: Callback = Callback(lambda: True)
+    cb.callback = None  # type: ignore[assignment]
+    assert not cb.call()
+
+
+def test_add_key_press_raises_for_invalid_key_type(
+    default_key_handler: KeyHandler,
+) -> None:
+    """Test add_key_press raises ValueError for non-int, non-Key types."""
+    with pytest.raises(
+        ValueError, match="MKey must be either of type Key or int"
+    ):
+        default_key_handler.add_key_press(lambda: True, key=1.5)  # type: ignore[arg-type]
+
+
+def test_add_key_release_raises_for_invalid_key_type(
+    default_key_handler: KeyHandler,
+) -> None:
+    """Test add_key_release raises ValueError for non-int, non-Key types."""
+    with pytest.raises(
+        ValueError, match="MKey must be either of type Key or int"
+    ):
+        default_key_handler.add_key_release(lambda: True, key=1.5)  # type: ignore[arg-type]
+
+
+def test_add_key_press_rejects_duplicate_combination_keys() -> None:
+    """Test add_key_press rejects combinations without two unique keys."""
+    handler = KeyHandler()
+
+    with pytest.raises(
+        ValueError,
+        match="Please provide at least two unique keys for a key combination.",
+    ):
+        handler.add_key_press(lambda: True, [key.UP, key.UP])
+
+
+def test_add_key_press_rejects_duplicate_key_objects_in_combination() -> None:
+    """Test add_key_press rejects duplicate Key objects in combinations."""
+    handler = KeyHandler()
+
+    with pytest.raises(
+        ValueError,
+        match="Please provide at least two unique keys for a key combination.",
+    ):
+        handler.add_key_press(lambda: True, [Key(key.UP), Key(key.UP)])
+
+
+def test_key_handler_resumes_first_repeat_key_after_second_released() -> None:
+    """Test first held repeat key resumes after releasing a later pressed repeat key."""
+    handler: KeyHandler = KeyHandler(update_repeat_interval=0.1)
+    right_key = Key(key.RIGHT)
+    down_key = Key(key.DOWN)
+    right_count = 0
+    down_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def move_down() -> bool:
+        nonlocal down_count
+        down_count += 1
+        return True
+
+    handler.registered_key_presses[right_key] = (
+        Callback(move_right),
+        0.001,
+    )
+    handler.registered_key_presses[down_key] = (
+        Callback(move_down),
+        0.001,
+    )
+
+    assert handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    assert handler.on_key_press(key.DOWN, 0)
+    handler.update(0.01)
+    assert down_count == 1
+
+    assert handler.on_key_release(key.DOWN, 0)
+    handler.update(0.01)
+
+    assert right_count == 2
+    assert handler.is_key_held_down
+    assert handler.pressed_key == right_key
+
+
+def test_key_handler_keeps_second_repeat_key_when_first_released() -> None:
+    """Test later pressed repeat key continues after releasing the first key."""
+    handler: KeyHandler = KeyHandler(update_repeat_interval=0.1)
+    right_key = Key(key.RIGHT)
+    down_key = Key(key.DOWN)
+    right_count = 0
+    down_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def move_down() -> bool:
+        nonlocal down_count
+        down_count += 1
+        return True
+
+    handler.registered_key_presses[right_key] = (
+        Callback(move_right),
+        0.001,
+    )
+    handler.registered_key_presses[down_key] = (
+        Callback(move_down),
+        0.001,
+    )
+
+    assert handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    assert handler.on_key_press(key.DOWN, 0)
+    handler.update(0.01)
+    assert down_count == 1
+
+    assert handler.on_key_release(key.RIGHT, 0)
+    handler.update(0.01)
+
+    assert down_count == 2
+    assert handler.is_key_held_down
+    assert handler.pressed_key == down_key
+
+
+def test_add_key_press_registers_key_combination() -> None:
+    """Test add_key_press registers multi-key combinations."""
+    handler = KeyHandler()
+    handler.add_key_press(lambda: True, [key.UP, key.RIGHT], [])
+
+    combo = frozenset([Key(key.UP), Key(key.RIGHT)])
+    assert combo in handler.registered_key_combinations
+
+
+def test_key_handler_combination_callback_executes_on_second_key() -> None:
+    """Test key combo callback executes when all combo keys are pressed."""
+    handler = KeyHandler()
+    callback_count = 0
+
+    def combo_callback() -> bool:
+        nonlocal callback_count
+        callback_count += 1
+        return True
+
+    handler.add_key_press(combo_callback, [key.UP, key.RIGHT])
+
+    assert not handler.on_key_press(key.UP, 0)
+    assert callback_count == 0
+
+    assert handler.on_key_press(key.RIGHT, 0)
+    assert callback_count == 1
+
+
+def test_key_handler_combination_repeat_mode() -> None:
+    """Test key combo enters repeat mode and update triggers callback."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    callback_count = 0
+
+    def combo_callback() -> bool:
+        nonlocal callback_count
+        callback_count += 1
+        return True
+
+    handler.add_key_press(
+        combo_callback,
+        [key.UP, key.RIGHT],
+        key_repeat_interval=0.001,
+    )
+
+    assert not handler.on_key_press(key.UP, 0)
+    assert handler.on_key_press(key.RIGHT, 0)
+    assert handler.active_key_combination == frozenset(
+        [Key(key.UP), Key(key.RIGHT)]
+    )
+
+    handler.update(0.01)
+    assert callback_count == 1
+
+
+def test_key_handler_combination_clears_when_key_released() -> None:
+    """Test active key combo clears and repeat stops when one key in combo is released."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    callback_count = 0
+
+    def combo_callback() -> bool:
+        nonlocal callback_count
+        callback_count += 1
+        return True
+
+    handler.add_key_press(
+        combo_callback,
+        [key.UP, key.RIGHT],
+        key_repeat_interval=0.001,
+    )
+
+    handler.on_key_press(key.UP, 0)
+    handler.on_key_press(key.RIGHT, 0)
+    assert handler.active_key_combination is not None
+
+    # Release one combo key - combo should break and movement should stop
+    assert handler.on_key_release(key.RIGHT, 0)
+    assert handler.active_key_combination is None
+    assert not handler.is_key_held_down
+
+    # update() must not fire any callback after both keys released
+    handler.on_key_release(key.UP, 0)
+    before = callback_count
+    handler.update(0.01)
+    assert callback_count == before
+
+
+def test_key_handler_combination_break_resumes_single_key_repeat() -> None:
+    """Test that releasing one combo key resumes single-key repeat for the still-held key."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    right_count = 0
+    combo_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def move_diagonal() -> bool:
+        nonlocal combo_count
+        combo_count += 1
+        return True
+
+    handler.add_key_press(move_right, key.RIGHT, key_repeat_interval=0.001)
+    handler.add_key_press(
+        move_diagonal,
+        [key.UP, key.RIGHT],
+        key_repeat_interval=0.001,
+    )
+
+    # Press RIGHT alone - single-key repeat starts
+    handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    # Press UP - combo activates, single-key repeat suspended
+    handler.on_key_press(key.UP, 0)
+    assert handler.active_key_combination is not None
+    assert not handler.is_key_held_down
+
+    handler.update(0.01)
+    assert combo_count == 1
+
+    # Release UP - combo breaks; RIGHT is still held so single-key RIGHT resumes
+    handler.on_key_release(key.UP, 0)
+    assert handler.active_key_combination is None
+    assert handler.is_key_held_down
+
+    handler.update(0.01)
+    assert right_count == 2
+
+    # Release RIGHT - movement must stop
+    handler.on_key_release(key.RIGHT, 0)
+    before_right = right_count
+    handler.update(0.01)
+    assert right_count == before_right
+
+
+def test_key_handler_combo_break_does_not_resume_non_repeating_key() -> None:
+    """Test combo break does not start repeat for a held key with repeat interval 0."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    right_count = 0
+    combo_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def move_diagonal() -> bool:
+        nonlocal combo_count
+        combo_count += 1
+        return True
+
+    handler.add_key_press(move_right, key.RIGHT, key_repeat_interval=0.0)
+    handler.add_key_press(
+        move_diagonal,
+        [key.UP, key.RIGHT],
+        key_repeat_interval=0.001,
+    )
+
+    assert handler.on_key_press(key.RIGHT, 0)
+    assert right_count == 1
+
+    assert handler.on_key_press(key.UP, 0)
+    assert handler.active_key_combination is not None
+
+    handler.update(0.01)
+    assert combo_count == 1
+
+    assert handler.on_key_release(key.UP, 0)
+    assert handler.active_key_combination is None
+    assert not handler.is_key_held_down
+
+    before_right = right_count
+    handler.update(0.01)
+    assert right_count == before_right
 
 
 def test_key_handler_update_repeat_interval_for_key_not_found() -> None:

@@ -62,7 +62,7 @@ def main() -> None:
     window = game.window
 
     sound_manager.listener.position = (*grid.current_coordinates, 0)
-    window.open_window()
+    window.open_window(speak_current_element_on_window_focus=False)
 
 
 def tile_mapper(map_value: str) -> MapTile:

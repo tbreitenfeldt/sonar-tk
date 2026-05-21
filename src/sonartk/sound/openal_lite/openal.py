@@ -47,7 +47,6 @@ TODO add alGetError check.
 import ctypes
 from ctypes import *
 import wave
-import sys
 import os
 from pathlib import Path
 import struct
@@ -3386,14 +3385,8 @@ class Listener(object):
 class LoadSound(object):
     def __init__(self, filename):
         self.name = filename
-        # load/set wav file
-        if len(sys.argv) < 2:
-            # print("Usage: %s wavefile" % os.path.basename(sys.argv[0]))
-            # print("    Using an example wav file...")
-            dirname = os.path.dirname(os.path.realpath(__file__))
-            fname = os.path.join(dirname, filename)
-        else:
-            fname = sys.argv[1]
+        # Always load the explicit filename provided by the caller.
+        fname = filename
 
         wavefp = wave.open(fname)
         channels = wavefp.getnchannels()

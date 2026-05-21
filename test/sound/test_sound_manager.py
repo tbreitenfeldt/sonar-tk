@@ -3,6 +3,7 @@ from typing import Any, cast
 from pytest_mock import MockerFixture
 
 from sonartk.sound import sound_manager
+from sonartk.sound.sound_manager import SoundManager
 
 # play_music Tests
 
@@ -16,15 +17,15 @@ def test_play_music_stops_existing_music_before_replacing(
     mocker.patch.object(sound_manager, "music_player", music_player)
 
     loaded_sound = object()
-    load_sound = mocker.patch.object(
-        sound_manager, "LoadSound", return_value=loaded_sound
-    )
+    sound_pool = mocker.MagicMock()
+    sound_pool.load.return_value = loaded_sound
+    mocker.patch.object(sound_manager, "sound_pool", sound_pool)
 
     sound_manager.play_music("music/theme.ogg", loop=False)
 
     music_player.stop.assert_called_once()
     music_player.remove.assert_called_once()
-    load_sound.assert_called_once_with("music/theme.ogg")
+    sound_pool.load.assert_called_once_with("music/theme.ogg")
     music_player.add.assert_called_once_with(loaded_sound)
     assert music_player.loop is False
     music_player.play.assert_called_once()
@@ -39,15 +40,15 @@ def test_play_music_does_not_stop_when_nothing_playing(
     mocker.patch.object(sound_manager, "music_player", music_player)
 
     loaded_sound = object()
-    load_sound = mocker.patch.object(
-        sound_manager, "LoadSound", return_value=loaded_sound
-    )
+    sound_pool = mocker.MagicMock()
+    sound_pool.load.return_value = loaded_sound
+    mocker.patch.object(sound_manager, "sound_pool", sound_pool)
 
     sound_manager.play_music("music/theme.ogg")
 
     music_player.stop.assert_not_called()
     music_player.remove.assert_not_called()
-    load_sound.assert_called_once_with("music/theme.ogg")
+    sound_pool.load.assert_called_once_with("music/theme.ogg")
     music_player.add.assert_called_once_with(loaded_sound)
     assert music_player.loop is True
     music_player.play.assert_called_once()
@@ -246,3 +247,60 @@ def test_cleanup_releases_all_audio_resources(mocker: MockerFixture) -> None:
     player_pool.destroy.assert_called_once()
     listener.delete.assert_called_once()
     music_player.delete.assert_called_once()
+
+
+def test_sound_manager_instance_play_music_uses_injected_dependencies(
+    mocker: MockerFixture,
+) -> None:
+    """Test SoundManager instance can be constructed with injected services."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+    loaded_sound = object()
+    sound_pool.load.return_value = loaded_sound
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    manager.play_music("music/theme.ogg", loop=False)
+
+    sound_pool.load.assert_called_once_with("music/theme.ogg")
+    music_player.add.assert_called_once_with(loaded_sound)
+    assert music_player.loop is False
+    music_player.play.assert_called_once()
+
+
+def test_sound_manager_instance_play_sound_uses_injected_pools(
+    mocker: MockerFixture,
+) -> None:
+    """Test SoundManager.play_sound uses injected pool/listener resources."""
+    listener = mocker.MagicMock()
+    listener.position = (7, 8, 9)
+    sound_pool = mocker.MagicMock()
+    loaded_sound = object()
+    sound_pool.load.return_value = loaded_sound
+    player_pool = mocker.MagicMock()
+    player = mocker.MagicMock()
+    player.queue = []
+    player_pool.get_player.return_value = player
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    result = manager.play_sound("sfx/select.wav")
+
+    assert result is player
+    sound_pool.load.assert_called_once_with("sfx/select.wav")
+    player_pool.get_player.assert_called_once()
+    assert player.position == (7, 8, 9)

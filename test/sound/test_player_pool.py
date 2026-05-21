@@ -51,7 +51,7 @@ def test_init_sets_default_configuration(
     assert pool.max_pool_size == 256
     assert pool.pool_expansion_count == 10
     assert pool.min_remaining_idle_players == 2
-    assert pool.total_alocated_players == 15
+    assert pool.total_allocated_players == 15
 
 
 def test_init_creates_initial_idle_players(
@@ -111,7 +111,7 @@ def test_get_player_expands_pool_when_idle_is_low(
     pool.get_player()
 
     assert player_ctor.call_count == 25
-    assert pool.total_alocated_players == 25
+    assert pool.total_allocated_players == 25
     assert pool.idle_player_pool_size == 24
     assert len(pool._idle_players) == 24
     assert len(pool._active_players) == 1
@@ -122,10 +122,40 @@ def test_get_player_raises_error_when_max_pool_reached(
 ) -> None:
     """Test that get_player raises RuntimeError when max pool size is reached."""
     player_pool.min_remaining_idle_players = 20
-    player_pool.total_alocated_players = player_pool.max_pool_size - 1
+    player_pool.total_allocated_players = player_pool.max_pool_size
 
     with pytest.raises(RuntimeError, match="max pool size has been reached"):
         player_pool.get_player()
+
+
+def test_get_player_expansion_respects_remaining_capacity(
+    player_factory: tuple[MagicMock, list[MagicMock]],
+) -> None:
+    """Test expansion does not exceed max_pool_size when near capacity."""
+    _, _ = player_factory
+    pool = PlayerPool()
+    pool.min_remaining_idle_players = 20
+    pool.pool_expansion_count = 10
+    pool.max_pool_size = 18
+    pool.total_allocated_players = 15
+
+    pool.get_player()
+
+    assert pool.total_allocated_players == 18
+    assert pool.idle_player_pool_size == 17
+
+
+def test_total_alocated_players_alias_maps_to_corrected_name(
+    player_factory: tuple[MagicMock, list[MagicMock]],
+) -> None:
+    """Test backward-compatible typo alias maps to total_allocated_players."""
+    _, _ = player_factory
+    pool = PlayerPool()
+
+    pool.total_alocated_players = 22
+
+    assert pool.total_allocated_players == 22
+    assert pool.total_alocated_players == 22
 
 
 # unload_player Tests

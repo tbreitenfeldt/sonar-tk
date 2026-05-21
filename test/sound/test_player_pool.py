@@ -84,6 +84,14 @@ def test_idle_player_pool_size_setter_rebuilds_idle_players(
     assert player_ctor.call_count == 20
 
 
+def test_idle_player_pool_size_setter_raises_for_negative_size(
+    player_pool: PlayerPool,
+) -> None:
+    """Test that setting a negative idle pool size raises ValueError."""
+    with pytest.raises(ValueError, match="must be >= 0"):
+        player_pool.idle_player_pool_size = -1
+
+
 # get_player Tests
 
 
@@ -185,6 +193,8 @@ def test_unload_player_raises_when_player_not_active(
     with pytest.raises(ValueError):
         player_pool.unload_player(unknown_player)
 
+    unknown_player.reset.assert_not_called()
+
 
 # destroy Tests
 
@@ -208,3 +218,5 @@ def test_destroy_deletes_all_players_and_clears_collections(
 
     assert len(player_pool._idle_players) == 0
     assert len(player_pool._active_players) == 0
+    assert player_pool.idle_player_pool_size == 0
+    assert player_pool.total_allocated_players == 0

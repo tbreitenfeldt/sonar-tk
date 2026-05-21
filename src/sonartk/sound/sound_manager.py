@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple
+from typing import Any, Optional
 
 from sonartk.sound.openal_lite.openal import (
     Listener,
@@ -56,7 +56,7 @@ class SoundManager:
         self,
         sound: str | LoadSound | BufferSound,
         player: Optional[Player] = None,
-        position: Optional[Tuple[int]] = None,
+        position: Optional[tuple[int, int, int]] = None,
         rolloff: float = 0.01,
         loop: bool = False,
         effects: Optional[list[Any]] = None,
@@ -83,19 +83,17 @@ class SoundManager:
             player.remove()
             player.add(sound)
 
-            if effects:
-                for effect in effects:
-                    player.add_effect(effect)
-            if filters:
-                for filter in filters:
-                    player.add_filter(filter)
+        if effects:
+            for effect in effects:
+                player.add_effect(effect)
+        if filters:
+            for filter in filters:
+                player.add_filter(filter)
 
-            player.rolloff = rolloff
-            player.position = position
-            player.play()
-        else:
-            player.position = position
-            player.play()
+        player.loop = loop
+        player.rolloff = rolloff
+        player.position = position
+        player.play()
 
         return player
 
@@ -151,7 +149,7 @@ def stop_music() -> None:
 def play_sound(
     sound: str | LoadSound | BufferSound,
     player: Optional[Player] = None,
-    position: Optional[Tuple[int]] = None,
+    position: Optional[tuple[int, int, int]] = None,
     rolloff: float = 0.01,
     loop: bool = False,
     effects: Optional[list[Any]] = None,

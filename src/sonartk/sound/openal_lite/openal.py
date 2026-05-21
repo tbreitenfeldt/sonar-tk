@@ -3077,9 +3077,7 @@ class EFXslot(object):
     def delete(self):
         self.set_effect(None)
 
-        # causes access error with pyglet, fine with PyAL
-        ##        efx.alDeleteAuxiliaryEffectSlots(1,self.slot)
-        al.alDeleteBuffers(1, self.slot)
+        efx.alDeleteAuxiliaryEffectSlots(1, self.slot)
 
 
 # 3D positional audio + EFX + HRTF + Recording
@@ -3344,6 +3342,7 @@ class Listener(object):
     def delete(self):
         if self.captureDev != None:
             alc.alcCaptureCloseDevice(self.captureDev)
+        alc.alcMakeContextCurrent(None)
         alc.alcDestroyContext(self.context)
         alc.alcCloseDevice(self.device)
 
@@ -3524,7 +3523,7 @@ class Player(object):
     def _set_direction(self, pos):
         self._direction = pos
         x, y, z = map(float, pos)
-        al.alListener3f(al.AL_DIRECTION, x, y, z)
+        al.alSource3f(self.source, al.AL_DIRECTION, x, y, z)
 
     def _get_direction(self):
         return self._direction
@@ -3533,7 +3532,7 @@ class Player(object):
     def _set_velocity(self, pos):
         self._velocity = pos
         x, y, z = map(float, pos)
-        al.alListener3f(al.AL_VELOCITY, x, y, z)
+        al.alSource3f(self.source, al.AL_VELOCITY, x, y, z)
 
     def _get_velocity(self):
         return self._velocity
@@ -3800,9 +3799,9 @@ class Player(object):
         if len(self.queue) > 0:
             for a in range(0, len(self.queue), 1):
                 self.remove()
-        for a in self._effect:
+        for a in list(self._effect):
             self.del_effect(a)
-        for a in self._filter:
+        for a in list(self._filter):
             self.del_filter(a)
 
     # delete sound source
@@ -3812,9 +3811,9 @@ class Player(object):
         if len(self.queue) > 0:
             for a in range(0, len(self.queue), 1):
                 self.remove()
-        for a in self._effect:
+        for a in list(self._effect):
             self.del_effect(a)
-        for a in self._filter:
+        for a in list(self._filter):
             self.del_filter(a)
         al.alDeleteSources(1, self.source)
 

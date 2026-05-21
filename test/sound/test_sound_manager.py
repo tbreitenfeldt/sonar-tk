@@ -141,8 +141,9 @@ def test_play_sound_uses_given_player_and_position_without_loading(
     result = sound_manager.play_sound(
         sound=sound_obj,
         player=player,
-        position=cast(tuple[int], (9, 8, 7)),
+        position=cast(tuple[int, int, int], (9, 8, 7)),
         rolloff=0.5,
+        loop=True,
     )
 
     assert result is player
@@ -151,6 +152,7 @@ def test_play_sound_uses_given_player_and_position_without_loading(
     player.stop.assert_called_once()
     player.remove.assert_called_once()
     player.add.assert_called_once_with(sound_obj)
+    assert player.loop is True
     assert player.rolloff == 0.5
     assert player.position == (9, 8, 7)
     player.play.assert_called_once()
@@ -203,6 +205,8 @@ def test_play_sound_reuses_existing_queued_sound(
     player.stop.assert_not_called()
     player.remove.assert_not_called()
     player.add.assert_not_called()
+    assert player.loop is False
+    assert player.rolloff == 0.01
     assert player.position == (5, 5, 5)
     player.play.assert_called_once()
 
@@ -218,12 +222,46 @@ def test_play_sound_uses_custom_position_when_reusing_queue(
     result = sound_manager.play_sound(
         sound_obj,
         player=player,
-        position=cast(tuple[int], (4, 3, 2)),
+        position=cast(tuple[int, int, int], (4, 3, 2)),
+        loop=True,
+        rolloff=0.42,
     )
 
     assert result is player
+    assert player.loop is True
+    assert player.rolloff == 0.42
     assert player.position == (4, 3, 2)
     player.play.assert_called_once()
+
+
+def test_play_sound_reapplies_effects_and_filters_when_reusing_queue(
+    mocker: MockerFixture,
+) -> None:
+    """Test play_sound reapplies effects and filters for already-queued sounds."""
+    sound_obj: Any = object()
+    player = mocker.MagicMock()
+    player.queue = [sound_obj]
+    effect_1 = object()
+    effect_2 = object()
+    filter_1 = object()
+
+    mocker.patch.object(
+        sound_manager, "listener", mocker.MagicMock(position=(0, 0, 0))
+    )
+
+    sound_manager.play_sound(
+        sound=sound_obj,
+        player=player,
+        effects=[effect_1, effect_2],
+        filters=[filter_1],
+    )
+
+    player.stop.assert_not_called()
+    player.remove.assert_not_called()
+    player.add.assert_not_called()
+    player.add_effect.assert_any_call(effect_1)
+    player.add_effect.assert_any_call(effect_2)
+    player.add_filter.assert_called_once_with(filter_1)
 
 
 # cleanup Tests

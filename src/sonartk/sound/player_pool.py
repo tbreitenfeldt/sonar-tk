@@ -37,6 +37,9 @@ class PlayerPool:
     @idle_player_pool_size.setter
     def idle_player_pool_size(self, idle_player_pool_size: int) -> None:
         """Set the idle player pool size."""
+        if idle_player_pool_size < 0:
+            raise ValueError("idle_player_pool_size must be >= 0")
+
         for player in self._idle_players:
             player.delete()
         self._idle_players = deque(
@@ -71,8 +74,8 @@ class PlayerPool:
 
     def unload_player(self, player: Player) -> None:
         """Unload player."""
-        player.reset()
         index: int = self._active_players.index(player)
+        player.reset()
         del self._active_players[index]
         self._idle_players.append(player)
         self._idle_player_pool_size += 1
@@ -86,3 +89,5 @@ class PlayerPool:
 
         self._idle_players.clear()
         self._active_players.clear()
+        self._idle_player_pool_size = 0
+        self.total_allocated_players = 0

@@ -27,7 +27,7 @@ class Menu(Element[str]):
         self,
         parent: Screen,
         label: str = "",
-        items: List[Dict[str, Element | str]] = [],
+        items: List[Dict[str, Element | str]] | None = None,
         position: int = 0,
         has_border: bool = False,
         is_first_letter_navigation: bool = True,

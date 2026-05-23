@@ -33,7 +33,7 @@ def main() -> None:
         mapper=tile_mapper,
         character=character,
     )
-    print(map2d.find_path((1, 9), (0, 0)))
+    print(map2d.queries.find_path((1, 9), (0, 0)))
     window: Window = Window(caption="Map Test")
     grid: Grid = Grid(
         window,  # type: ignore[arg-type]

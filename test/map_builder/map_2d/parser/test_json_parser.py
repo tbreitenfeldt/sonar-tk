@@ -39,3 +39,30 @@ def test_json_parser_raises_stop_parsing_at_end(tmp_path: Path) -> None:
         parser.read()
 
     parser.close()
+
+
+def test_json_parser_close_is_safe_without_open() -> None:
+    parser = JSONParser()
+
+    parser.close()
+
+    assert parser.file is None
+
+
+def test_json_parser_context_manager_closes_file(tmp_path: Path) -> None:
+    file_path = tmp_path / "map.json"
+    file_path.write_text('[ [{"id": 1}] ]', encoding="utf-8")
+
+    parser = JSONParser()
+    with parser:
+        parser.open(str(file_path))
+        assert parser.file is not None
+
+    assert parser.file is None
+
+
+def test_json_parser_read_raises_if_not_opened() -> None:
+    parser = JSONParser()
+
+    with pytest.raises(RuntimeError, match="must be opened"):
+        parser.read()

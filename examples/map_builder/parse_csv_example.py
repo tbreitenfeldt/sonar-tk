@@ -14,17 +14,15 @@ except Exception:
 
 
 def main() -> None:
-    parser = CSVParser()
-    parser.open(str(EXAMPLE_DIR / "test.csv"))
+    with CSVParser() as parser:
+        parser.open(str(EXAMPLE_DIR / "test.csv"))
 
-    while True:
-        try:
-            line: list[str] = parser.read()
-            print(line)
-        except StopParsingException:
-            break
-
-    parser.close()
+        while True:
+            try:
+                line: list[str] = parser.read()
+                print(line)
+            except StopParsingException:
+                break
 
 
 if __name__ == "__main__":

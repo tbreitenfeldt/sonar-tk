@@ -1,0 +1,7680 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tools for building accessible audio games in Python.">
+      
+      
+      
+      
+        <link rel="prev" href="../orchestration/">
+      
+      
+        <link rel="next" href="../sound/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.47">
+    
+    
+      
+        <title>UI - sonartk</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ui" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="sonartk" class="md-header__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sonartk
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              UI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="sonartk" class="md-nav__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sonartk
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sonartk/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Top-Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../map_builder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Map Builder
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../orchestration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Orchestration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    UI
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    UI
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ui">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      UIComponent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UIComponent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent.parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      parent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.FocusableContainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      FocusableContainer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FocusableContainer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.FocusableContainer.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.open_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.on_window_activate" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_window_activate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.change" class="md-nav__link">
+    <span class="md-ellipsis">
+      change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.push_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      push_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.pop_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      pop_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.get_handler_stack_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_handler_stack_size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.check_handler_leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      check_handler_leaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.validate_handler_stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_handler_stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_debug_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_debug_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui_component" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui_component
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui_component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ui_component">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      UIComponent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UIComponent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent.parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      parent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#focusable_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      focusable_container
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      focusable_container
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="focusable_container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container.FocusableContainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      FocusableContainer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FocusableContainer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container.FocusableContainer.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#window" class="md-nav__link">
+    <span class="md-ellipsis">
+      window
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.window" class="md-nav__link">
+    <span class="md-ellipsis">
+      window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.open_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.on_window_activate" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_window_activate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.change" class="md-nav__link">
+    <span class="md-ellipsis">
+      change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.push_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      push_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.pop_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      pop_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.get_handler_stack_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_handler_stack_size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.check_handler_leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      check_handler_leaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.validate_handler_stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_handler_stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_debug_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_debug_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element" class="md-nav__link">
+    <span class="md-ellipsis">
+      element
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.element" class="md-nav__link">
+    <span class="md-ellipsis">
+      element
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="element">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button" class="md-nav__link">
+    <span class="md-ellipsis">
+      Button
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Button">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checkbox
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checkbox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.toggle_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      toggle_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element" class="md-nav__link">
+    <span class="md-ellipsis">
+      Element
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Element">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grid
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.arrow_key_repeat_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      arrow_key_repeat_interval
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.current_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.current_coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_coordinates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_up" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_up
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_down" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_down
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.get_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.get_next_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_next_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.next_item" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_item
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.previous_item" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_item
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_to_beginning" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_to_beginning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_to_end" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_to_end
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_by_first_letter" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_by_first_letter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox" class="md-nav__link">
+    <span class="md-ellipsis">
+      TextBox
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TextBox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_previous_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_previous_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_next_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_next_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.output_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      output_value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.next_word" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_word
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.previous_word" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_word
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.next_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.previous_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_letter_selection_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_letter_selection_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_letter_selection_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_letter_selection_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_word_selection_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_word_selection_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_word_selection_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_word_selection_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.select_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      select_all
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.copy_to_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      copy_to_clipboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.paste_from_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      paste_from_clipboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_home" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_home
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_end" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_end
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.type_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      type_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.get_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.is_selected" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_selected
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.clear_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      clear_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.set_right_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_right_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.set_left_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_left_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel" class="md-nav__link">
+    <span class="md-ellipsis">
+      TextLabel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TextLabel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton" class="md-nav__link">
+    <span class="md-ellipsis">
+      ToggleButton
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ToggleButton">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.next" class="md-nav__link">
+    <span class="md-ellipsis">
+      next
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      screen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      screen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="screen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerScreen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ContainerScreen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dialog
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.open_dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_dialog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Screen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.next_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.previous_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../util/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utilities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ui">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      UIComponent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UIComponent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent.parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      parent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.UIComponent.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.FocusableContainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      FocusableContainer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FocusableContainer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.FocusableContainer.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.open_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.on_window_activate" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_window_activate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.change" class="md-nav__link">
+    <span class="md-ellipsis">
+      change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.push_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      push_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.pop_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      pop_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.get_handler_stack_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_handler_stack_size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.check_handler_leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      check_handler_leaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.validate_handler_stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_handler_stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_debug_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_debug_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ui_component" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui_component
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component" class="md-nav__link">
+    <span class="md-ellipsis">
+      ui_component
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ui_component">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      UIComponent
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UIComponent">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent.parent" class="md-nav__link">
+    <span class="md-ellipsis">
+      parent
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.ui_component.UIComponent.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#focusable_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      focusable_container
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container" class="md-nav__link">
+    <span class="md-ellipsis">
+      focusable_container
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="focusable_container">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container.FocusableContainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      FocusableContainer
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="FocusableContainer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.focusable_container.FocusableContainer.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#window" class="md-nav__link">
+    <span class="md-ellipsis">
+      window
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.window" class="md-nav__link">
+    <span class="md-ellipsis">
+      window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window" class="md-nav__link">
+    <span class="md-ellipsis">
+      Window
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Window">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.open_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.on_window_activate" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_window_activate
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.change" class="md-nav__link">
+    <span class="md-ellipsis">
+      change
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.get_window" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_window
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.push_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      push_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.pop_window_handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      pop_window_handlers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.get_handler_stack_size" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_handler_stack_size
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.check_handler_leaks" class="md-nav__link">
+    <span class="md-ellipsis">
+      check_handler_leaks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.validate_handler_stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      validate_handler_stack
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_debug_mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_debug_mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#element" class="md-nav__link">
+    <span class="md-ellipsis">
+      element
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.element" class="md-nav__link">
+    <span class="md-ellipsis">
+      element
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="element">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button" class="md-nav__link">
+    <span class="md-ellipsis">
+      Button
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Button">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Button.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checkbox
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Checkbox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.toggle_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      toggle_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Checkbox.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element" class="md-nav__link">
+    <span class="md-ellipsis">
+      Element
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Element">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.name" class="md-nav__link">
+    <span class="md-ellipsis">
+      name
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Element.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grid
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grid">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.arrow_key_repeat_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      arrow_key_repeat_interval
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.current_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.current_coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      current_coordinates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_up" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_up
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_down" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_down
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.navigate_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.get_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.get_next_cell" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_next_cell
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Grid.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu" class="md-nav__link">
+    <span class="md-ellipsis">
+      Menu
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Menu">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.next_item" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_item
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.previous_item" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_item
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_to_beginning" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_to_beginning
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_to_end" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_to_end
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.navigate_by_first_letter" class="md-nav__link">
+    <span class="md-ellipsis">
+      navigate_by_first_letter
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.Menu.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox" class="md-nav__link">
+    <span class="md-ellipsis">
+      TextBox
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TextBox">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.value" class="md-nav__link">
+    <span class="md-ellipsis">
+      value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_previous_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_previous_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_next_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_next_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.output_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      output_value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.next_word" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_word
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.previous_word" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_word
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.next_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.previous_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_letter_selection_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_letter_selection_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_letter_selection_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_letter_selection_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_word_selection_right" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_word_selection_right
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_word_selection_left" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_word_selection_left
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.select_all" class="md-nav__link">
+    <span class="md-ellipsis">
+      select_all
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.submit" class="md-nav__link">
+    <span class="md-ellipsis">
+      submit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.copy_to_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      copy_to_clipboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.paste_from_clipboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      paste_from_clipboard
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_home" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_home
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.move_end" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_end
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.type_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      type_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.get_value" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_value
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.is_selected" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_selected
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.clear_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      clear_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.set_right_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_right_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.set_left_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_left_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.delete_selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_selection
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextBox.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel" class="md-nav__link">
+    <span class="md-ellipsis">
+      TextLabel
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="TextLabel">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.TextLabel.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton" class="md-nav__link">
+    <span class="md-ellipsis">
+      ToggleButton
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ToggleButton">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.next" class="md-nav__link">
+    <span class="md-ellipsis">
+      next
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.element.ToggleButton.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      screen
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.ui.screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      screen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="screen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen" class="md-nav__link">
+    <span class="md-ellipsis">
+      ContainerScreen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ContainerScreen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.update" class="md-nav__link">
+    <span class="md-ellipsis">
+      update
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.exit" class="md-nav__link">
+    <span class="md-ellipsis">
+      exit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.ContainerScreen.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      Dialog
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Dialog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.open_dialog" class="md-nav__link">
+    <span class="md-ellipsis">
+      open_dialog
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      reset
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Dialog.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      Screen
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Screen">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.caption" class="md-nav__link">
+    <span class="md-ellipsis">
+      caption
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.active_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      active_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.close" class="md-nav__link">
+    <span class="md-ellipsis">
+      close
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.add" class="md-nav__link">
+    <span class="md-ellipsis">
+      add
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.remove" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.next_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      next_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.previous_element" class="md-nav__link">
+    <span class="md-ellipsis">
+      previous_element
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.set_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.screen.Screen.bind_keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      bind_keys
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="ui">ui</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui" class="doc doc-heading">
+            <code>sonartk.ui</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.UIComponent" class="doc doc-heading">
+            <code>UIComponent</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
+
+
+        <p>Base class for all UI hierarchy components.</p>
+<p>Provides the contract for accessing the root Window from any level
+in the UI hierarchy (Window → Screen → Element → nested Elements).</p>
+<p>All UI components must have a parent reference (None for root Window)
+and get_window() to enable handler management and other window-level
+operations.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.UIComponent.parent" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">parent</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return this component's parent in the UI hierarchy.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.UIComponent.get_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_window</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the root Window for this component.</p>
+<p>Traverses the parent chain until a Window is found.
+Window overrides this to return self.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="#sonartk.ui.window.Window">Window</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The Window at the root of the parent chain</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no Window is found in the parent chain</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.FocusableContainer" class="doc doc-heading">
+            <code>FocusableContainer</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+
+        <p>Protocol for UI components that contain focusable child elements.</p>
+<p>Components implementing this protocol maintain a reference to their
+currently active/focused child element, allowing the UI to drill down
+from Window → Screen → Element → nested Element to find the leaf
+element with focus for accessibility announcements.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.FocusableContainer.active_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">active_element</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the currently active/focused element within this container.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The State that currently has focus within this container,</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>or None if the container is empty or has no active element.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.Window" class="doc doc-heading">
+            <code>Window</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.Window.caption" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">caption</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the current window caption.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register window-level keyboard shortcuts and escape behavior.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.open_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">open_window</span><span class="p">(</span><span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">fullscreen</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">speak_current_element_on_window_focus</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create, initialize, and start the pyglet event loop for this window.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.on_window_activate" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_window_activate</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Handle window activation - announce the currently focused element.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Schedule initial state activation after the window opens.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">delta_time</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Dispatch update events and advance the active state each frame.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.add" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a named state in this window's state machine.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.remove" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove and return a previously registered state by key.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.change" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">change</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Switch to another registered state, forwarding optional arguments.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.get_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_window</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return this window (base case for parent chain traversal).</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.push_window_handlers" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">push_window_handlers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Push one or more event handlers onto the pyglet handler stack.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.pop_window_handlers" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">pop_window_handlers</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Pop a handler from the event stack.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If attempting to pop from an empty stack</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.get_handler_stack_size" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_handler_stack_size</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the current number of handlers on the event stack.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.check_handler_leaks" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">check_handler_leaks</span><span class="p">(</span><span class="n">expected_count</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Check for handler leaks and log warnings.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>expected_count</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of handlers expected to be on the stack.
+If not provided, uses this window's baseline handler count
+captured during open_window(). If baseline is unavailable,
+falls back to 3.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Call this in development/debug mode after state transitions to
+detect states that forgot to pop their handlers.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.validate_handler_stack" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">validate_handler_stack</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Public wrapper for handler stack validation diagnostics.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A tuple where item 1 indicates validity and item 2 provides a</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>diagnostic message.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.set_debug_mode" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_debug_mode</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Enable or disable runtime debug checks for this window.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.close" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Close this window, clean up states and handlers, and optionally close child windows.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.set_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Activate the state at the current window position when available.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="ui_component">ui_component</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui.ui_component" class="doc doc-heading">
+            <code>sonartk.ui.ui_component</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.ui_component.UIComponent" class="doc doc-heading">
+            <code>UIComponent</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
+
+
+        <p>Base class for all UI hierarchy components.</p>
+<p>Provides the contract for accessing the root Window from any level
+in the UI hierarchy (Window → Screen → Element → nested Elements).</p>
+<p>All UI components must have a parent reference (None for root Window)
+and get_window() to enable handler management and other window-level
+operations.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.ui_component.UIComponent.parent" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">parent</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return this component's parent in the UI hierarchy.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.ui_component.UIComponent.get_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_window</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the root Window for this component.</p>
+<p>Traverses the parent chain until a Window is found.
+Window overrides this to return self.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="#sonartk.ui.window.Window">Window</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The Window at the root of the parent chain</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no Window is found in the parent chain</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="focusable_container">focusable_container</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui.focusable_container" class="doc doc-heading">
+            <code>sonartk.ui.focusable_container</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.focusable_container.FocusableContainer" class="doc doc-heading">
+            <code>FocusableContainer</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
+
+
+        <p>Protocol for UI components that contain focusable child elements.</p>
+<p>Components implementing this protocol maintain a reference to their
+currently active/focused child element, allowing the UI to drill down
+from Window → Screen → Element → nested Element to find the leaf
+element with focus for accessibility announcements.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.focusable_container.FocusableContainer.active_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">active_element</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the currently active/focused element within this container.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The State that currently has focus within this container,</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>or None if the container is empty or has no active element.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
+
+</div>
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="window">window</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui.window" class="doc doc-heading">
+            <code>sonartk.ui.window</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.window.Window" class="doc doc-heading">
+            <code>Window</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.window.Window.caption" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">caption</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the current window caption.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register window-level keyboard shortcuts and escape behavior.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.open_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">open_window</span><span class="p">(</span><span class="n">caption</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">fullscreen</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">speak_current_element_on_window_focus</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create, initialize, and start the pyglet event loop for this window.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.on_window_activate" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_window_activate</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Handle window activation - announce the currently focused element.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Schedule initial state activation after the window opens.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">delta_time</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Dispatch update events and advance the active state each frame.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.add" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a named state in this window's state machine.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.remove" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove and return a previously registered state by key.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.change" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">change</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Switch to another registered state, forwarding optional arguments.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.get_window" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_window</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return this window (base case for parent chain traversal).</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.push_window_handlers" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">push_window_handlers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Push one or more event handlers onto the pyglet handler stack.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.pop_window_handlers" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">pop_window_handlers</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Pop a handler from the event stack.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If attempting to pop from an empty stack</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.get_handler_stack_size" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_handler_stack_size</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the current number of handlers on the event stack.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.check_handler_leaks" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">check_handler_leaks</span><span class="p">(</span><span class="n">expected_count</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Check for handler leaks and log warnings.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>expected_count</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of handlers expected to be on the stack.
+If not provided, uses this window's baseline handler count
+captured during open_window(). If baseline is unavailable,
+falls back to 3.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+        <p>Call this in development/debug mode after state transitions to
+detect states that forgot to pop their handlers.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.validate_handler_stack" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">validate_handler_stack</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Public wrapper for handler stack validation diagnostics.</p>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A tuple where item 1 indicates validity and item 2 provides a</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>diagnostic message.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.set_debug_mode" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_debug_mode</span><span class="p">(</span><span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Enable or disable runtime debug checks for this window.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.close" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Close this window, clean up states and handlers, and optionally close child windows.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.set_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Activate the state at the current window position when available.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="element">element</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui.element" class="doc doc-heading">
+            <code>sonartk.ui.element</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.Button" class="doc doc-heading">
+            <code>Button</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Button.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keys.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Button.submit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">submit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Submit.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Button.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.Checkbox" class="doc doc-heading">
+            <code>Checkbox</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="bool">bool</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Checkbox.name" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">name</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the name.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Checkbox.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keys.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Checkbox.toggle_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">toggle_state</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Toggle state.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Checkbox.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.Element" class="doc doc-heading">
+            <code>Element</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.element.V">V</span>]</code>, <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Element.value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">value</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the value.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Element.name" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">name</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the name.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Element.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keys for this element. Called automatically when use_key_handler is True.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Element.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Setup the element as the active focused state.</p>
+
+
+<details class="safe-transition-note" open>
+  <summary>Safe transition note</summary>
+  <p>setup() is called after the previous state's exit() succeeds. Keep
+setup behavior minimal and deterministic where possible so failures
+do not leave the state machine and handler stack out of sync.</p>
+</details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Element.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">delta_time</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Update.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Element.exit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">exit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Exit the element and remove focus resources.</p>
+
+
+<details class="safe-transition-note" open>
+  <summary>Safe transition note</summary>
+  <p>exit() runs before the next state's setup(). Return False to block
+transitions that would leave this element in an invalid state.</p>
+</details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Element.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.Grid" class="doc doc-heading">
+            <code>Grid</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code>, <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.grid.T">T</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Grid.arrow_key_repeat_interval" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">arrow_key_repeat_interval</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the repeat interval used for arrow-key navigation.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Grid.current_cell" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">current_cell</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the cell at the current cursor coordinates.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Grid.current_coordinates" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">current_coordinates</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the current cursor coordinates as (x, y).</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Grid.value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">value</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the configured property from the current cell as text.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind directional keys used to navigate between grid cells.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.navigate_up" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_up</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move one row up, or emit a border event at the top edge.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.navigate_down" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_down</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move one row down, or emit a border event at the bottom edge.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.navigate_left" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_left</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move one column left, or emit a border event at the left edge.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.navigate_right" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_right</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move one column right, or emit a border event at the right edge.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.on_navigation" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_navigation</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Apply movement, then optionally announce value and coordinates.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.get_cell" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_cell</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the cell at coordinates, or None when out of bounds.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.get_next_cell" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_next_cell</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the next coordinates and cell for a movement direction.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.add_row" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add_row</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="p">[])</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Append a row to the grid, validating width compatibility.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Initialize the grid for focus and emit an initial change event.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Grid.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Clear all grid state, including coordinates and cell storage.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.Menu" class="doc doc-heading">
+            <code>Menu</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Menu.value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">value</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the key of the currently selected menu item.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.Menu.active_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">active_element</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the currently active menu item.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keyboard controls for navigation, submission, and text lookup.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Prepare menu focus state and activate the current item.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">delta_time</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Update both the base element and the active menu item state.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.exit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">exit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Exit the active menu item and then exit this menu element.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.next_item" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">next_item</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move to the next menu item, honoring border behavior.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.previous_item" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">previous_item</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move to the previous menu item, honoring border behavior.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.navigate_to_beginning" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_to_beginning</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Jump focus to the first menu item.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.navigate_to_end" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_to_end</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Jump focus to the last menu item.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.submit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">submit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Emit the submit event for the currently selected item.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.navigate_by_first_letter" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">navigate_by_first_letter</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Queue incremental first-letter navigation from typed text.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.set_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Activate the state associated with the current menu position.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.add" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Add a menu item state from text or an Element instance.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.remove" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove and return a menu item by key.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.Menu.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Restore default position and reset all menu item elements.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.TextBox" class="doc doc-heading">
+            <code>TextBox</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.element.TextBox.value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">value</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the current textbox content as a string.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind editing, navigation, clipboard, and selection shortcuts.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Announce current content and read-only state when focused.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.delete_previous_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">delete_previous_character</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Delete the character before the cursor or current selection.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.delete_next_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">delete_next_character</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Delete the character at or after the cursor or current selection.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.output_value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">output_value</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Speak the full textbox value, masking characters when hidden.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.next_word" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">next_word</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move to the next word boundary and announce the word at that position.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.previous_word" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">previous_word</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move to the previous word boundary and announce the word at that position.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.next_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">next_character</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move cursor right and announce the newly focused character.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.previous_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">previous_character</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move cursor left and announce the newly focused character.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_letter_selection_right" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_letter_selection_right</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extend or shrink selection one character to the right.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_letter_selection_left" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_letter_selection_left</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extend or shrink selection one character to the left.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_word_selection_right" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_word_selection_right</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extend or shrink selection one word to the right.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_word_selection_left" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_word_selection_left</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extend or shrink selection one word to the left.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.select_all" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">select_all</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Select the entire textbox content and announce the selection.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.submit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">submit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Emit the submit event for the textbox value.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.copy_to_clipboard" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">copy_to_clipboard</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Copy current selection to the clipboard when a selection exists.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.paste_from_clipboard" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">paste_from_clipboard</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Insert clipboard text at the cursor when size limits allow.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_home" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_home</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move the cursor to the beginning and announce the first character.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.move_end" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_end</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move the cursor to the end and announce blank.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.type_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">type_character</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Insert an allowed character and perform speech feedback.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.get_value" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_value</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the textbox content by joining the internal character buffer.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.is_selected" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">is_selected</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return whether any text range is currently selected.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.clear_selection" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">clear_selection</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Clear selection tracking and announce unselection when needed.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.set_right_selection" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_right_selection</span><span class="p">(</span><span class="n">previous_position</span><span class="p">,</span> <span class="n">next_position</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Update selection bounds while extending selection rightward.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.set_left_selection" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_left_selection</span><span class="p">(</span><span class="n">previous_position</span><span class="p">,</span> <span class="n">next_position</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Update selection bounds while extending selection leftward.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.delete_selection" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">delete_selection</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Delete the currently selected character range.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextBox.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Restore default value and clear cursor and selection state.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.TextLabel" class="doc doc-heading">
+            <code>TextLabel</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextLabel.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>No key bindings needed for TextLabel.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.TextLabel.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.element.ToggleButton" class="doc doc-heading">
+            <code>ToggleButton</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.ToggleButton.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keys.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.ToggleButton.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Setup.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.ToggleButton.next" class="doc doc-heading">
+            <code class="highlight language-python"><span class="nb">next</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Next.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.ToggleButton.add" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Add.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.element.ToggleButton.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="screen">screen</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.ui.screen" class="doc doc-heading">
+            <code>sonartk.ui.screen</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.screen.ContainerScreen" class="doc doc-heading">
+            <code>ContainerScreen</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.screen.Screen" href="#sonartk.ui.screen.Screen">Screen</a></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind tab-navigation keys used to change focused child elements.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.setup" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">change_state</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Attach key handlers and activate the initial focused element.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.set_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Activate the currently selected child element state.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.update" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update</span><span class="p">(</span><span class="n">delta_time</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Update the active child element state.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.exit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">exit</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Exit active child state and detach this screen key handlers.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.ContainerScreen.close" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Close this screen and then close its parent container.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.screen.Dialog" class="doc doc-heading">
+            <code>Dialog</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.container_screen.ContainerScreen" href="#sonartk.ui.screen.ContainerScreen">ContainerScreen</a></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Dialog.open_dialog" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">open_dialog</span><span class="p">(</span><span class="n">caption</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Attach this dialog to the parent and switch focus into it.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Dialog.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind dialog-specific keys, including escape-to-close behavior.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Dialog.reset" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Reset all dialog child elements to their default values.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Dialog.close" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Close the dialog, restore caption, and return focus to the prior state.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.ui.screen.Screen" class="doc doc-heading">
+            <code>Screen</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.screen.Screen.caption" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">caption</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get or set the caption through the parent window.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.ui.screen.Screen.active_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">active_element</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the currently active child state.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.close" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">close</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Emit the close event for this screen.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.add" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register an element or nested screen in this screen state machine.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.remove" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove and return an element state by key when present.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.next_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">next_element</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move focus to the next element and activate it.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.previous_element" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">previous_element</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move focus to the previous element and activate it.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.set_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Activate the element state at the current position.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.screen.Screen.bind_keys" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">bind_keys</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Bind keyboard controls for screen-level navigation actions.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

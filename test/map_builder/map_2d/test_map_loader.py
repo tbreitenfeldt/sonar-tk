@@ -1,5 +1,7 @@
 from typing import Generic, TypeVar
 
+import pytest
+
 from sonartk.map_builder.map_2d.map_loader import load_2d_map
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.map_builder.map_2d.map_object.character import Character
@@ -70,3 +72,16 @@ def test_load_2d_map_with_empty_parser_data_still_closes() -> None:
     assert parser.closed is True
     assert map2d.width == 0
     assert map2d.height == 0
+
+
+def test_load_2d_map_closes_parser_when_mapper_raises() -> None:
+    parser = FakeParser[str]([["g", "w"]])
+    character = Character("hero", (0, 0), Direction.UP)
+
+    def failing_mapper(_value: str) -> MapTile:
+        raise ValueError("mapper failed")
+
+    with pytest.raises(ValueError, match="mapper failed"):
+        load_2d_map("broken", "broken.csv", parser, failing_mapper, character)
+
+    assert parser.closed is True

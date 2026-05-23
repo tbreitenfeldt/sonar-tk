@@ -20,15 +20,14 @@ def load_2d_map(
 ) -> Map2d:
     """Load a 2D map file with a parser and convert each parsed entry to a MapTile."""
     map2d: Map2d = Map2d(map_name, character)
-    parser.open(file_name)
+    with parser:
+        parser.open(file_name)
+        while True:
+            try:
+                row: list[T] = parser.read()
+                mapped_row: list[MapTile] = [mapper(tile) for tile in row]
+                map2d.add_row(mapped_row)
+            except StopParsingException:
+                break
 
-    while True:
-        try:
-            row: list[T] = parser.read()
-            mapped_row: list[MapTile] = [mapper(tile) for tile in row]
-            map2d.add_row(mapped_row)
-        except StopParsingException:
-            break
-
-    parser.close()
     return map2d

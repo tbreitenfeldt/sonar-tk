@@ -8,14 +8,15 @@ import os
 import platform
 import shutil
 import sys
-from typing import List, Optional
+import types
+from typing import List, Optional, cast
 
 # For accessible_output2, to handle cases when occasionally error is thrown due to genpy temp folder not getting removed.
 try:
     genpy_path = os.path.join(os.environ["temp"], "gen_py")
     if getattr(sys, "frozen", True) and os.path.isdir(genpy_path):
         shutil.rmtree(genpy_path)
-except Exception:
+except (OSError, KeyError):
     pass
 
 from accessible_output2.outputs.auto import Auto
@@ -34,7 +35,49 @@ global _screenreader
 
 _speech_history = []
 _history_position = 0
-_screenreader = Auto()
+_screenreader = None
+
+
+class _NullScreenreader:
+    def output(self, *args: object, **kwargs: object) -> None:
+        return None
+
+    def get_first_available_output(self) -> "_NullScreenreader":
+        return self
+
+
+class _AppscriptStubObject:
+    def __call__(
+        self, *args: object, **kwargs: object
+    ) -> "_AppscriptStubObject":
+        return self
+
+    def __getattr__(self, name: str) -> "_AppscriptStubObject":
+        return self
+
+
+def _ensure_appscript_stub() -> None:
+    if platform.system() == "Darwin":
+        return
+    if "appscript" in sys.modules:
+        return
+
+    module = types.ModuleType("appscript")
+    module.app = lambda *args, **kwargs: _AppscriptStubObject()  # type: ignore[attr-defined]
+    sys.modules["appscript"] = module
+
+
+def _get_screenreader() -> Output:
+    global _screenreader
+
+    if _screenreader is None:
+        _ensure_appscript_stub()
+        try:
+            _screenreader = Auto()
+        except Exception:
+            _screenreader = cast(Output, _NullScreenreader())
+
+    return _screenreader
 
 
 def output(
@@ -48,7 +91,7 @@ def output(
         _speech_history.append(message)
         navigate_to_end_of_history()
 
-    _screenreader.output(message, interrupt=interrupt)
+    _get_screenreader().output(message, interrupt=interrupt)
 
 
 def silence() -> None:
@@ -56,17 +99,17 @@ def silence() -> None:
     global _screenreader
 
     if platform.system() == "Windows" and isinstance(
-        _screenreader.get_first_available_output(), NVDA
+        _get_screenreader().get_first_available_output(), NVDA
     ):
-        _screenreader.output(None, interrupt=True)
+        _get_screenreader().output(None, interrupt=True)
     else:
-        _screenreader.output("", interrupt=True)
+        _get_screenreader().output("", interrupt=True)
 
 
 def get_current_screenreader() -> Output:
     """Return the currently selected accessible_output2 output instance."""
     global _screenreader
-    return _screenreader.get_first_available_output()
+    return _get_screenreader().get_first_available_output()
 
 
 def is_nvda_active() -> bool:

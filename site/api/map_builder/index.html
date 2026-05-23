@@ -1,0 +1,2932 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tools for building accessible audio games in Python.">
+      
+      
+      
+      
+        <link rel="prev" href="../sonartk/">
+      
+      
+        <link rel="next" href="../orchestration/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.47">
+    
+    
+      
+        <title>Map Builder - sonartk</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#map_builder" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="sonartk" class="md-header__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sonartk
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Map Builder
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="sonartk" class="md-nav__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sonartk
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sonartk/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Top-Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Map Builder
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Map Builder
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.map_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_builder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_builder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.character_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      character_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.object_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      object_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.get_tile" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_tile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.register_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.move_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.remove_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.register_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.move_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.remove_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_map_object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.MapTile" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapTile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapTile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.MapTile.interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      interact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.load_2d_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_2d_map
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#map_2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_2d
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.character_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      character_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.object_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      object_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.get_tile" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_tile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.register_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.move_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.remove_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.register_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.move_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.remove_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_map_object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2dQueries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2dQueries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.invalidate_path_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      invalidate_path_cache
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.iter_radius_hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      iter_radius_hits
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.get_coordinate_hit" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_coordinate_hit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.find_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.find_path_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_path_result
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.get_adjacent_passable_coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_adjacent_passable_coordinates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.is_tile_passable" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_tile_passable
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.is_coordinates_in_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_coordinates_in_range
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapQueryResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapQueryResult
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      PathfindingResult
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState" class="md-nav__link">
+    <span class="md-ellipsis">
+      PathfindingState
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PathfindingState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.with_overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_overrides
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.register_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.from_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.unregister_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      unregister_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.list_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.export_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      export_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.import_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      import_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.save_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.load_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.to_profile_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      to_profile_dict
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.from_profile_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_profile_dict
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_player" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_player
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_flying_enemy" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_flying_enemy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_heavy_unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_heavy_unit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapTile" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapTile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapTile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapTile.interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      interact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.load_2d_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_2d_map
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../orchestration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Orchestration
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../util/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utilities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.map_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_builder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_builder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.character_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      character_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.object_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      object_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.get_tile" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_tile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.register_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.move_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.remove_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.register_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.move_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.Map2d.remove_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_map_object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.MapTile" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapTile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapTile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.MapTile.interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      interact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.load_2d_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_2d_map
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#map_2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_2d
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2d
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2d">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.character_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      character_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.object_index" class="md-nav__link">
+    <span class="md-ellipsis">
+      object_index
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.add_row" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_row
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.get_tile" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_tile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.register_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.move_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.remove_character" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_character
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.register_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.move_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      move_map_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2d.remove_map_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_map_object
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map2dQueries
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Map2dQueries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.invalidate_path_cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      invalidate_path_cache
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.iter_radius_hits" class="md-nav__link">
+    <span class="md-ellipsis">
+      iter_radius_hits
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.get_coordinate_hit" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_coordinate_hit
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.find_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.find_path_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_path_result
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.get_adjacent_passable_coordinates" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_adjacent_passable_coordinates
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.is_tile_passable" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_tile_passable
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.Map2dQueries.is_coordinates_in_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      is_coordinates_in_range
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapQueryResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapQueryResult
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingResult" class="md-nav__link">
+    <span class="md-ellipsis">
+      PathfindingResult
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState" class="md-nav__link">
+    <span class="md-ellipsis">
+      PathfindingState
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PathfindingState">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.with_overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_overrides
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.register_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      register_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.from_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.unregister_profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      unregister_profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.list_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.export_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      export_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.import_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      import_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.save_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      save_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.load_profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.to_profile_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      to_profile_dict
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.from_profile_dict" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_profile_dict
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_player" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_player
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_flying_enemy" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_flying_enemy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.PathfindingState.for_heavy_unit" class="md-nav__link">
+    <span class="md-ellipsis">
+      for_heavy_unit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapTile" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapTile
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapTile">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.MapTile.interact" class="md-nav__link">
+    <span class="md-ellipsis">
+      interact
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.map_builder.map_2d.load_2d_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_2d_map
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="map_builder">map_builder</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.map_builder" class="doc doc-heading">
+            <code>sonartk.map_builder</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.Map2d" class="doc doc-heading">
+            <code>Map2d</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.map_builder.Map2d.character_index" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">character_index</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Read-only coordinate index for registered characters.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.map_builder.Map2d.object_index" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">object_index</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Read-only coordinate index for registered map objects.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.add_row" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Insert a map row and update map dimensions.</p>
+<p>New rows are prepended so <code>y=0</code> points at the most recently inserted
+row, matching the current map coordinate convention.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.get_tile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_tile</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the tile at coordinates, raising on out-of-range access.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.register_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register_character</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a character and return any displaced occupant at that coordinate.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.move_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_character</span><span class="p">(</span><span class="n">character</span><span class="p">,</span> <span class="n">new_coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move a character and return any displaced occupant at destination.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.remove_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove_character</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove a registered character from the coordinate index.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.register_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a map object and return any displaced occupant at that coordinate.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.move_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">,</span> <span class="n">new_coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move a map object and return any displaced occupant at destination.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.Map2d.remove_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove a registered map object from the coordinate index.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.MapTile" class="doc doc-heading">
+            <code>MapTile</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.MapTile.interact" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">interact</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Interact.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sonartk.map_builder.load_2d_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_2d_map</span><span class="p">(</span><span class="n">map_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">character</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load a 2D map file with a parser and convert each parsed entry to a MapTile.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="map_2d">map_2d</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.map_builder.map_2d" class="doc doc-heading">
+            <code>sonartk.map_builder.map_2d</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.Map2d" class="doc doc-heading">
+            <code>Map2d</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.character_index" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">character_index</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Read-only coordinate index for registered characters.</p>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.object_index" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">object_index</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Read-only coordinate index for registered map objects.</p>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.add_row" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">add_row</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Insert a map row and update map dimensions.</p>
+<p>New rows are prepended so <code>y=0</code> points at the most recently inserted
+row, matching the current map coordinate convention.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.get_tile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_tile</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the tile at coordinates, raising on out-of-range access.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.register_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register_character</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a character and return any displaced occupant at that coordinate.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.move_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_character</span><span class="p">(</span><span class="n">character</span><span class="p">,</span> <span class="n">new_coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move a character and return any displaced occupant at destination.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.remove_character" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove_character</span><span class="p">(</span><span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove a registered character from the coordinate index.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.register_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a map object and return any displaced occupant at that coordinate.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.move_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">move_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">,</span> <span class="n">new_coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Move a map object and return any displaced occupant at destination.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2d.remove_map_object" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">remove_map_object</span><span class="p">(</span><span class="n">map_object</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove a registered map object from the coordinate index.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.Map2dQueries" class="doc doc-heading">
+            <code>Map2dQueries</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Spatial query and pathfinding operations for a Map2d instance.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.invalidate_path_cache" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">invalidate_path_cache</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Invalidate all cached pathfinding results.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.iter_radius_hits" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">iter_radius_hits</span><span class="p">(</span><span class="n">starting_coordinates</span><span class="p">,</span> <span class="n">tile_names</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Yield query hits around a starting point for distances 1..radius-1.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.get_coordinate_hit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_coordinate_hit</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">tile_names</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a typed query hit for coordinates, or None if out-of-range.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.find_path" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">find_path</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Find and return the lowest-cost passable coordinate path between points.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.find_path_result" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">find_path_result</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Find a path and return path + diagnostic metadata.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.get_adjacent_passable_coordinates" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_adjacent_passable_coordinates</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return cardinally adjacent coordinates that are passable.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.is_tile_passable" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">is_tile_passable</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">from_coordinates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">move_direction</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return whether a tile can currently be traversed.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.Map2dQueries.is_coordinates_in_range" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">is_coordinates_in_range</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return whether coordinates are within map bounds.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.MapQueryResult" class="doc doc-heading">
+            <code>MapQueryResult</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Typed result for a coordinate-level spatial query.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.PathfindingResult" class="doc doc-heading">
+            <code>PathfindingResult</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Structured result metadata for a pathfinding search.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.PathfindingState" class="doc doc-heading">
+            <code>PathfindingState</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Optional runtime rules that affect pathfinding passability.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.with_overrides" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_overrides</span><span class="p">(</span><span class="o">**</span><span class="n">overrides</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a copy of this state with selected fields overridden.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.register_profile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">register_profile</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register a named custom profile for reuse across pathfinding calls.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.from_profile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">from_profile</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return a previously registered custom profile by name.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.unregister_profile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">unregister_profile</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove a named custom profile if it exists.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.list_profiles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">list_profiles</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return all registered custom profile names sorted alphabetically.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.export_profiles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">export_profiles</span><span class="p">()</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export registered profiles as JSON-safe dictionaries.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.import_profiles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">import_profiles</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Import profile dictionaries produced by export_profiles.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.save_profiles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_profiles</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">pretty</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Write registered profiles to a JSON file.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.load_profiles" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_profiles</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load and register profiles from a JSON file.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.to_profile_dict" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_profile_dict</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Serialize this state to a JSON-safe dictionary.</p>
+<p>Callable fields are intentionally unsupported for persistence.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.from_profile_dict" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">from_profile_dict</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Deserialize a profile dictionary into PathfindingState.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.for_player" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">for_player</span><span class="p">(</span><span class="n">tier</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Profile for player-style movement with selectable strictness tier.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.for_flying_enemy" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">for_flying_enemy</span><span class="p">(</span><span class="n">tier</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Profile for flying enemies with selectable strictness tier.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.PathfindingState.for_heavy_unit" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">for_heavy_unit</span><span class="p">(</span><span class="n">tier</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Profile for heavy units with selectable strictness tier.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.map_builder.map_2d.MapTile" class="doc doc-heading">
+            <code>MapTile</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.map_builder.map_2d.MapTile.interact" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">interact</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Interact.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sonartk.map_builder.map_2d.load_2d_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_2d_map</span><span class="p">(</span><span class="n">map_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">mapper</span><span class="p">,</span> <span class="n">character</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load a 2D map file with a parser and convert each parsed entry to a MapTile.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

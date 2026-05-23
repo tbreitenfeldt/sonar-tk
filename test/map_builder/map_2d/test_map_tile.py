@@ -1,4 +1,5 @@
 from sonartk.map_builder.map_2d.map_tile import MapTile
+from sonartk.util import Direction
 
 
 def test_map_tile_init_defaults() -> None:
@@ -6,16 +7,22 @@ def test_map_tile_init_defaults() -> None:
 
     assert tile.name == "grass"
     assert tile.is_passable is True
-    assert tile.is_one_way is False
-    assert tile.is_jumpable is False
+    assert tile.allowed_entry_directions is None
+    assert tile.required_capabilities == frozenset()
 
 
 def test_map_tile_init_custom_flags() -> None:
-    tile = MapTile("wall", is_passable=False, is_one_way=True)
+    tile = MapTile(
+        "wall",
+        is_passable=False,
+        allowed_entry_directions=frozenset({Direction.LEFT}),
+        required_capabilities=frozenset({"flight"}),
+    )
 
     assert tile.name == "wall"
     assert tile.is_passable is False
-    assert tile.is_one_way is True
+    assert tile.allowed_entry_directions == frozenset({Direction.LEFT})
+    assert tile.required_capabilities == frozenset({"flight"})
 
 
 def test_map_tile_interact_is_no_op() -> None:
@@ -25,12 +32,17 @@ def test_map_tile_interact_is_no_op() -> None:
 
 
 def test_map_tile_str_contains_all_fields() -> None:
-    tile = MapTile("ledge", is_passable=True, is_one_way=True)
-    tile.is_jumpable = True
+    tile = MapTile(
+        "ledge",
+        is_passable=True,
+        allowed_entry_directions=frozenset({Direction.LEFT, Direction.UP}),
+    )
 
     value = str(tile)
 
     assert "name: ledge" in value
     assert "is_passable: True" in value
-    assert "is_one_way: True" in value
-    assert "is_jumpable: True" in value
+    assert "allowed_entry_directions:" in value
+    assert "LEFT" in value
+    assert "UP" in value
+    assert "required_capabilities:" in value

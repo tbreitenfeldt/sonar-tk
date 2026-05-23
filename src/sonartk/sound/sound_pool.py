@@ -70,7 +70,7 @@ class SoundPool:
         """Delete a sound buffer defensively during cleanup paths."""
         try:
             sound.delete()
-        except Exception:
+        except (AttributeError, OSError, RuntimeError):
             return
 
     @property

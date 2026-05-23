@@ -13,6 +13,7 @@ from sonartk.util import Coordinates, Direction
 @dataclass
 class _FakeCharacter:
     directional_orientation: Direction
+    coordinates: Coordinates = (1, 1)
 
 
 class _FakeMap2D:
@@ -20,13 +21,12 @@ class _FakeMap2D:
         self.character = _FakeCharacter(directional_orientation=Direction.UP)
         self.change_calls: list[tuple[Coordinates, Coordinates]] = []
 
-    def change_character_coordinates(
-        self,
-        current_coordinates: Coordinates,
-        new_coordinates: Coordinates,
-        character: _FakeCharacter,
-    ) -> None:
-        self.change_calls.append((current_coordinates, new_coordinates))
+    def move_character(
+        self, character: _FakeCharacter, new_coordinates: Coordinates
+    ) -> Optional[_FakeCharacter]:
+        self.change_calls.append((character.coordinates, new_coordinates))
+        character.coordinates = new_coordinates
+        return None
 
 
 class _FakeListener:

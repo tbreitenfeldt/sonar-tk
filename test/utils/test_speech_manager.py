@@ -49,6 +49,11 @@ def test_output_with_log_and_interrupt(mocker: MockerFixture) -> None:
     )
 
 
+def test_speech_manager_import_is_lazy() -> None:
+    importlib.reload(speech_manager)
+    assert speech_manager._screenreader is None
+
+
 def test_output_with_multiple_logs(mocker: MockerFixture) -> None:
     accessible_output2_output_mock = mocker.patch(
         "accessible_output2.outputs.auto.Auto.output"

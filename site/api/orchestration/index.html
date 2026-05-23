@@ -1,0 +1,2155 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Tools for building accessible audio games in Python.">
+      
+      
+      
+      
+        <link rel="prev" href="../map_builder/">
+      
+      
+        <link rel="next" href="../ui/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.47">
+    
+    
+      
+        <title>Orchestration - sonartk</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6f8fc17f.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#orchestration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="sonartk" class="md-header__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            sonartk
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Orchestration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="sonartk" class="md-nav__button md-logo" aria-label="sonartk" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    sonartk
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/tbreitenfeldt/sonar-tk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    tbreitenfeldt/sonar-tk
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API Reference
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sonartk/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Top-Level
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../map_builder/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Map Builder
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Orchestration
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Orchestration
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      orchestration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="orchestration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.BuiltMapGridGame" class="md-nav__link">
+    <span class="md-ellipsis">
+      BuiltMapGridGame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapGridGameBuilder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapGridGameBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map2d
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_loaded_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_loaded_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_grid_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_grid_options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.build" class="md-nav__link">
+    <span class="md-ellipsis">
+      build
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapSoundNavigationController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapSoundNavigationController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.play_wall_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      play_wall_sound
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      game_builder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      game_builder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="game_builder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.BuiltMapGridGame" class="md-nav__link">
+    <span class="md-ellipsis">
+      BuiltMapGridGame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapGridGameBuilder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapGridGameBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map2d
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_loaded_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_loaded_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_grid_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_grid_options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.build" class="md-nav__link">
+    <span class="md-ellipsis">
+      build
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#map_sound_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_sound_navigation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_sound_navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_sound_navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapSoundNavigationController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapSoundNavigationController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.play_wall_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      play_wall_sound
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ui/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UI
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../util/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Utilities
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration" class="md-nav__link">
+    <span class="md-ellipsis">
+      orchestration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="orchestration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.BuiltMapGridGame" class="md-nav__link">
+    <span class="md-ellipsis">
+      BuiltMapGridGame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapGridGameBuilder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapGridGameBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map2d
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_loaded_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_loaded_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.with_grid_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_grid_options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapGridGameBuilder.build" class="md-nav__link">
+    <span class="md-ellipsis">
+      build
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapSoundNavigationController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapSoundNavigationController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.MapSoundNavigationController.play_wall_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      play_wall_sound
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      game_builder
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      game_builder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="game_builder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.BuiltMapGridGame" class="md-nav__link">
+    <span class="md-ellipsis">
+      BuiltMapGridGame
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapGridGameBuilder
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapGridGameBuilder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.map2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      map2d
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_loaded_map" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_loaded_map
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.with_grid_options" class="md-nav__link">
+    <span class="md-ellipsis">
+      with_grid_options
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.game_builder.MapGridGameBuilder.build" class="md-nav__link">
+    <span class="md-ellipsis">
+      build
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#map_sound_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_sound_navigation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      map_sound_navigation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="map_sound_navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController" class="md-nav__link">
+    <span class="md-ellipsis">
+      MapSoundNavigationController
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MapSoundNavigationController">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_navigation" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_navigation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_border" class="md-nav__link">
+    <span class="md-ellipsis">
+      on_border
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.play_wall_sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      play_wall_sound
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="orchestration">orchestration</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.orchestration" class="doc doc-heading">
+            <code>sonartk.orchestration</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.BuiltMapGridGame" class="doc doc-heading">
+            <code>BuiltMapGridGame</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Represents a fully wired map + grid game composition.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.BuiltMapGridGame.window">window</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="../ui/#sonartk.ui.window.Window">Window</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Top-level application window.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.BuiltMapGridGame.screen">screen</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.container_screen.ContainerScreen" href="../ui/#sonartk.ui.screen.ContainerScreen">ContainerScreen</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Container screen that hosts the grid.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.BuiltMapGridGame.map2d">map2d</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.map_builder.map_2d.Map2d" href="../map_builder/#sonartk.map_builder.map_2d.Map2d">Map2d</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Loaded game map with character state.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.BuiltMapGridGame.grid">grid</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.grid.Grid" href="../ui/#sonartk.ui.element.Grid">Grid</a>[<a class="autorefs autorefs-internal" title="sonartk.map_builder.map_2d.MapTile" href="../map_builder/#sonartk.map_builder.map_2d.MapTile">MapTile</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Grid view over map tiles.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.MapGridGameBuilder" class="doc doc-heading">
+            <code>MapGridGameBuilder</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Generic">Generic</span>[<span title="sonartk.orchestration.game_builder.T">T</span>]</code></p>
+
+
+        <p>Builds a map-driven grid game with minimal setup boilerplate.</p>
+<p>This builder is additive and optional. It composes existing APIs
+(<code>Window</code>, <code>ContainerScreen</code>, <code>Grid</code>, and <code>load_2d_map</code>) and still
+returns underlying objects for advanced customization.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.map2d" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">map2d</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the configured map.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no map has been configured yet.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.with_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_map</span><span class="p">(</span><span class="n">map_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">tile_mapper</span><span class="p">,</span> <span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load and attach map data for the grid game.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.with_loaded_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_loaded_map</span><span class="p">(</span><span class="n">map2d</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Attach an already-loaded map instance.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.with_grid_options" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_grid_options</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">speak_coordinates_on_change</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">speak_value_on_change</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">arrow_key_repeat_interval</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Customize grid behavior without manual grid construction.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.on_navigation" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_navigation</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register an <code>on_navigation</code> handler for the built grid.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.on_border" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_border</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register an <code>on_border</code> handler for the built grid.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapGridGameBuilder.build" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create and wire all components.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no map has been provided.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If builder keys already exist in target state machines.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.MapSoundNavigationController" class="doc doc-heading">
+            <code>MapSoundNavigationController</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Handle map navigation and border sounds for grid-based maps.</p>
+<p>The controller is intentionally injectable so callers can swap sound services,
+position mapping, or handler wiring strategy without changing core behavior.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapSoundNavigationController.on_navigation" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_navigation</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play movement/wall sounds and update map state.</p>
+<p>Returns True when the event should be handled (blocked movement), and
+False when grid navigation should continue.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapSoundNavigationController.on_border" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_border</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play a border collision sound.</p>
+<p>Returns True if a wall sound mapping exists and was played.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.MapSoundNavigationController.play_wall_sound" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">play_wall_sound</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play the wall collision sound from the next tile position.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="game_builder">game_builder</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.orchestration.game_builder" class="doc doc-heading">
+            <code>sonartk.orchestration.game_builder</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.game_builder.BuiltMapGridGame" class="doc doc-heading">
+            <code>BuiltMapGridGame</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Represents a fully wired map + grid game composition.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.game_builder.BuiltMapGridGame.window">window</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="../ui/#sonartk.ui.window.Window">Window</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Top-level application window.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.game_builder.BuiltMapGridGame.screen">screen</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.container_screen.ContainerScreen" href="../ui/#sonartk.ui.screen.ContainerScreen">ContainerScreen</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Container screen that hosts the grid.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.game_builder.BuiltMapGridGame.map2d">map2d</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.map_builder.map_2d.Map2d" href="../map_builder/#sonartk.map_builder.map_2d.Map2d">Map2d</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Loaded game map with character state.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="sonartk.orchestration.game_builder.BuiltMapGridGame.grid">grid</span></code></td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.grid.Grid" href="../ui/#sonartk.ui.element.Grid">Grid</a>[<a class="autorefs autorefs-internal" title="sonartk.map_builder.map_2d.MapTile" href="../map_builder/#sonartk.map_builder.map_2d.MapTile">MapTile</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Grid view over map tiles.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.game_builder.MapGridGameBuilder" class="doc doc-heading">
+            <code>MapGridGameBuilder</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="typing.Generic">Generic</span>[<span title="sonartk.orchestration.game_builder.T">T</span>]</code></p>
+
+
+        <p>Builds a map-driven grid game with minimal setup boilerplate.</p>
+<p>This builder is additive and optional. It composes existing APIs
+(<code>Window</code>, <code>ContainerScreen</code>, <code>Grid</code>, and <code>load_2d_map</code>) and still
+returns underlying objects for advanced customization.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.map2d" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">map2d</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Get the configured map.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no map has been configured yet.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+    </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.with_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_map</span><span class="p">(</span><span class="n">map_name</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">parser</span><span class="p">,</span> <span class="n">tile_mapper</span><span class="p">,</span> <span class="n">character</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load and attach map data for the grid game.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.with_loaded_map" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_loaded_map</span><span class="p">(</span><span class="n">map2d</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Attach an already-loaded map instance.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.with_grid_options" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">with_grid_options</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">speak_coordinates_on_change</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">speak_value_on_change</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">arrow_key_repeat_interval</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Customize grid behavior without manual grid construction.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.on_navigation" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_navigation</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register an <code>on_navigation</code> handler for the built grid.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.on_border" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_border</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Register an <code>on_border</code> handler for the built grid.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.game_builder.MapGridGameBuilder.build" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build</span><span class="p">()</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Create and wire all components.</p>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no map has been provided.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="RuntimeError">RuntimeError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If builder keys already exist in target state machines.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="map_sound_navigation">map_sound_navigation</h2>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="sonartk.orchestration.map_sound_navigation" class="doc doc-heading">
+            <code>sonartk.orchestration.map_sound_navigation</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="sonartk.orchestration.map_sound_navigation.MapSoundNavigationController" class="doc doc-heading">
+            <code>MapSoundNavigationController</code>
+
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+
+        <p>Handle map navigation and border sounds for grid-based maps.</p>
+<p>The controller is intentionally injectable so callers can swap sound services,
+position mapping, or handler wiring strategy without changing core behavior.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_navigation" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_navigation</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play movement/wall sounds and update map state.</p>
+<p>Returns True when the event should be handled (blocked movement), and
+False when grid navigation should continue.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.on_border" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">on_border</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play a border collision sound.</p>
+<p>Returns True if a wall sound mapping exists and was played.</p>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.orchestration.map_sound_navigation.MapSoundNavigationController.play_wall_sound" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">play_wall_sound</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Play the wall collision sound from the next tile position.</p>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -63,7 +63,6 @@ class MapSoundNavigationController:
 
         try:
             self.map2d.character.directional_orientation = direction
-            current_coordinates = grid.current_coordinates
             new_coordinates, tile = grid.get_next_cell(direction)
             if tile is None:
                 return True
@@ -72,10 +71,11 @@ class MapSoundNavigationController:
             sound_file = self.sound_map[tile.name]
 
             if tile.is_passable:
-                self.map2d.change_character_coordinates(
-                    current_coordinates,
-                    new_coordinates,
-                    self.map2d.character,
+                # Replacement policy may return a displaced character; navigation
+                # intentionally ignores that value and only advances the active
+                # player character.
+                _ = self.map2d.move_character(
+                    self.map2d.character, new_coordinates
                 )
                 self.sound_service.listener.position = new_position
                 self.sound_service.play_sound(

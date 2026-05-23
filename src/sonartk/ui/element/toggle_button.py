@@ -17,10 +17,10 @@ class ToggleButton(Element[str]):
         parent: Screen,
         label: str = "",
         position: int = 0,
-        items: List[str] = [],
+        items: List[str] | None = None,
     ) -> None:
         super().__init__(parent=parent, label=label, value="", role="toggle")
-        self.items: List[str] = items
+        self.items: List[str] = items if items is not None else []
         self.position: int = position
         self.default_position: int = position
 

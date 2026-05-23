@@ -37,7 +37,7 @@ class Grid(Element[str], Generic[T]):
         label: str,
         height: int,
         width: int,
-        cells: list[T] = [],
+        cells: list[T] | None = None,
         cell_class: type = Cell,
         property_name: str = "value",
         speak_coordinates_on_change: bool = True,
@@ -52,7 +52,7 @@ class Grid(Element[str], Generic[T]):
         # Set attributes before super().__init__() since bind_keys() needs them
         self.height: int = height
         self.width: int = width
-        self.cells: list[T] = cells
+        self.cells: list[T] = cells if cells is not None else []
         self.cell_class: Type[T] = cell_class
         self.property_name: str = property_name
         self.speak_coordinates_on_change: bool = speak_coordinates_on_change
@@ -61,7 +61,7 @@ class Grid(Element[str], Generic[T]):
         self.x: int = 0
         self.y: int = 0
 
-        if not cells:
+        if cells is None or len(cells) == 0:
             self.cells = [self.cell_class() for c in range(width * height)]
 
         super().__init__(parent=parent, label=label, role="Grid", value=None)
@@ -177,9 +177,9 @@ class Grid(Element[str], Generic[T]):
 
         raise ValueError("Invalid Direction for get_next_cell")
 
-    def add_row(self, row: list[T] = []) -> None:
+    def add_row(self, row: list[T] | None = None) -> None:
         """Append a row to the grid, validating width compatibility."""
-        new_row: list[T] = row
+        new_row: list[T] = [] if row is None else row
         if row:
             if len(row) != self.width:
                 raise ValueError(

@@ -14,17 +14,15 @@ except Exception:
 
 
 def main() -> None:
-    parser = JSONParser()
-    parser.open(str(EXAMPLE_DIR / "test.json"))
+    with JSONParser() as parser:
+        parser.open(str(EXAMPLE_DIR / "test.json"))
 
-    while True:
-        try:
-            line = parser.read()
-            print(line)
-        except StopParsingException:
-            break
-
-    parser.close()
+        while True:
+            try:
+                line = parser.read()
+                print(line)
+            except StopParsingException:
+                break
 
 
 if __name__ == "__main__":

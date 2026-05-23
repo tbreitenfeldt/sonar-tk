@@ -1,28 +1,62 @@
-from typing import Optional, Callable
-from collections import deque
+from types import MappingProxyType
+from typing import Literal, Mapping, Optional
 
 from sonartk.map_builder.map_2d.map_object.character import Character
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.map_builder.map_2d.map_object import MapObject
+from sonartk.map_builder.map_2d.map_queries import Map2dQueries
 from sonartk.util import Coordinates
+
+CharacterCollisionPolicy = Literal["error", "replace"]
+ObjectCollisionPolicy = Literal["error", "replace"]
 
 
 class Map2d:
-    def __init__(self, name: str, character: Character) -> None:
+    def __init__(
+        self,
+        name: str,
+        character: Character,
+        *,
+        character_collision_policy: CharacterCollisionPolicy = "error",
+        object_collision_policy: ObjectCollisionPolicy = "error",
+    ) -> None:
         self.name: str = name
         self.character: Character = character
         self.tile_map: list[MapTile] = []
         self.height: int = 0
         self.width: int = 0
-        self.characters: dict[Coordinates, Character] = {}
-        self.objects: dict[Coordinates, MapObject] = {}
-        self.add_character(character.coordinates, character)
+        self.character_collision_policy = character_collision_policy
+        self.object_collision_policy = object_collision_policy
+        self._character_index: dict[Coordinates, Character] = {}
+        self._object_index: dict[Coordinates, MapObject] = {}
+        self._character_index_view: Mapping[Coordinates, Character] = (
+            MappingProxyType(self._character_index)
+        )
+        self._object_index_view: Mapping[Coordinates, MapObject] = (
+            MappingProxyType(self._object_index)
+        )
+        self.queries: Map2dQueries = Map2dQueries(self)
+        self.register_character(character)
+
+    @property
+    def character_index(self) -> Mapping[Coordinates, Character]:
+        """Read-only coordinate index for registered characters."""
+        return self._character_index_view
+
+    @property
+    def object_index(self) -> Mapping[Coordinates, MapObject]:
+        """Read-only coordinate index for registered map objects."""
+        return self._object_index_view
 
     def add_row(self, row: list[MapTile]) -> None:
-        """Insert a map row and update map dimensions."""
+        """Insert a map row and update map dimensions.
+
+        New rows are prepended so ``y=0`` points at the most recently inserted
+        row, matching the current map coordinate convention.
+        """
         if self.tile_map and self.width != len(row):
             raise IndexError(
-                f"The width of the new row must match the width of the map.  Row Width: {len(row)} - Map Width: {len(self.tile_map)}"
+                f"The width of the new row must match the width of the map.  Row Width: {len(row)} - Map Width: {self.width}"
             )
         if not self.tile_map:
             self.width = len(row)
@@ -44,183 +78,108 @@ class Map2d:
 
         return self.tile_map[y * self.width + x]
 
-    def add_character(
+    def register_character(self, character: Character) -> Optional[Character]:
+        """Register a character and return any displaced occupant at that coordinate."""
+        displaced = self._ensure_character_slot_available(
+            character.coordinates, character
+        )
+        self._character_index[character.coordinates] = character
+        return displaced
+
+    def move_character(
+        self, character: Character, new_coordinates: Coordinates
+    ) -> Optional[Character]:
+        """Move a character and return any displaced occupant at destination."""
+        current_coordinates = character.coordinates
+        if self._character_index.get(current_coordinates) is not character:
+            raise LookupError(
+                f"The character {character.name} is not registered at coordinates {current_coordinates}."
+            )
+
+        displaced = self._ensure_character_slot_available(
+            new_coordinates, character
+        )
+
+        del self._character_index[current_coordinates]
+        character.coordinates = new_coordinates
+        self._character_index[new_coordinates] = character
+        return displaced
+
+    def remove_character(self, character: Character) -> None:
+        """Remove a registered character from the coordinate index."""
+        current_coordinates = character.coordinates
+        if self._character_index.get(current_coordinates) is not character:
+            raise LookupError(
+                f"The character {character.name} is not registered at coordinates {current_coordinates}."
+            )
+
+        del self._character_index[current_coordinates]
+
+    def register_map_object(
+        self, map_object: MapObject
+    ) -> Optional[MapObject]:
+        """Register a map object and return any displaced occupant at that coordinate."""
+        displaced = self._ensure_object_slot_available(
+            map_object.coordinates, map_object
+        )
+        self._object_index[map_object.coordinates] = map_object
+        return displaced
+
+    def move_map_object(
+        self, map_object: MapObject, new_coordinates: Coordinates
+    ) -> Optional[MapObject]:
+        """Move a map object and return any displaced occupant at destination."""
+        current_coordinates = map_object.coordinates
+        if self._object_index.get(current_coordinates) is not map_object:
+            raise LookupError(
+                f"The map object {map_object.name} is not registered at coordinates {current_coordinates}."
+            )
+
+        displaced = self._ensure_object_slot_available(
+            new_coordinates, map_object
+        )
+
+        del self._object_index[current_coordinates]
+        map_object.coordinates = new_coordinates
+        self._object_index[new_coordinates] = map_object
+        return displaced
+
+    def remove_map_object(self, map_object: MapObject) -> None:
+        """Remove a registered map object from the coordinate index."""
+        current_coordinates = map_object.coordinates
+        if self._object_index.get(current_coordinates) is not map_object:
+            raise LookupError(
+                f"The map object {map_object.name} is not registered at coordinates {current_coordinates}."
+            )
+
+        del self._object_index[current_coordinates]
+
+    def _ensure_character_slot_available(
         self, coordinates: Coordinates, character: Character
-    ) -> None:
-        """Register a character at the provided coordinates."""
-        self.characters[coordinates] = character
+    ) -> Optional[Character]:
+        existing = self._character_index.get(coordinates)
+        if existing is None or existing is character:
+            return None
 
-    def change_character_coordinates(
-        self,
-        current_coordinates: Coordinates,
-        new_coordinates: Coordinates,
-        character: Character,
-    ) -> None:
-        """Move a character registration to new coordinates."""
-        if current_coordinates not in self.characters:
-            raise LookupError(
-                f"The coordinates {current_coordinates} are not found in the characters list {self.characters}"  # noqa: E713
-            )
+        if self.character_collision_policy == "replace":
+            del self._character_index[coordinates]
+            return existing
 
-        del self.characters[current_coordinates]
-        self.characters[new_coordinates] = character
+        raise ValueError(
+            f"Character coordinate collision at {coordinates} for '{character.name}'."
+        )
 
-    def add_map_object(
+    def _ensure_object_slot_available(
         self, coordinates: Coordinates, map_object: MapObject
-    ) -> None:
-        """Register a map object at the provided coordinates."""
-        self.objects[coordinates] = map_object
+    ) -> Optional[MapObject]:
+        existing = self._object_index.get(coordinates)
+        if existing is None or existing is map_object:
+            return None
 
-    def change_map_object_coordinates(
-        self,
-        current_coordinates: Coordinates,
-        new_coordinates: Coordinates,
-        map_object: MapObject,
-    ) -> None:
-        """Move a map object registration to new coordinates."""
-        if current_coordinates not in self.objects:
-            raise LookupError(
-                f"The coordinates {current_coordinates} are not found in the objects list {self.objects}"  # noqa: E713
-            )
+        if self.object_collision_policy == "replace":
+            del self._object_index[coordinates]
+            return existing
 
-        del self.objects[current_coordinates]
-        self.objects[new_coordinates] = map_object
-
-    def check_radius(
-        self,
-        starting_coordinates: Coordinates,
-        action: Callable[
-            [
-                Coordinates,
-                Optional[MapTile],
-                Optional[Character],
-                Optional[MapObject],
-            ],
-            None,
-        ],
-        tile_names: list[str] = [],
-    ) -> None:
-        """Inspect tiles around a starting point and invoke an action for each."""
-        x, y = starting_coordinates
-        for i in range(1, self.character.radius):
-            self.check_coordinates_for_object(
-                (x, y + i), action, tile_names
-            )  # north
-            self.check_coordinates_for_object(
-                (x + i, y + i), action, tile_names
-            )  # northeast
-            self.check_coordinates_for_object(
-                (x + i, y), action, tile_names
-            )  # east
-            self.check_coordinates_for_object(
-                (x + i, y - i), action, tile_names
-            )  # southeast
-            self.check_coordinates_for_object(
-                (x, y - i), action, tile_names
-            )  # south
-            self.check_coordinates_for_object(
-                (x - i, y - i), action, tile_names
-            )  # southwest
-            self.check_coordinates_for_object(
-                (x - i, y), action, tile_names
-            )  # west
-            self.check_coordinates_for_object(
-                (x - i, y + i), action, tile_names
-            )  # northwest
-
-    def check_coordinates_for_object(
-        self,
-        coordinates: Coordinates,
-        action: Callable[
-            [
-                Coordinates,
-                Optional[MapTile],
-                Optional[Character],
-                Optional[MapObject],
-            ],
-            None,
-        ],
-        tile_names: list[str] = [],
-    ) -> None:
-        """Resolve entities at coordinates and call the supplied action."""
-        if self.is_coordinates_in_range(coordinates):
-            map_object: Optional[MapObject] = (
-                self.objects[coordinates]
-                if coordinates in self.objects
-                else None
-            )
-            character: Optional[Character] = (
-                self.characters[coordinates]
-                if coordinates in self.characters
-                else None
-            )
-            tile: Optional[MapTile] = (
-                self.get_tile(coordinates)
-                if tile_names and self.get_tile(coordinates).name in tile_names
-                else None
-            )
-            action(coordinates, tile, character, map_object)
-
-    def find_path(
-        self, start: Coordinates, end: Coordinates
-    ) -> list[Coordinates]:
-        """Find and return a passable coordinate path between two points."""
-        queue: deque = deque()
-        visited: dict[Coordinates, None] = {}
-        queue.append((start, []))  # startpoint, and empty path
-
-        while len(queue) > 0:
-            node: Coordinates
-            path: list[Coordinates]
-            node, path = queue.pop()
-            path.append(node)
-            visited[node] = None
-
-            if node == end:
-                return path
-
-            for item in self.get_adjacent_passable_coordinates(node):
-                if item not in visited:
-                    queue.append((item, path[:]))
-
-        return []  # no path found
-
-    def get_adjacent_passable_coordinates(
-        self, coordinates: Coordinates
-    ) -> list[Coordinates]:
-        """Return cardinally adjacent coordinates that are passable."""
-        x, y = coordinates
-        adjacent_coordinates: list[tuple[int, int]] = []
-        # north
-        if self.is_tile_passable((x, y + 1)):
-            adjacent_coordinates.append((x, y + 1))
-        # east
-        if self.is_tile_passable((x + 1, y)):
-            adjacent_coordinates.append((x + 1, y))
-        # south
-        if self.is_tile_passable((x, y - 1)):
-            adjacent_coordinates.append((x, y - 1))
-        # west
-        if self.is_tile_passable((x - 1, y)):
-            adjacent_coordinates.append((x - 1, y))
-
-        return adjacent_coordinates
-
-    def is_tile_passable(self, coordinates: Coordinates) -> bool:
-        """Return whether a tile can currently be traversed."""
-        if self.is_coordinates_in_range(coordinates):
-            tile: MapTile = self.get_tile(coordinates)
-            return tile.is_passable and (
-                not tile.is_one_way or (tile.is_one_way and tile.is_jumpable)
-            )
-
-        return False
-
-    def is_coordinates_in_range(self, coordinates: Coordinates) -> bool:
-        """Return whether coordinates are within map bounds."""
-        return (
-            coordinates[0] >= 0
-            and coordinates[0] < self.width
-            and coordinates[1] >= 0
-            and coordinates[1] < self.height
+        raise ValueError(
+            f"Map object coordinate collision at {coordinates} for '{map_object.name}'."
         )

@@ -1,0 +1,29 @@
+site_name: sonartk
+site_description: Tools for building accessible audio games in Python.
+repo_url: https://github.com/tbreitenfeldt/sonar-tk
+repo_name: tbreitenfeldt/sonar-tk
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            show_root_heading: true
+            show_source: false
+            members_order: source
+
+nav:
+  - Home: index.md
+  - API Reference:
+      - Top-Level: api/sonartk.md
+      - Map Builder: api/map_builder.md
+      - Orchestration: api/orchestration.md
+      - UI: api/ui.md
+      - Sound: api/sound.md
+      - Utilities: api/util.md

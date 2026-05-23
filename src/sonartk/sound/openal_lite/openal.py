@@ -36,9 +36,7 @@
 Generated with:
 ../tools/wraptypes/wrap.py /usr/include/AL/al.h -lopenal -olib_openal.py
 
-.. Hacked to remove non-existent library functions.
-
-TODO add alGetError check.
+.. Generated wrapper trimmed for compatibility with the vendored build.
 
 .. alListener3i and alListeneriv are present in my OS X 10.4 but not another
 10.4 user's installation.  They've also been removed for compatibility.

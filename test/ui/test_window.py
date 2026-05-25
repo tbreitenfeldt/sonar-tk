@@ -8,6 +8,7 @@ from sonartk.ui import Window
 from sonartk.ui.element import Button
 from sonartk.ui.screen import ContainerScreen
 from sonartk.util import State, KeyHandler
+from sonartk.util.state_machine import EmptyState
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
@@ -275,6 +276,47 @@ def test_set_state_with_states(
     assert default_window.state_machine.change.called  # type: ignore[attr-defined]
 
 
+def test_set_start_state_by_key_is_used_by_set_state(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    """Test set_start_state chooses initial state by key without key-index access."""
+    change_mock = mocker.patch(
+        "sonartk.util.state_machine.StateMachine.change"
+    )
+    default_window.state_machine.add("main", MockState())
+    default_window.state_machine.add("intro", MockState())
+
+    default_window.set_start_state("intro")
+    default_window.set_state(interrupt_speech=False)
+
+    change_mock.assert_called_once_with("intro", False)
+
+
+def test_set_start_state_raises_for_missing_key_when_states_exist(
+    default_window: Window,
+) -> None:
+    """Test set_start_state validates key when state machine already has states."""
+    default_window.state_machine.add("main", MockState())
+
+    with pytest.raises(KeyError, match="State 'intro' not in state machine"):
+        default_window.set_start_state("intro")
+
+
+def test_set_start_state_rejects_empty_key(default_window: Window) -> None:
+    with pytest.raises(ValueError, match="Start state key cannot be empty"):
+        default_window.set_start_state("")
+
+
+def test_remove_clears_matching_start_state(default_window: Window) -> None:
+    """Test removing the configured start state clears the stored start-state key."""
+    default_window.state_machine.add("intro", MockState())
+    default_window.set_start_state("intro")
+
+    default_window.remove("intro")
+
+    assert default_window._start_state_key is None
+
+
 def test_set_state_with_no_interrupt(
     mocker: MockerFixture, default_window: Window
 ) -> None:
@@ -285,6 +327,26 @@ def test_set_state_with_no_interrupt(
     default_window.state_machine.add("test", MockState())
     default_window.set_state(interrupt_speech=False)
     change_mock.assert_called_once_with("test", False)
+
+
+def test_set_state_raises_when_configured_start_key_is_missing(
+    default_window: Window,
+) -> None:
+    default_window.set_start_state("intro")
+    default_window.state_machine.add("main", MockState())
+
+    with pytest.raises(KeyError, match="State 'intro' not in state machine"):
+        default_window.set_state()
+
+
+def test_set_state_raises_when_position_is_out_of_range(
+    default_window: Window,
+) -> None:
+    default_window.state_machine.add("main", MockState())
+    default_window.position = 10
+
+    with pytest.raises(IndexError, match="position is out of range"):
+        default_window.set_state()
 
 
 def test_set_state_empty_state_machine(default_window: Window) -> None:
@@ -424,6 +486,30 @@ def test_validate_handler_stack_uses_pending_nested_states(
     assert is_valid
     assert "expected=5" in message
     assert "actual=5" in message
+
+
+def test_get_nested_debug_state_handles_empty_nested_state_machine(
+    default_window: Window,
+) -> None:
+    container = ContainerScreen(default_window)
+
+    nested = default_window._get_nested_debug_state(container)
+
+    assert nested is None
+
+
+def test_get_nested_debug_state_handles_active_element_variants(
+    default_window: Window,
+) -> None:
+    state = MockState()
+    state.active_element = EmptyState()  # type: ignore[attr-defined]
+
+    assert default_window._get_nested_debug_state(state) is None
+
+    nested_state = MockState()
+    state.active_element = nested_state  # type: ignore[attr-defined]
+
+    assert default_window._get_nested_debug_state(state) is nested_state
 
 
 def test_set_debug_mode_toggles(default_window: Window) -> None:

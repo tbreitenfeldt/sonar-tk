@@ -186,3 +186,62 @@ def test_custom_position_resolver_is_used_for_sound_position() -> None:
 
     assert sound_service.listener.position == (20, 10, -1)
     assert sound_service.play_calls == [("step.wav", (20, 10, -1), player)]
+
+
+def test_on_navigation_invokes_success_callback_for_passable_move() -> None:
+    map2d = _FakeMap2D()
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(1, 1),
+        next_coordinates=(2, 1),
+        next_tile=MapTile("path", is_passable=True),
+    )
+    success_calls: list[tuple[Coordinates, MapTile]] = []
+
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        on_move_success=lambda c, t: success_calls.append((c, t)),
+    )
+
+    is_handled = controller.on_navigation(grid, Direction.RIGHT)  # type: ignore[arg-type]
+
+    assert is_handled is False
+    assert len(success_calls) == 1
+    assert success_calls[0][0] == (2, 1)
+    assert success_calls[0][1].name == "path"
+
+
+def test_on_navigation_invokes_blocked_callback_for_blocked_or_border() -> (
+    None
+):
+    map2d = _FakeMap2D()
+    sound_service = _FakeSoundService()
+    player = object()
+    blocked_calls: list[Direction] = []
+
+    blocked_grid = _FakeGrid(
+        current_coordinates=(1, 1),
+        next_coordinates=(1, 2),
+        next_tile=MapTile("wall", is_passable=False),
+    )
+    border_grid = _FakeGrid(
+        current_coordinates=(0, 0),
+        next_coordinates=(0, 0),
+        next_tile=None,
+    )
+
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        on_move_blocked=lambda d: blocked_calls.append(d),
+    )
+
+    assert controller.on_navigation(blocked_grid, Direction.UP) is True  # type: ignore[arg-type]
+    assert controller.on_navigation(border_grid, Direction.LEFT) is True  # type: ignore[arg-type]
+    assert blocked_calls == [Direction.UP, Direction.LEFT]

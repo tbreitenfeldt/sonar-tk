@@ -154,6 +154,37 @@ class Map2d:
 
         del self._object_index[current_coordinates]
 
+    def find_map_object_coordinates(
+        self, map_object: MapObject
+    ) -> Optional[Coordinates]:
+        """Return coordinates for a registered map object by identity."""
+        for coordinates, registered_object in self._object_index.items():
+            if registered_object is map_object:
+                return coordinates
+
+        return None
+
+    def is_map_object_registered(self, map_object: MapObject) -> bool:
+        """Return whether a map object is currently registered by identity."""
+        return self.find_map_object_coordinates(map_object) is not None
+
+    def get_map_object_at(
+        self, coordinates: Coordinates
+    ) -> Optional[MapObject]:
+        """Return the registered map object at coordinates, if present."""
+        return self._object_index.get(coordinates)
+
+    def remove_map_object_at(
+        self, coordinates: Coordinates
+    ) -> Optional[MapObject]:
+        """Remove and return the map object at coordinates, if present."""
+        removed = self._object_index.get(coordinates)
+        if removed is None:
+            return None
+
+        del self._object_index[coordinates]
+        return removed
+
     def _ensure_character_slot_available(
         self, coordinates: Coordinates, character: Character
     ) -> Optional[Character]:

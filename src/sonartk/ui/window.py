@@ -32,6 +32,7 @@ class Window(UIComponent, EventDispatcher):
         self.children: list["Window"] = []
         self.state_machine: StateMachine = StateMachine()
         self.position: int = 0
+        self._start_state_key: Optional[str] = None
         self.key_handler: KeyHandler = KeyHandler()
         self._caption: str = caption
         self.is_open: bool = False
@@ -147,7 +148,30 @@ class Window(UIComponent, EventDispatcher):
 
     def remove(self, key: str) -> Optional[State]:
         """Remove and return a previously registered state by key."""
-        return self.state_machine.remove(key)
+        removed_state = self.state_machine.remove(key)
+        if removed_state is not None and self._start_state_key == key:
+            self._start_state_key = None
+        return removed_state
+
+    def set_start_state(self, key: str) -> None:
+        """Set the state key that should be activated first by setup/set_state.
+
+        This avoids callers depending on internal state order or key index math.
+        If states already exist, the key is validated immediately.
+        """
+        if key == "":
+            raise ValueError("Start state key cannot be empty")
+
+        if (
+            not self.state_machine.is_empty()
+            and not self.state_machine.contains(key)
+        ):
+            raise KeyError(
+                f"State '{key}' not in state machine. "
+                f"Available states: {list(self.state_machine.states.keys())}"
+            )
+
+        self._start_state_key = key
 
     def change(self, key: str, *args: Any, **kwargs: Any) -> None:
         """Switch to another registered state, forwarding optional arguments."""
@@ -344,7 +368,23 @@ class Window(UIComponent, EventDispatcher):
     def set_state(self, interrupt_speech: bool = True) -> None:
         """Activate the state at the current window position when available."""
         if not self.state_machine.is_empty():
-            state_key: str = self.state_machine.keys[self.position]
+            if self._start_state_key is not None:
+                if not self.state_machine.contains(self._start_state_key):
+                    raise KeyError(
+                        f"State '{self._start_state_key}' not in state machine. "
+                        f"Available states: {list(self.state_machine.states.keys())}"
+                    )
+                state_key = self._start_state_key
+            else:
+                if self.position < 0 or self.position >= len(
+                    self.state_machine.keys
+                ):
+                    raise IndexError(
+                        "Window position is out of range for the current "
+                        "state machine keys"
+                    )
+                state_key = self.state_machine.keys[self.position]
+
             self.state_machine.change(state_key, interrupt_speech)
 
     @property

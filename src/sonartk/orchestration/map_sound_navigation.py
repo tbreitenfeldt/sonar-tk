@@ -43,6 +43,10 @@ class MapSoundNavigationController:
         position_resolver: Optional[
             Callable[[Coordinates], SoundPosition]
         ] = None,
+        on_move_success: Optional[
+            Callable[[Coordinates, MapTile], None]
+        ] = None,
+        on_move_blocked: Optional[Callable[[Direction], None]] = None,
     ) -> None:
         self.map2d = map2d
         self.sound_map = sound_map
@@ -52,6 +56,8 @@ class MapSoundNavigationController:
             sound_manager,
         )
         self.position_resolver = position_resolver or self._default_position
+        self.on_move_success = on_move_success
+        self.on_move_blocked = on_move_blocked
 
     def on_navigation(self, grid: Grid[MapTile], direction: Direction) -> bool:
         """Play movement/wall sounds and update map state.
@@ -65,6 +71,8 @@ class MapSoundNavigationController:
             self.map2d.character.directional_orientation = direction
             new_coordinates, tile = grid.get_next_cell(direction)
             if tile is None:
+                if self.on_move_blocked is not None:
+                    self.on_move_blocked(direction)
                 return True
 
             new_position = self.position_resolver(new_coordinates)
@@ -83,9 +91,13 @@ class MapSoundNavigationController:
                     position=new_position,
                     player=self.player,
                 )
+                if self.on_move_success is not None:
+                    self.on_move_success(new_coordinates, tile)
                 is_handled = False
             else:
                 self.play_wall_sound(grid, direction)
+                if self.on_move_blocked is not None:
+                    self.on_move_blocked(direction)
                 is_handled = True
         except KeyError:
             pass

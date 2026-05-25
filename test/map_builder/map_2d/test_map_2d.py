@@ -129,6 +129,42 @@ def test_register_move_and_remove_map_object_use_entity_coordinates() -> None:
     assert (2, 2) not in map2d.object_index
 
 
+def test_get_and_remove_map_object_at_coordinate_helpers() -> None:
+    map2d = make_map()
+    obj = MapObject("switch", (1, 2))
+    map2d.register_map_object(obj)
+
+    assert map2d.get_map_object_at((1, 2)) is obj
+    assert map2d.get_map_object_at((0, 0)) is None
+
+    removed = map2d.remove_map_object_at((1, 2))
+    assert removed is obj
+    assert map2d.get_map_object_at((1, 2)) is None
+
+    missing = map2d.remove_map_object_at((1, 2))
+    assert missing is None
+
+
+def test_find_map_object_coordinates_and_registration_helpers() -> None:
+    map2d = make_map()
+    obj = MapObject("switch", (1, 2))
+
+    assert map2d.find_map_object_coordinates(obj) is None
+    assert map2d.is_map_object_registered(obj) is False
+
+    map2d.register_map_object(obj)
+
+    assert map2d.find_map_object_coordinates(obj) == (1, 2)
+    assert map2d.is_map_object_registered(obj) is True
+
+    map2d.move_map_object(obj, (2, 2))
+    assert map2d.find_map_object_coordinates(obj) == (2, 2)
+
+    map2d.remove_map_object(obj)
+    assert map2d.find_map_object_coordinates(obj) is None
+    assert map2d.is_map_object_registered(obj) is False
+
+
 def test_register_map_object_raises_on_coordinate_collision_by_default() -> (
     None
 ):
@@ -1164,3 +1200,224 @@ def test_is_coordinates_in_range() -> None:
     assert map2d.queries.is_coordinates_in_range((2, 2)) is True
     assert map2d.queries.is_coordinates_in_range((-1, 0)) is False
     assert map2d.queries.is_coordinates_in_range((0, 3)) is False
+
+
+def test_pathfinding_state_strict_validation_rejects_bad_scalar_fields() -> (
+    None
+):
+    with pytest.raises(ValueError, match="cache_namespace"):
+        PathfindingState.from_profile_dict(
+            {
+                "cache_namespace": 123,
+            },
+            strict=True,
+        )
+
+
+def test_pathfinding_state_strict_validation_rejects_additional_bad_fields() -> (
+    None
+):
+    with pytest.raises(ValueError, match="turn_penalty"):
+        PathfindingState.from_profile_dict(
+            {
+                "turn_penalty": "high",
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="max_expanded_nodes"):
+        PathfindingState.from_profile_dict(
+            {
+                "max_expanded_nodes": 1.5,
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="smoothing_mode"):
+        PathfindingState.from_profile_dict(
+            {
+                "smoothing_mode": 1,
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="actor_capabilities"):
+        PathfindingState.from_profile_dict(
+            {
+                "actor_capabilities": ["walk", 2],
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="tile_cost_by_name"):
+        PathfindingState.from_profile_dict(
+            {
+                "tile_cost_by_name": [],
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="keys must be strings"):
+        PathfindingState.from_profile_dict(
+            {
+                "tile_cost_by_name": {1: 2.0},
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="must be non-negative"):
+        PathfindingState.from_profile_dict(
+            {
+                "tile_cost_by_name": {"mud": -1.0},
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="blocked_coordinates"):
+        PathfindingState.from_profile_dict(
+            {
+                "blocked_coordinates": "nope",
+            },
+            strict=True,
+        )
+
+    with pytest.raises(ValueError, match="coordinate pairs"):
+        PathfindingState.from_profile_dict(
+            {
+                "blocked_coordinates": [[1]],
+            },
+            strict=True,
+        )
+    with pytest.raises(ValueError, match="map_state_token"):
+        PathfindingState.from_profile_dict(
+            {
+                "map_state_token": True,
+            },
+            strict=True,
+        )
+
+
+def test_pathfinding_state_strict_validation_rejects_negative_proximity_cost() -> (
+    None
+):
+    with pytest.raises(ValueError, match="blocker_proximity_cost"):
+        PathfindingState.from_profile_dict(
+            {
+                "blocker_proximity_cost": -0.25,
+            },
+            strict=True,
+        )
+
+
+def test_pathfinding_state_strict_validation_rejects_bad_actor_capabilities() -> (
+    None
+):
+    with pytest.raises(ValueError, match="actor_capabilities"):
+        PathfindingState.from_profile_dict(
+            {
+                "actor_capabilities": "walk",
+            },
+            strict=True,
+        )
+
+
+def test_find_path_result_rejects_invalid_runtime_state_values() -> None:
+    map2d = make_map()
+
+    with pytest.raises(ValueError, match="turn_penalty"):
+        map2d.queries.find_path_result(
+            (0, 0),
+            (2, 2),
+            state=PathfindingState(turn_penalty=-0.1),
+        )
+
+    with pytest.raises(ValueError, match="max_expanded_nodes"):
+        map2d.queries.find_path_result(
+            (0, 0),
+            (2, 2),
+            state=PathfindingState(max_expanded_nodes=0),
+        )
+
+    with pytest.raises(ValueError, match="blocker_proximity_cost"):
+        map2d.queries.find_path_result(
+            (0, 0),
+            (2, 2),
+            state=PathfindingState(blocker_proximity_cost=-0.1),
+        )
+
+    with pytest.raises(ValueError, match="max_total_cost"):
+        map2d.queries.find_path_result(
+            (0, 0),
+            (2, 2),
+            state=PathfindingState(max_total_cost=-0.1),
+        )
+
+
+def test_count_blockers_adjacent_counts_each_blocker_source() -> None:
+    map2d = make_map()
+    map2d.get_tile((1, 2)).is_passable = False
+    map2d.register_character(Character("guard", (2, 1), Direction.UP))
+    map2d.register_map_object(MapObject("crate", (1, 0)))
+
+    state = PathfindingState(
+        block_characters=True,
+        block_map_objects=True,
+        blocked_coordinates=frozenset({(0, 1)}),
+    )
+
+    assert map2d.queries._count_blockers_adjacent((1, 1), state) == 4
+
+
+def test_count_blockers_adjacent_counts_out_of_bounds_neighbors() -> None:
+    map2d = make_map()
+    state = PathfindingState()
+
+    assert map2d.queries._count_blockers_adjacent((0, 0), state) == 2
+
+
+def test_priority_item_applies_all_tie_breaker_modes() -> None:
+    map2d = make_map()
+
+    fifo = map2d.queries._priority_item(
+        2.0,
+        3.0,
+        5,
+        (1, 1),
+        PathfindingState(tie_breaker="fifo"),
+    )
+    heuristic = map2d.queries._priority_item(
+        2.0,
+        3.0,
+        6,
+        (1, 1),
+        PathfindingState(tie_breaker="lower-heuristic"),
+    )
+    cost = map2d.queries._priority_item(
+        2.0,
+        3.0,
+        7,
+        (1, 1),
+        PathfindingState(tie_breaker="lower-cost"),
+    )
+
+    assert fifo[:4] == (5.0, 3.0, 0.0, 0.0)
+    assert heuristic[:4] == (5.0, 3.0, 2.0, 3.0)
+    assert cost[:4] == (5.0, 3.0, 3.0, 2.0)
+
+
+def test_smooth_collinear_short_and_turning_paths() -> None:
+    short_path = [(0, 0), (1, 0)]
+    turning_path = [(0, 0), (1, 0), (1, 1)]
+
+    assert (
+        Map2d(
+            "tmp", Character("hero", (0, 0), Direction.UP)
+        ).queries._smooth_collinear(short_path)
+        is short_path
+    )
+    assert (
+        Map2d(
+            "tmp2", Character("hero", (0, 0), Direction.UP)
+        ).queries._smooth_collinear(turning_path)
+        == turning_path
+    )

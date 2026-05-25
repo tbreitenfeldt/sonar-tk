@@ -2,7 +2,7 @@ import importlib
 import sys
 import platform
 import os
-from typing import List
+from typing import List, TypeVar
 
 from unittest import mock
 from accessible_output2.outputs.jaws import Jaws
@@ -15,6 +15,13 @@ from pytest import MonkeyPatch
 from sonartk.util import speech_manager
 import test.mocks.appscript
 from accessible_output2.outputs.voiceover import VoiceOver
+
+T = TypeVar("T")
+
+
+def _instance_without_init(cls: type[T]) -> T:
+    """Create an instance without running external runtime-dependent init."""
+    return cls.__new__(cls)
 
 
 @pytest.fixture(autouse=True)
@@ -121,7 +128,7 @@ def test_silence_with_nvda_active(mocker: MockerFixture) -> None:
     mocker.patch("platform.system", return_value="Windows")
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
-        return_value=NVDA(),
+        return_value=_instance_without_init(NVDA),
     )
     speech_manager.silence()
     accessible_output2_output_mock.assert_called_with(None, interrupt=True)
@@ -141,7 +148,7 @@ def test_silence_with_nvda_not_active(mocker: MockerFixture) -> None:
 
 
 def test_get_current_screen_reader(mocker: MockerFixture) -> None:
-    screenreader: NVDA = NVDA()
+    screenreader: NVDA = _instance_without_init(NVDA)
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
         return_value=screenreader,
@@ -153,7 +160,7 @@ def test_is_nvda_active(mocker: MockerFixture) -> None:
     mocker.patch("platform.system", return_value="Windows")
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
-        return_value=NVDA(),
+        return_value=_instance_without_init(NVDA),
     )
     assert speech_manager.is_nvda_active()
 
@@ -169,9 +176,10 @@ def test_is_nvda_not_active(mocker: MockerFixture) -> None:
 
 def test_is_jaws_active(mocker: MockerFixture) -> None:
     mocker.patch("platform.system", return_value="Windows")
+    jaws_output = _instance_without_init(Jaws)
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
-        return_value=Jaws(),
+        return_value=jaws_output,
     )
     assert speech_manager.is_jaws_active()
 
@@ -192,7 +200,7 @@ def test_is_voiceover_active(
     mocker.patch("platform.system", return_value="Darwin")
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
-        return_value=VoiceOver(),
+        return_value=_instance_without_init(VoiceOver),
     )
     # reload the speech_manager since now platform.system() is being mocked and returning Darwin. Speech_manager  will now import VoiceOver instead of NVDA and Jaws.
     importlib.reload(speech_manager)
@@ -217,7 +225,7 @@ def test_is_sapi_active(mocker: MockerFixture) -> None:
     mocker.patch("platform.system", return_value="Windows")
     mocker.patch(
         "accessible_output2.outputs.auto.Auto.get_first_available_output",
-        return_value=SAPI5(),
+        return_value=_instance_without_init(SAPI5),
     )
     assert speech_manager.is_sapi_active()
 

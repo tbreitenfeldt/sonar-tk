@@ -13,7 +13,7 @@ from sonartk.util import KeyHandler, speech_manager
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
 
-class TestScreen(Screen):
+class _FakeScreen(Screen):
     """Test screen class for testing TextBox."""
 
     def __init__(self, parent: Window) -> None:
@@ -48,13 +48,13 @@ def window(mocker: MockerFixture) -> Window:
 
 
 @pytest.fixture
-def parent(window: Window) -> TestScreen:
+def parent(window: Window) -> _FakeScreen:
     """Create a parent TestScreen fixture."""
-    return TestScreen(window)
+    return _FakeScreen(window)
 
 
 @pytest.fixture
-def text_box(parent: TestScreen) -> TextBox:
+def text_box(parent: _FakeScreen) -> TextBox:
     """Create a TextBox fixture."""
     return TextBox(parent, "Username", "default_text")  # type: ignore[arg-type]
 
@@ -62,54 +62,54 @@ def text_box(parent: TestScreen) -> TextBox:
 # Initialization Tests
 
 
-def test_init_sets_parent(parent: TestScreen, text_box: TextBox) -> None:
+def test_init_sets_parent(parent: _FakeScreen, text_box: TextBox) -> None:
     """Test that __init__ sets parent correctly."""
     assert text_box.parent == parent
 
 
-def test_init_sets_label(parent: TestScreen) -> None:
+def test_init_sets_label(parent: _FakeScreen) -> None:
     """Test that __init__ sets label correctly."""
     text_box = TextBox(parent, "My Label")  # type: ignore[arg-type]
     assert text_box.label == "My Label"
 
 
-def test_init_sets_default_value(parent: TestScreen) -> None:
+def test_init_sets_default_value(parent: _FakeScreen) -> None:
     """Test that __init__ sets default_value correctly."""
     text_box = TextBox(parent, "Label", "test_value")  # type: ignore[arg-type]
     assert text_box.default_value == "test_value"
 
 
-def test_init_sets_value_from_default(parent: TestScreen) -> None:
+def test_init_sets_value_from_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets value from default_value."""
     text_box = TextBox(parent, "Label", "initial")  # type: ignore[arg-type]
     assert text_box.value == "initial"
 
 
-def test_init_sets_input_list(parent: TestScreen) -> None:
+def test_init_sets_input_list(parent: _FakeScreen) -> None:
     """Test that __init__ converts default_value to input list."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     assert text_box.input == ["h", "e", "l", "l", "o"]
 
 
-def test_init_sets_role_to_edit(parent: TestScreen) -> None:
+def test_init_sets_role_to_edit(parent: _FakeScreen) -> None:
     """Test that __init__ sets role to 'edit'."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.role == "edit"
 
 
-def test_init_sets_hidden_false_by_default(parent: TestScreen) -> None:
+def test_init_sets_hidden_false_by_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets hidden to False by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.hidden is False
 
 
-def test_init_sets_hidden_true(parent: TestScreen) -> None:
+def test_init_sets_hidden_true(parent: _FakeScreen) -> None:
     """Test that __init__ can set hidden to True."""
     text_box = TextBox(parent, "Password", hidden=True)  # type: ignore[arg-type]
     assert text_box.hidden is True
 
 
-def test_init_sets_allowed_chars(parent: TestScreen) -> None:
+def test_init_sets_allowed_chars(parent: _FakeScreen) -> None:
     """Test that __init__ sets allowed_chars with default value."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert "a" in text_box.allowed_chars
@@ -118,31 +118,33 @@ def test_init_sets_allowed_chars(parent: TestScreen) -> None:
     assert "@" in text_box.allowed_chars
 
 
-def test_init_sets_custom_allowed_chars(parent: TestScreen) -> None:
+def test_init_sets_custom_allowed_chars(parent: _FakeScreen) -> None:
     """Test that __init__ accepts custom allowed_chars."""
     text_box = TextBox(parent, "Label", allowed_chars="abc123")  # type: ignore[arg-type]
     assert text_box.allowed_chars == "abc123"
 
 
-def test_init_sets_echo_characters_true_by_default(parent: TestScreen) -> None:
+def test_init_sets_echo_characters_true_by_default(
+    parent: _FakeScreen,
+) -> None:
     """Test that __init__ sets echo_characters to True by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.echo_characters is True
 
 
-def test_init_sets_echo_characters_false(parent: TestScreen) -> None:
+def test_init_sets_echo_characters_false(parent: _FakeScreen) -> None:
     """Test that __init__ can set echo_characters to False."""
     text_box = TextBox(parent, "Label", echo_characters=False)  # type: ignore[arg-type]
     assert text_box.echo_characters is False
 
 
-def test_init_sets_echo_words_true_by_default(parent: TestScreen) -> None:
+def test_init_sets_echo_words_true_by_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets echo_words to True by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.echo_words is True
 
 
-def test_init_sets_echo_words_false(parent: TestScreen) -> None:
+def test_init_sets_echo_words_false(parent: _FakeScreen) -> None:
     """Test that __init__ can set echo_words to False."""
     text_box = TextBox(parent, "Label", echo_words=False)  # type: ignore[arg-type]
     assert text_box.echo_words is False
@@ -156,64 +158,64 @@ def test_init_sets_disable_up_down_keys_false_by_default(
     assert text_box.disable_up_down_keys is False
 
 
-def test_init_sets_disable_up_down_keys_true(parent: TestScreen) -> None:
+def test_init_sets_disable_up_down_keys_true(parent: _FakeScreen) -> None:
     """Test that __init__ can set disable_up_down_keys to True."""
     text_box = TextBox(parent, "Label", disable_up_down_keys=True)  # type: ignore[arg-type]
     assert text_box.disable_up_down_keys is True
 
 
-def test_init_sets_read_only_false_by_default(parent: TestScreen) -> None:
+def test_init_sets_read_only_false_by_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets read_only to False by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.read_only is False
 
 
-def test_init_sets_read_only_true(parent: TestScreen) -> None:
+def test_init_sets_read_only_true(parent: _FakeScreen) -> None:
     """Test that __init__ can set read_only to True."""
     text_box = TextBox(parent, "Label", read_only=True)  # type: ignore[arg-type]
     assert text_box.read_only is True
 
 
-def test_init_sets_text_box_size_default(parent: TestScreen) -> None:
+def test_init_sets_text_box_size_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets text_box_size to 80 by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.text_box_size == 80
 
 
-def test_init_sets_custom_text_box_size(parent: TestScreen) -> None:
+def test_init_sets_custom_text_box_size(parent: _FakeScreen) -> None:
     """Test that __init__ accepts custom text_box_size."""
     text_box = TextBox(parent, "Label", text_box_size=100)  # type: ignore[arg-type]
     assert text_box.text_box_size == 100
 
 
-def test_init_sets_position_to_zero(parent: TestScreen) -> None:
+def test_init_sets_position_to_zero(parent: _FakeScreen) -> None:
     """Test that __init__ sets position to 0."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.position == 0
 
 
-def test_init_sets_selection_indices(parent: TestScreen) -> None:
+def test_init_sets_selection_indices(parent: _FakeScreen) -> None:
     """Test that __init__ sets selection indices to -1."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.left_selection_index == -1
     assert text_box.right_selection_index == -1
 
 
-def test_init_sets_selection_flags(parent: TestScreen) -> None:
+def test_init_sets_selection_flags(parent: _FakeScreen) -> None:
     """Test that __init__ sets selection flags to False."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.selecting_left is False
     assert text_box.selecting_right is False
 
 
-def test_init_creates_key_handler(parent: TestScreen) -> None:
+def test_init_creates_key_handler(parent: _FakeScreen) -> None:
     """Test that __init__ creates a KeyHandler."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert isinstance(text_box.key_handler, KeyHandler)
 
 
 def test_init_calls_bind_keys(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that __init__ calls bind_keys."""
     mock_bind_keys = mocker.patch.object(TextBox, "bind_keys")
@@ -224,7 +226,7 @@ def test_init_calls_bind_keys(
 # bind_keys Tests
 
 
-def test_bind_keys_registers_select_all(parent: TestScreen) -> None:
+def test_bind_keys_registers_select_all(parent: _FakeScreen) -> None:
     """Test that bind_keys registers Ctrl+A for select_all."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     handler = text_box.key_handler
@@ -234,7 +236,7 @@ def test_bind_keys_registers_select_all(parent: TestScreen) -> None:
     assert ctrl_a in handler.registered_key_presses
 
 
-def test_bind_keys_registers_return_for_submit(parent: TestScreen) -> None:
+def test_bind_keys_registers_return_for_submit(parent: _FakeScreen) -> None:
     """Test that bind_keys registers RETURN key for submit."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     handler = text_box.key_handler
@@ -244,7 +246,7 @@ def test_bind_keys_registers_return_for_submit(parent: TestScreen) -> None:
     assert return_key in handler.registered_key_presses
 
 
-def test_bind_keys_registers_ctrl_c_for_copy(parent: TestScreen) -> None:
+def test_bind_keys_registers_ctrl_c_for_copy(parent: _FakeScreen) -> None:
     """Test that bind_keys registers Ctrl+C for copy."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     handler = text_box.key_handler
@@ -255,7 +257,7 @@ def test_bind_keys_registers_ctrl_c_for_copy(parent: TestScreen) -> None:
 
 
 def test_bind_keys_registers_ctrl_v_for_paste_when_not_read_only(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys registers Ctrl+V when not read_only."""
     text_box = TextBox(parent, "Label", read_only=False)  # type: ignore[arg-type]
@@ -267,7 +269,7 @@ def test_bind_keys_registers_ctrl_v_for_paste_when_not_read_only(
 
 
 def test_bind_keys_does_not_register_paste_when_read_only(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys doesn't register Ctrl+V when read_only."""
     text_box = TextBox(parent, "Label", read_only=True)  # type: ignore[arg-type]
@@ -279,7 +281,7 @@ def test_bind_keys_does_not_register_paste_when_read_only(
 
 
 def test_bind_keys_registers_up_down_when_not_disabled(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys registers UP and DOWN keys when not disabled."""
     text_box = TextBox(parent, "Label", disable_up_down_keys=False)  # type: ignore[arg-type]
@@ -293,7 +295,7 @@ def test_bind_keys_registers_up_down_when_not_disabled(
 
 
 def test_bind_keys_does_not_register_up_down_when_disabled(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys doesn't register UP/DOWN when disabled."""
     text_box = TextBox(parent, "Label", disable_up_down_keys=True)  # type: ignore[arg-type]
@@ -307,7 +309,7 @@ def test_bind_keys_does_not_register_up_down_when_disabled(
 
 
 def test_bind_keys_registers_text_input_when_not_read_only(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys registers text input when not read_only."""
     text_box = TextBox(parent, "Label", read_only=False)  # type: ignore[arg-type]
@@ -315,7 +317,7 @@ def test_bind_keys_registers_text_input_when_not_read_only(
 
 
 def test_bind_keys_does_not_register_text_input_when_read_only(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that bind_keys doesn't register text input when read_only."""
     text_box = TextBox(parent, "Label", read_only=True)  # type: ignore[arg-type]
@@ -325,26 +327,26 @@ def test_bind_keys_does_not_register_text_input_when_read_only(
 # value Property Tests
 
 
-def test_value_getter_returns_string(parent: TestScreen) -> None:
+def test_value_getter_returns_string(parent: _FakeScreen) -> None:
     """Test that value getter returns a string."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     assert text_box.value == "hello"
 
 
-def test_value_getter_returns_empty_string(parent: TestScreen) -> None:
+def test_value_getter_returns_empty_string(parent: _FakeScreen) -> None:
     """Test that value getter returns empty string when input is empty."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     assert text_box.value == ""
 
 
-def test_value_setter_updates_input_list(parent: TestScreen) -> None:
+def test_value_setter_updates_input_list(parent: _FakeScreen) -> None:
     """Test that value setter updates the input list."""
     text_box = TextBox(parent, "Label", "old")  # type: ignore[arg-type]
     text_box.value = "new"
     assert text_box.input == ["n", "e", "w"]
 
 
-def test_value_setter_updates_value(parent: TestScreen) -> None:
+def test_value_setter_updates_value(parent: _FakeScreen) -> None:
     """Test that value setter updates the value."""
     text_box = TextBox(parent, "Label", "old")  # type: ignore[arg-type]
     text_box.value = "updated"
@@ -406,14 +408,14 @@ def test_setup_outputs_read_only_when_read_only(
 # get_value Tests
 
 
-def test_get_value_returns_joined_string(parent: TestScreen) -> None:
+def test_get_value_returns_joined_string(parent: _FakeScreen) -> None:
     """Test that get_value returns input list joined as string."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     text_box.input = ["h", "e", "l", "l", "o"]
     assert text_box.get_value() == "hello"
 
 
-def test_get_value_returns_empty_string(parent: TestScreen) -> None:
+def test_get_value_returns_empty_string(parent: _FakeScreen) -> None:
     """Test that get_value returns empty string for empty input."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     text_box.input = []
@@ -423,14 +425,14 @@ def test_get_value_returns_empty_string(parent: TestScreen) -> None:
 # is_selected Tests
 
 
-def test_is_selected_returns_false_initially(parent: TestScreen) -> None:
+def test_is_selected_returns_false_initially(parent: _FakeScreen) -> None:
     """Test that is_selected returns False initially."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert text_box.is_selected() is False
 
 
 def test_is_selected_returns_true_with_left_selection(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that is_selected returns True when left_selection_index > -1."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
@@ -460,7 +462,7 @@ def test_is_selected_returns_true_with_both_selections(
 # clear_selection Tests
 
 
-def test_clear_selection_resets_indices(parent: TestScreen) -> None:
+def test_clear_selection_resets_indices(parent: _FakeScreen) -> None:
     """Test that clear_selection resets selection indices."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -470,7 +472,7 @@ def test_clear_selection_resets_indices(parent: TestScreen) -> None:
     assert text_box.right_selection_index == -1
 
 
-def test_clear_selection_resets_flags(parent: TestScreen) -> None:
+def test_clear_selection_resets_flags(parent: _FakeScreen) -> None:
     """Test that clear_selection resets selection flags."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     text_box.selecting_left = True
@@ -511,14 +513,14 @@ def test_clear_selection_no_speech_when_indices_equal(
 # type_character Tests
 
 
-def test_type_character_adds_allowed_character(parent: TestScreen) -> None:
+def test_type_character_adds_allowed_character(parent: _FakeScreen) -> None:
     """Test that type_character adds allowed character."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     text_box.type_character("a")
     assert text_box.input == ["a"]
 
 
-def test_type_character_updates_position(parent: TestScreen) -> None:
+def test_type_character_updates_position(parent: _FakeScreen) -> None:
     """Test that type_character updates position."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     text_box.type_character("a")
@@ -526,7 +528,7 @@ def test_type_character_updates_position(parent: TestScreen) -> None:
 
 
 def test_type_character_rejects_disallowed_character(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that type_character rejects disallowed character."""
     text_box = TextBox(parent, "Label", "", allowed_chars="abc")  # type: ignore[arg-type]
@@ -535,14 +537,14 @@ def test_type_character_rejects_disallowed_character(
     assert text_box.input == []
 
 
-def test_type_character_returns_true_for_allowed(parent: TestScreen) -> None:
+def test_type_character_returns_true_for_allowed(parent: _FakeScreen) -> None:
     """Test that type_character returns True for allowed character."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     result = text_box.type_character("a")
     assert result is True
 
 
-def test_type_character_respects_text_box_size(parent: TestScreen) -> None:
+def test_type_character_respects_text_box_size(parent: _FakeScreen) -> None:
     """Test that type_character respects text_box_size limit."""
     text_box = TextBox(parent, "Label", "ab", text_box_size=2)  # type: ignore[arg-type]
     text_box.position = 2
@@ -630,7 +632,7 @@ def test_type_character_deletes_selection_before_typing(
 
 
 def test_delete_previous_character_removes_character(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that delete_previous_character removes character."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -640,7 +642,7 @@ def test_delete_previous_character_removes_character(
 
 
 def test_delete_previous_character_updates_position(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that delete_previous_character updates position."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -649,7 +651,7 @@ def test_delete_previous_character_updates_position(
     assert text_box.position == 4
 
 
-def test_delete_previous_character_at_beginning(parent: TestScreen) -> None:
+def test_delete_previous_character_at_beginning(parent: _FakeScreen) -> None:
     """Test that delete_previous_character at beginning does nothing."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 0
@@ -703,7 +705,7 @@ def test_delete_previous_character_outputs_star_when_hidden(
 
 
 def test_delete_previous_character_deletes_selection(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that delete_previous_character deletes selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -727,7 +729,7 @@ def test_delete_previous_character_outputs_blank_for_empty(
 # delete_next_character Tests
 
 
-def test_delete_next_character_removes_character(parent: TestScreen) -> None:
+def test_delete_next_character_removes_character(parent: _FakeScreen) -> None:
     """Test that delete_next_character removes character."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 0
@@ -735,7 +737,7 @@ def test_delete_next_character_removes_character(parent: TestScreen) -> None:
     assert text_box.value == "ello"
 
 
-def test_delete_next_character_keeps_position(parent: TestScreen) -> None:
+def test_delete_next_character_keeps_position(parent: _FakeScreen) -> None:
     """Test that delete_next_character keeps position the same."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 0
@@ -743,7 +745,7 @@ def test_delete_next_character_keeps_position(parent: TestScreen) -> None:
     assert text_box.position == 0
 
 
-def test_delete_next_character_at_end(parent: TestScreen) -> None:
+def test_delete_next_character_at_end(parent: _FakeScreen) -> None:
     """Test that delete_next_character at end does nothing."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 5
@@ -762,7 +764,7 @@ def test_delete_next_character_outputs_character_speech(
     mock_output.assert_called_with("e", interrupt=True, log_message=False)
 
 
-def test_delete_next_character_deletes_selection(parent: TestScreen) -> None:
+def test_delete_next_character_deletes_selection(parent: _FakeScreen) -> None:
     """Test that delete_next_character deletes selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 1
@@ -775,7 +777,7 @@ def test_delete_next_character_deletes_selection(parent: TestScreen) -> None:
 # next_character Tests
 
 
-def test_next_character_moves_position_forward(parent: TestScreen) -> None:
+def test_next_character_moves_position_forward(parent: _FakeScreen) -> None:
     """Test that next_character moves position forward."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 0
@@ -805,7 +807,7 @@ def test_next_character_outputs_blank_at_end(
     mock_output.assert_called_with("blank", interrupt=True, log_message=False)
 
 
-def test_next_character_clears_selection(parent: TestScreen) -> None:
+def test_next_character_clears_selection(parent: _FakeScreen) -> None:
     """Test that next_character clears selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -820,7 +822,7 @@ def test_next_character_clears_selection(parent: TestScreen) -> None:
 
 
 def test_previous_character_moves_position_backward(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that previous_character moves position backward."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -852,7 +854,7 @@ def test_previous_character_at_beginning(
     mock_output.assert_called_with("h", interrupt=True, log_message=False)
 
 
-def test_previous_character_clears_selection(parent: TestScreen) -> None:
+def test_previous_character_clears_selection(parent: _FakeScreen) -> None:
     """Test that previous_character clears selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -866,7 +868,7 @@ def test_previous_character_clears_selection(parent: TestScreen) -> None:
 # next_word Tests
 
 
-def test_next_word_moves_to_next_word(parent: TestScreen) -> None:
+def test_next_word_moves_to_next_word(parent: _FakeScreen) -> None:
     """Test that next_word moves position to next word."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
     text_box.position = 0
@@ -896,7 +898,7 @@ def test_next_word_at_end_outputs_blank(
     mock_output.assert_called_with("blank", interrupt=True, log_message=False)
 
 
-def test_next_word_clears_selection(parent: TestScreen) -> None:
+def test_next_word_clears_selection(parent: _FakeScreen) -> None:
     """Test that next_word clears selection."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -909,7 +911,7 @@ def test_next_word_clears_selection(parent: TestScreen) -> None:
 # previous_word Tests
 
 
-def test_previous_word_moves_to_previous_word(parent: TestScreen) -> None:
+def test_previous_word_moves_to_previous_word(parent: _FakeScreen) -> None:
     """Test that previous_word moves position to previous word."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
     text_box.position = 11
@@ -939,7 +941,7 @@ def test_previous_word_at_beginning(
     mock_output.assert_called_with("hello", interrupt=True, log_message=False)
 
 
-def test_previous_word_clears_selection(parent: TestScreen) -> None:
+def test_previous_word_clears_selection(parent: _FakeScreen) -> None:
     """Test that previous_word clears selection."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -952,7 +954,7 @@ def test_previous_word_clears_selection(parent: TestScreen) -> None:
 # move_home Tests
 
 
-def test_move_home_sets_position_to_zero(parent: TestScreen) -> None:
+def test_move_home_sets_position_to_zero(parent: _FakeScreen) -> None:
     """Test that move_home sets position to 0."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 3
@@ -981,7 +983,7 @@ def test_move_home_outputs_blank_for_empty(
     mock_output.assert_called_with("blank", interrupt=True, log_message=False)
 
 
-def test_move_home_clears_selection(parent: TestScreen) -> None:
+def test_move_home_clears_selection(parent: _FakeScreen) -> None:
     """Test that move_home clears selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -994,7 +996,7 @@ def test_move_home_clears_selection(parent: TestScreen) -> None:
 # move_end Tests
 
 
-def test_move_end_sets_position_to_end(parent: TestScreen) -> None:
+def test_move_end_sets_position_to_end(parent: _FakeScreen) -> None:
     """Test that move_end sets position to end of input."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.position = 0
@@ -1010,7 +1012,7 @@ def test_move_end_outputs_blank(mocker: MockerFixture, parent: Screen) -> None:
     mock_output.assert_called_with("blank", interrupt=True, log_message=False)
 
 
-def test_move_end_clears_selection(parent: TestScreen) -> None:
+def test_move_end_clears_selection(parent: _FakeScreen) -> None:
     """Test that move_end clears selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -1023,7 +1025,7 @@ def test_move_end_clears_selection(parent: TestScreen) -> None:
 # select_all Tests
 
 
-def test_select_all_selects_all_text(parent: TestScreen) -> None:
+def test_select_all_selects_all_text(parent: _FakeScreen) -> None:
     """Test that select_all selects all text."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.select_all()
@@ -1031,14 +1033,14 @@ def test_select_all_selects_all_text(parent: TestScreen) -> None:
     assert text_box.right_selection_index == 5
 
 
-def test_select_all_sets_selecting_right(parent: TestScreen) -> None:
+def test_select_all_sets_selecting_right(parent: _FakeScreen) -> None:
     """Test that select_all sets selecting_right to True."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.select_all()
     assert text_box.selecting_right is True
 
 
-def test_select_all_sets_position_to_end(parent: TestScreen) -> None:
+def test_select_all_sets_position_to_end(parent: _FakeScreen) -> None:
     """Test that select_all sets position to end."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.select_all()
@@ -1069,7 +1071,7 @@ def test_select_all_does_nothing_when_already_selected(
     assert text_box.right_selection_index == 5
 
 
-def test_select_all_does_nothing_for_empty_input(parent: TestScreen) -> None:
+def test_select_all_does_nothing_for_empty_input(parent: _FakeScreen) -> None:
     """Test that select_all does nothing for empty input."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     text_box.select_all()
@@ -1115,14 +1117,14 @@ def test_submit_dispatches_on_submit_event(
     mock_dispatch.assert_called_once_with("on_submit", text_box)
 
 
-def test_submit_returns_true(parent: TestScreen) -> None:
+def test_submit_returns_true(parent: _FakeScreen) -> None:
     """Test that submit returns True."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     result = text_box.submit()
     assert result is True
 
 
-def test_submit_event_listener_receives_event(parent: TestScreen) -> None:
+def test_submit_event_listener_receives_event(parent: _FakeScreen) -> None:
     """Test that on_submit event listener receives the event."""
     text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
     received_element = None
@@ -1252,7 +1254,7 @@ def test_paste_from_clipboard_deletes_selection(
 # delete_selection Tests
 
 
-def test_delete_selection_removes_selected_text(parent: TestScreen) -> None:
+def test_delete_selection_removes_selected_text(parent: _FakeScreen) -> None:
     """Test that delete_selection removes selected text."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 1
@@ -1262,7 +1264,7 @@ def test_delete_selection_removes_selected_text(parent: TestScreen) -> None:
     assert text_box.value == "ho"
 
 
-def test_delete_selection_updates_position(parent: TestScreen) -> None:
+def test_delete_selection_updates_position(parent: _FakeScreen) -> None:
     """Test that delete_selection updates position."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 1
@@ -1272,7 +1274,9 @@ def test_delete_selection_updates_position(parent: TestScreen) -> None:
     assert text_box.position == 1
 
 
-def test_delete_selection_clears_selection_indices(parent: TestScreen) -> None:
+def test_delete_selection_clears_selection_indices(
+    parent: _FakeScreen,
+) -> None:
     """Test that delete_selection clears selection indices."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.left_selection_index = 1
@@ -1295,7 +1299,7 @@ def test_delete_selection_does_nothing_without_selection(
 
 
 def test_set_right_selection_sets_indices_initially(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that set_right_selection sets indices when not selecting."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -1306,7 +1310,7 @@ def test_set_right_selection_sets_indices_initially(
 
 
 def test_set_right_selection_extends_right_selection(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that set_right_selection extends right selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -1318,7 +1322,7 @@ def test_set_right_selection_extends_right_selection(
 
 
 def test_set_right_selection_shrinks_left_selection(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that set_right_selection shrinks left selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -1345,7 +1349,9 @@ def test_set_right_selection_clears_when_indices_meet(
 # set_left_selection Tests
 
 
-def test_set_left_selection_sets_indices_initially(parent: TestScreen) -> None:
+def test_set_left_selection_sets_indices_initially(
+    parent: _FakeScreen,
+) -> None:
     """Test that set_left_selection sets indices when not selecting."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.set_left_selection(0, 3)
@@ -1354,7 +1360,9 @@ def test_set_left_selection_sets_indices_initially(parent: TestScreen) -> None:
     assert text_box.selecting_left is True
 
 
-def test_set_left_selection_extends_left_selection(parent: TestScreen) -> None:
+def test_set_left_selection_extends_left_selection(
+    parent: _FakeScreen,
+) -> None:
     """Test that set_left_selection extends left selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     text_box.selecting_left = True
@@ -1365,7 +1373,7 @@ def test_set_left_selection_extends_left_selection(parent: TestScreen) -> None:
 
 
 def test_set_left_selection_shrinks_right_selection(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that set_left_selection shrinks right selection."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -1377,7 +1385,7 @@ def test_set_left_selection_shrinks_right_selection(
 
 
 def test_set_left_selection_clears_when_indices_meet(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that set_left_selection clears when indices meet."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -1392,7 +1400,7 @@ def test_set_left_selection_clears_when_indices_meet(
 # reset Tests
 
 
-def test_reset_restores_default_value(parent: TestScreen) -> None:
+def test_reset_restores_default_value(parent: _FakeScreen) -> None:
     """Test that reset restores default_value."""
     text_box = TextBox(parent, "Label", "default")  # type: ignore[arg-type]
     text_box.value = "changed"
@@ -1400,7 +1408,7 @@ def test_reset_restores_default_value(parent: TestScreen) -> None:
     assert text_box.value == "default"
 
 
-def test_reset_restores_input_list(parent: TestScreen) -> None:
+def test_reset_restores_input_list(parent: _FakeScreen) -> None:
     """Test that reset restores input list."""
     text_box = TextBox(parent, "Label", "default")  # type: ignore[arg-type]
     text_box.input = ["a", "b", "c"]
@@ -1408,7 +1416,7 @@ def test_reset_restores_input_list(parent: TestScreen) -> None:
     assert text_box.input == ["d", "e", "f", "a", "u", "l", "t"]
 
 
-def test_reset_resets_position(parent: TestScreen) -> None:
+def test_reset_resets_position(parent: _FakeScreen) -> None:
     """Test that reset resets position to 0."""
     text_box = TextBox(parent, "Label", "default")  # type: ignore[arg-type]
     text_box.position = 5
@@ -1416,7 +1424,7 @@ def test_reset_resets_position(parent: TestScreen) -> None:
     assert text_box.position == 0
 
 
-def test_reset_clears_selection_indices(parent: TestScreen) -> None:
+def test_reset_clears_selection_indices(parent: _FakeScreen) -> None:
     """Test that reset clears selection indices."""
     text_box = TextBox(parent, "Label", "default")  # type: ignore[arg-type]
     text_box.left_selection_index = 0
@@ -1426,7 +1434,7 @@ def test_reset_clears_selection_indices(parent: TestScreen) -> None:
     assert text_box.right_selection_index == -1
 
 
-def test_reset_clears_selection_flags(parent: TestScreen) -> None:
+def test_reset_clears_selection_flags(parent: _FakeScreen) -> None:
     """Test that reset clears selection flags."""
     text_box = TextBox(parent, "Label", "default")  # type: ignore[arg-type]
     text_box.selecting_left = True
@@ -1439,19 +1447,19 @@ def test_reset_clears_selection_flags(parent: TestScreen) -> None:
 # Inheritance Tests
 
 
-def test_text_box_inherits_from_element(parent: TestScreen) -> None:
+def test_text_box_inherits_from_element(parent: _FakeScreen) -> None:
     """Test that TextBox inherits from Element."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert isinstance(text_box, Element)
 
 
-def test_text_box_inherits_from_ui_component(parent: TestScreen) -> None:
+def test_text_box_inherits_from_ui_component(parent: _FakeScreen) -> None:
     """Test that TextBox inherits from UIComponent."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert isinstance(text_box, UIComponent)
 
 
-def test_text_box_has_get_window_method(parent: TestScreen) -> None:
+def test_text_box_has_get_window_method(parent: _FakeScreen) -> None:
     """Test that TextBox has get_window method from UIComponent."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
     assert hasattr(text_box, "get_window")
@@ -1478,7 +1486,7 @@ def test_on_submit_event_is_registered() -> None:
 
 
 def test_full_typing_workflow(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test complete typing workflow."""
     mocker.patch.object(speech_manager, "output")
@@ -1494,7 +1502,7 @@ def test_full_typing_workflow(
     assert text_box.position == 5
 
 
-def test_full_selection_and_delete_workflow(parent: TestScreen) -> None:
+def test_full_selection_and_delete_workflow(parent: _FakeScreen) -> None:
     """Test complete selection and deletion workflow."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
 
@@ -1576,7 +1584,7 @@ def test_hidden_text_box_workflow(
 
 
 def test_read_only_text_box_workflow(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test workflow with read-only text box.
     Note: type_character doesn't check read_only flag - only key binding
@@ -1590,7 +1598,7 @@ def test_read_only_text_box_workflow(
     assert text_box.value == "readonl"
 
 
-def test_text_box_with_size_limit(parent: TestScreen) -> None:
+def test_text_box_with_size_limit(parent: _FakeScreen) -> None:
     """Test text box respects size limit."""
     text_box = TextBox(parent, "Label", "", text_box_size=5)  # type: ignore[arg-type]
 
@@ -1608,7 +1616,7 @@ def test_text_box_with_size_limit(parent: TestScreen) -> None:
 
 
 def test_move_home_with_empty_input(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_home with empty input outputs 'blank'."""
     mocker.patch.object(speech_manager, "output")
@@ -1620,7 +1628,7 @@ def test_move_home_with_empty_input(
 
 
 def test_move_home_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_home with hidden mode outputs 'star'."""
     mocker.patch.object(speech_manager, "output")
@@ -1632,7 +1640,7 @@ def test_move_home_with_hidden_mode(
 
 
 def test_move_home_with_space_character(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_home when first character is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1644,7 +1652,7 @@ def test_move_home_with_space_character(
 
 
 def test_move_home_with_uppercase_character(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_home when first character is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -1656,7 +1664,7 @@ def test_move_home_with_uppercase_character(
 
 
 def test_delete_previous_character_with_empty_input(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_previous_character with empty input."""
     mocker.patch.object(speech_manager, "output")
@@ -1668,7 +1676,7 @@ def test_delete_previous_character_with_empty_input(
 
 
 def test_delete_previous_character_with_selection_at_position_zero(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_previous_character after deleting selection at position 0."""
     mocker.patch.object(speech_manager, "output")
@@ -1682,7 +1690,7 @@ def test_delete_previous_character_with_selection_at_position_zero(
 
 
 def test_delete_previous_character_with_selection_previous_char_is_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_previous_character with selection where previous char is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1697,7 +1705,7 @@ def test_delete_previous_character_with_selection_previous_char_is_space(
 
 
 def test_delete_previous_character_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_previous_character when previous char is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1711,7 +1719,7 @@ def test_delete_previous_character_with_space(
 
 
 def test_delete_previous_character_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_previous_character when previous char is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -1725,7 +1733,7 @@ def test_delete_previous_character_with_uppercase(
 
 
 def test_delete_next_character_with_empty_input(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character with empty input."""
     mocker.patch.object(speech_manager, "output")
@@ -1737,7 +1745,7 @@ def test_delete_next_character_with_empty_input(
 
 
 def test_delete_next_character_with_selection_at_end(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character after deleting selection at end."""
     mocker.patch.object(speech_manager, "output")
@@ -1752,7 +1760,7 @@ def test_delete_next_character_with_selection_at_end(
 
 
 def test_delete_next_character_with_selection_outputs_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character after selection when at space."""
     mocker.patch.object(speech_manager, "output")
@@ -1767,7 +1775,7 @@ def test_delete_next_character_with_selection_outputs_space(
 
 
 def test_delete_next_character_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -1781,7 +1789,7 @@ def test_delete_next_character_with_hidden_mode(
 
 
 def test_delete_next_character_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character when next char (position+1) is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1795,7 +1803,7 @@ def test_delete_next_character_with_space(
 
 
 def test_delete_next_character_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character when char at position+1 is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -1809,7 +1817,7 @@ def test_delete_next_character_with_uppercase(
 
 
 def test_delete_next_character_at_last_position(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character at last position."""
     mocker.patch.object(speech_manager, "output")
@@ -1823,7 +1831,7 @@ def test_delete_next_character_at_last_position(
 
 
 def test_delete_next_character_beyond_input_length(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character when position >= len(input)."""
     mocker.patch.object(speech_manager, "output")
@@ -1836,7 +1844,7 @@ def test_delete_next_character_beyond_input_length(
 
 
 def test_output_value_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test output_value in hidden mode outputs repeated 'star' string."""
     mocker.patch.object(speech_manager, "output")
@@ -1848,7 +1856,7 @@ def test_output_value_with_hidden_mode(
 
 
 def test_next_word_when_at_end(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_word when already at end of input."""
     mocker.patch.object(speech_manager, "output")
@@ -1862,7 +1870,7 @@ def test_next_word_when_at_end(
 
 
 def test_next_word_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_word in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -1873,7 +1881,7 @@ def test_next_word_with_hidden_mode(
 
 
 def test_next_word_ending_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_word when word is empty (between spaces)."""
     mocker.patch.object(speech_manager, "output")
@@ -1886,7 +1894,7 @@ def test_next_word_ending_with_space(
 
 
 def test_previous_word_starting_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_word when positioned after a space."""
     mocker.patch.object(speech_manager, "output")
@@ -1897,7 +1905,7 @@ def test_previous_word_starting_with_space(
 
 
 def test_previous_word_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_word in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -1908,7 +1916,7 @@ def test_previous_word_with_hidden_mode(
 
 
 def test_previous_word_with_space_at_position(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_word when current word is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1921,7 +1929,7 @@ def test_previous_word_with_space_at_position(
 
 
 def test_next_character_with_full_selection(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character when entire text is selected."""
     mocker.patch.object(speech_manager, "output")
@@ -1935,7 +1943,7 @@ def test_next_character_with_full_selection(
 
 
 def test_next_character_at_second_to_last_position(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character at second to last position."""
     mocker.patch.object(speech_manager, "output")
@@ -1949,7 +1957,7 @@ def test_next_character_at_second_to_last_position(
 
 
 def test_next_character_beyond_end(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character when already beyond end."""
     mocker.patch.object(speech_manager, "output")
@@ -1963,7 +1971,7 @@ def test_next_character_beyond_end(
 
 
 def test_next_character_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -1976,7 +1984,7 @@ def test_next_character_with_hidden_mode(
 
 
 def test_next_character_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character when char at new position is space."""
     mocker.patch.object(speech_manager, "output")
@@ -1990,7 +1998,7 @@ def test_next_character_with_space(
 
 
 def test_next_character_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_character when char at new position is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -2004,7 +2012,7 @@ def test_next_character_with_uppercase(
 
 
 def test_previous_character_with_full_selection(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character when entire text is selected."""
     mocker.patch.object(speech_manager, "output")
@@ -2016,7 +2024,7 @@ def test_previous_character_with_full_selection(
 
 
 def test_previous_character_at_beginning_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character at beginning when first char is space."""
     mocker.patch.object(speech_manager, "output")
@@ -2029,7 +2037,7 @@ def test_previous_character_at_beginning_with_space(
 
 
 def test_previous_character_at_beginning_empty(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character at beginning with empty input."""
     mocker.patch.object(speech_manager, "output")
@@ -2042,7 +2050,7 @@ def test_previous_character_at_beginning_empty(
 
 
 def test_previous_character_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -2055,7 +2063,7 @@ def test_previous_character_with_hidden_mode(
 
 
 def test_previous_character_with_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character when previous char is space."""
     mocker.patch.object(speech_manager, "output")
@@ -2068,7 +2076,7 @@ def test_previous_character_with_space(
 
 
 def test_previous_character_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character when previous char is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -2081,7 +2089,7 @@ def test_previous_character_with_uppercase(
 
 
 def test_move_letter_selection_right_with_selecting_left_flag(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right when selecting_left is True (unselecting)."""
     mocker.patch.object(speech_manager, "output")
@@ -2093,7 +2101,7 @@ def test_move_letter_selection_right_with_selecting_left_flag(
 
 
 def test_move_letter_selection_right_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right when character is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -2104,7 +2112,7 @@ def test_move_letter_selection_right_with_uppercase(
 
 
 def test_move_letter_selection_right_at_boundary(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right doesn't go beyond input length."""
     mocker.patch.object(speech_manager, "output")
@@ -2116,7 +2124,7 @@ def test_move_letter_selection_right_at_boundary(
 
 
 def test_move_letter_selection_left_with_selecting_right_flag(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left when selecting_right is True (unselecting)."""
     mocker.patch.object(speech_manager, "output")
@@ -2128,7 +2136,7 @@ def test_move_letter_selection_left_with_selecting_right_flag(
 
 
 def test_move_letter_selection_left_with_uppercase(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left when character is uppercase."""
     mocker.patch.object(speech_manager, "output")
@@ -2140,7 +2148,7 @@ def test_move_letter_selection_left_with_uppercase(
 
 
 def test_move_letter_selection_left_at_boundary(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left doesn't go below 0."""
     mocker.patch.object(speech_manager, "output")
@@ -2152,7 +2160,7 @@ def test_move_letter_selection_left_at_boundary(
 
 
 def test_move_word_selection_right_with_selecting_left_flag(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right when selecting_left is True (unselecting)."""
     mocker.patch.object(speech_manager, "output")
@@ -2164,7 +2172,7 @@ def test_move_word_selection_right_with_selecting_left_flag(
 
 
 def test_move_word_selection_right_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -2175,7 +2183,7 @@ def test_move_word_selection_right_with_hidden_mode(
 
 
 def test_move_word_selection_right_with_space_word(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right when word is a space."""
     mocker.patch.object(speech_manager, "output")
@@ -2186,7 +2194,7 @@ def test_move_word_selection_right_with_space_word(
 
 
 def test_move_word_selection_right_to_end(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right to end of text."""
     mocker.patch.object(speech_manager, "output")
@@ -2197,7 +2205,7 @@ def test_move_word_selection_right_to_end(
 
 
 def test_move_word_selection_right_beyond_length(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right when already at/beyond end."""
     mocker.patch.object(speech_manager, "output")
@@ -2208,7 +2216,7 @@ def test_move_word_selection_right_beyond_length(
 
 
 def test_move_word_selection_left_with_selecting_right_flag(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_left when selecting_right is True (unselecting)."""
     mocker.patch.object(speech_manager, "output")
@@ -2220,7 +2228,7 @@ def test_move_word_selection_left_with_selecting_right_flag(
 
 
 def test_move_word_selection_left_with_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_left in hidden mode."""
     mocker.patch.object(speech_manager, "output")
@@ -2231,7 +2239,7 @@ def test_move_word_selection_left_with_hidden_mode(
 
 
 def test_move_word_selection_left_with_space_word(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_left when word is a space."""
     mocker.patch.object(speech_manager, "output")
@@ -2242,7 +2250,7 @@ def test_move_word_selection_left_with_space_word(
 
 
 def test_move_word_selection_left_at_beginning(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_left when already at beginning."""
     mocker.patch.object(speech_manager, "output")
@@ -2253,7 +2261,7 @@ def test_move_word_selection_left_at_beginning(
 
 
 def test_select_all_when_already_selected(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test select_all when text is already fully selected."""
     mocker.patch.object(speech_manager, "output")
@@ -2265,7 +2273,7 @@ def test_select_all_when_already_selected(
 
 
 def test_select_all_with_empty_input(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test select_all with empty input."""
     mocker.patch.object(speech_manager, "output")
@@ -2275,7 +2283,7 @@ def test_select_all_with_empty_input(
 
 
 def test_copy_to_clipboard_with_no_selection(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test copy_to_clipboard when nothing is selected."""
     mocker.patch.object(speech_manager, "output")
@@ -2287,7 +2295,7 @@ def test_copy_to_clipboard_with_no_selection(
 
 
 def test_paste_from_clipboard_exceeding_size(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test paste_from_clipboard when result would exceed size limit."""
     mocker.patch.object(speech_manager, "output")
@@ -2301,7 +2309,7 @@ def test_paste_from_clipboard_exceeding_size(
 
 
 def test_paste_from_clipboard_with_selection(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test paste_from_clipboard when text is selected (replaces selection)."""
     mocker.patch.object(speech_manager, "output")
@@ -2318,7 +2326,7 @@ def test_paste_from_clipboard_with_selection(
 
 
 def test_type_character_not_in_allowed_chars(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character with character not in allowed_chars."""
     mocker.patch.object(speech_manager, "output")
@@ -2329,7 +2337,7 @@ def test_type_character_not_in_allowed_chars(
 
 
 def test_type_character_with_echo_words_at_position_one(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character space with echo_words outputs the word."""
     mocker.patch.object(speech_manager, "output")
@@ -2344,7 +2352,7 @@ def test_type_character_with_echo_words_at_position_one(
 
 
 def test_type_character_space_with_echo_words(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character space with echo_words enabled."""
     mocker.patch.object(speech_manager, "output")
@@ -2357,7 +2365,7 @@ def test_type_character_space_with_echo_words(
 
 
 def test_type_character_space_with_echo_words_after_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character space after space with echo_words (outputs 'space')."""
     mocker.patch.object(speech_manager, "output")
@@ -2370,7 +2378,7 @@ def test_type_character_space_with_echo_words_after_space(
 
 
 def test_type_character_uppercase_with_echo_characters(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character uppercase with echo_characters."""
     mocker.patch.object(speech_manager, "output")
@@ -2382,7 +2390,7 @@ def test_type_character_uppercase_with_echo_characters(
 
 
 def test_type_character_with_echo_characters_disabled(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character with echo_characters disabled (no speech except spaces)."""
     mocker.patch.object(speech_manager, "output")
@@ -2392,7 +2400,7 @@ def test_type_character_with_echo_characters_disabled(
 
 
 def test_set_right_selection_initial_state(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test set_right_selection from initial state (no flags set)."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -2403,7 +2411,7 @@ def test_set_right_selection_initial_state(
 
 
 def test_set_left_selection_initial_state(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test set_left_selection from initial state (no flags set)."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -2414,7 +2422,7 @@ def test_set_left_selection_initial_state(
 
 
 def test_set_right_selection_when_selecting_left_clears(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test set_right_selection clears when left >= right while selecting_left."""
     mocker.patch.object(speech_manager, "output")
@@ -2428,7 +2436,7 @@ def test_set_right_selection_when_selecting_left_clears(
 
 
 def test_set_right_selection_when_selecting_right(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test set_right_selection updates right index when selecting_right."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -2440,7 +2448,7 @@ def test_set_right_selection_when_selecting_right(
 
 
 def test_set_left_selection_when_selecting_left(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test set_left_selection updates left index when selecting_left."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
@@ -2452,7 +2460,7 @@ def test_set_left_selection_when_selecting_left(
 
 
 def test_clear_selection_when_indices_equal(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test clear_selection when left == right (no 'Unselected' output)."""
     mocker.patch.object(speech_manager, "output")
@@ -2464,7 +2472,7 @@ def test_clear_selection_when_indices_equal(
 
 
 def test_delete_selection_complex_scenario(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test delete_selection with complex multi-character selection."""
     text_box = TextBox(parent, "Label", "hello world")  # type: ignore[arg-type]
@@ -2480,7 +2488,7 @@ def test_delete_selection_complex_scenario(
 
 
 def test_move_letter_selection_left_with_space_and_selecting_right(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left with space when unselecting (selecting_right=True)."""
     mocker.patch.object(speech_manager, "output")
@@ -2493,7 +2501,7 @@ def test_move_letter_selection_left_with_space_and_selecting_right(
 
 
 def test_move_letter_selection_right_with_space_and_selecting_left(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right with space when unselecting (selecting_left=True)."""
     mocker.patch.object(speech_manager, "output")
@@ -2506,7 +2514,7 @@ def test_move_letter_selection_right_with_space_and_selecting_left(
 
 
 def test_move_word_selection_left_starting_from_middle_with_no_prior_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_left when no prior space exists."""
     mocker.patch.object(speech_manager, "output")
@@ -2517,7 +2525,7 @@ def test_move_word_selection_left_starting_from_middle_with_no_prior_space(
 
 
 def test_move_word_selection_right_space_at_end_position(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_word_selection_right when ending at exact end of input."""
     mocker.patch.object(speech_manager, "output")
@@ -2528,7 +2536,7 @@ def test_move_word_selection_right_space_at_end_position(
 
 
 def test_previous_word_with_position_gt_zero_increments(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_word increments position when index > 0."""
     mocker.patch.object(speech_manager, "output")
@@ -2539,7 +2547,7 @@ def test_previous_word_with_position_gt_zero_increments(
 
 
 def test_next_word_space_check_edge_case(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test next_word when landing on a word after a space."""
     mocker.patch.object(speech_manager, "output")
@@ -2552,7 +2560,7 @@ def test_next_word_space_check_edge_case(
 
 
 def test_previous_word_with_empty_word_at_space(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_word when word is empty and position is at a space."""
     mocker.patch.object(speech_manager, "output")
@@ -2565,7 +2573,7 @@ def test_previous_word_with_empty_word_at_space(
 
 
 def test_type_character_with_selection_and_echo_words(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test type_character with selection that gets deleted before typing."""
     mocker.patch.object(speech_manager, "output")
@@ -2579,7 +2587,7 @@ def test_type_character_with_selection_and_echo_words(
 
 
 def test_previous_character_at_beginning_with_input(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test previous_character at position 0 with text in input."""
     mocker.patch.object(speech_manager, "output")
@@ -2590,7 +2598,7 @@ def test_previous_character_at_beginning_with_input(
 
 
 def test_paste_exceeding_limit_edge_case(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test paste when combined length exactly equals or exceeds size limit."""
     mocker.patch.object(speech_manager, "output")
@@ -2609,7 +2617,7 @@ def test_paste_exceeding_limit_edge_case(
 
 
 def test_move_letter_selection_left_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left in hidden mode outputs 'star Selected'."""
     mocker.patch.object(speech_manager, "output")
@@ -2624,7 +2632,7 @@ def test_move_letter_selection_left_hidden_mode(
 
 
 def test_move_letter_selection_left_uppercase_char(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_left with uppercase character (non-hidden)."""
     mocker.patch.object(speech_manager, "output")
@@ -2637,7 +2645,7 @@ def test_move_letter_selection_left_uppercase_char(
 
 
 def test_move_letter_selection_right_hidden_mode(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right in hidden mode outputs 'star Selected'."""
     mocker.patch.object(speech_manager, "output")
@@ -2652,7 +2660,7 @@ def test_move_letter_selection_right_hidden_mode(
 
 
 def test_move_letter_selection_right_uppercase_char_nonhidden(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test move_letter_selection_right with uppercase character (non-hidden)."""
     mocker.patch.object(speech_manager, "output")
@@ -2667,7 +2675,7 @@ def test_move_letter_selection_right_uppercase_char_nonhidden(
 
 
 def test_delete_next_character_position_beyond_length(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test delete_next_character when position >= len(input) (branch 205->212).
 
@@ -2692,7 +2700,7 @@ def test_delete_next_character_position_beyond_length(
     )  # type: ignore
 
 
-def test_set_right_selection_returns_true(parent: TestScreen) -> None:
+def test_set_right_selection_returns_true(parent: _FakeScreen) -> None:
     """Test set_right_selection returns True (implicit return)."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     # The function doesn't explicitly return, but it should complete
@@ -2700,7 +2708,7 @@ def test_set_right_selection_returns_true(parent: TestScreen) -> None:
     assert text_box.right_selection_index == 3
 
 
-def test_set_left_selection_returns_true(parent: TestScreen) -> None:
+def test_set_left_selection_returns_true(parent: _FakeScreen) -> None:
     """Test set_left_selection returns True (implicit return)."""
     text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
     # The function doesn't explicitly return, but it should complete

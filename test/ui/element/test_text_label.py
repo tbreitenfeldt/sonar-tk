@@ -12,7 +12,7 @@ from sonartk.util import speech_manager
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
 
-class TestScreen(Screen):
+class _FakeScreen(Screen):
     """Minimal Screen subclass for testing TextLabel."""
 
     def __init__(self, parent: Window) -> None:
@@ -47,13 +47,13 @@ def window(mocker: MockerFixture) -> Window:
 
 
 @pytest.fixture
-def parent(window: Window) -> TestScreen:
+def parent(window: Window) -> _FakeScreen:
     """Create a parent TestScreen fixture."""
-    return TestScreen(window)
+    return _FakeScreen(window)
 
 
 @pytest.fixture
-def text_label(parent: TestScreen) -> TextLabel:
+def text_label(parent: _FakeScreen) -> TextLabel:
     """Create a TextLabel fixture."""
     return TextLabel(parent, "Section Header")
 
@@ -61,48 +61,48 @@ def text_label(parent: TestScreen) -> TextLabel:
 # Initialization Tests
 
 
-def test_init_sets_parent(parent: TestScreen, text_label: TextLabel) -> None:
+def test_init_sets_parent(parent: _FakeScreen, text_label: TextLabel) -> None:
     """Test that __init__ sets parent correctly."""
     assert text_label.parent == parent
 
 
-def test_init_sets_label(parent: TestScreen) -> None:
+def test_init_sets_label(parent: _FakeScreen) -> None:
     """Test that __init__ sets label correctly."""
     label = TextLabel(parent, "My Label")
     assert label.label == "My Label"
 
 
-def test_init_sets_value_to_empty_string(parent: TestScreen) -> None:
+def test_init_sets_value_to_empty_string(parent: _FakeScreen) -> None:
     """Test that __init__ sets value to empty string."""
     label = TextLabel(parent, "Label")
     assert label.value == ""
 
 
-def test_init_sets_role_to_empty_string(parent: TestScreen) -> None:
+def test_init_sets_role_to_empty_string(parent: _FakeScreen) -> None:
     """Test that __init__ sets role to empty string."""
     label = TextLabel(parent, "Label")
     assert label.role == ""
 
 
-def test_init_sets_use_key_handler_false(parent: TestScreen) -> None:
+def test_init_sets_use_key_handler_false(parent: _FakeScreen) -> None:
     """Test that __init__ sets use_key_handler to False."""
     label = TextLabel(parent, "Label")
     assert label.use_key_handler is False
 
 
-def test_init_does_not_create_key_handler(parent: TestScreen) -> None:
+def test_init_does_not_create_key_handler(parent: _FakeScreen) -> None:
     """Test that __init__ does not create a KeyHandler."""
     label = TextLabel(parent, "Label")
     assert not hasattr(label, "key_handler")
 
 
-def test_init_empty_label(parent: TestScreen) -> None:
+def test_init_empty_label(parent: _FakeScreen) -> None:
     """Test that __init__ accepts an empty string as label."""
     label = TextLabel(parent, "")
     assert label.label == ""
 
 
-def test_init_long_label(parent: TestScreen) -> None:
+def test_init_long_label(parent: _FakeScreen) -> None:
     """Test that __init__ accepts a long label string."""
     long_label = "A" * 500
     label = TextLabel(parent, long_label)
@@ -112,7 +112,7 @@ def test_init_long_label(parent: TestScreen) -> None:
 # bind_keys Tests
 
 
-def test_bind_keys_is_no_op(parent: TestScreen) -> None:
+def test_bind_keys_is_no_op(parent: _FakeScreen) -> None:
     """Test that bind_keys does nothing (no key bindings for TextLabel)."""
     label = TextLabel(parent, "Label")
     # Should not raise and should not have a key_handler
@@ -120,7 +120,7 @@ def test_bind_keys_is_no_op(parent: TestScreen) -> None:
     assert not hasattr(label, "key_handler")
 
 
-def test_bind_keys_returns_none(parent: TestScreen) -> None:
+def test_bind_keys_returns_none(parent: _FakeScreen) -> None:
     """Test that bind_keys returns None."""
     label = TextLabel(parent, "Label")
     result = label.bind_keys()
@@ -130,7 +130,7 @@ def test_bind_keys_returns_none(parent: TestScreen) -> None:
 # reset Tests
 
 
-def test_reset_is_no_op(parent: TestScreen) -> None:
+def test_reset_is_no_op(parent: _FakeScreen) -> None:
     """Test that reset does nothing."""
     label = TextLabel(parent, "Label")
     label.value = "something"  # type: ignore[assignment]
@@ -139,7 +139,7 @@ def test_reset_is_no_op(parent: TestScreen) -> None:
     assert label.value == "something"
 
 
-def test_reset_returns_none(parent: TestScreen) -> None:
+def test_reset_returns_none(parent: _FakeScreen) -> None:
     """Test that reset returns None."""
     label = TextLabel(parent, "Label")
     result = label.reset()
@@ -149,21 +149,21 @@ def test_reset_returns_none(parent: TestScreen) -> None:
 # __repr__ Tests
 
 
-def test_repr_returns_label(parent: TestScreen) -> None:
+def test_repr_returns_label(parent: _FakeScreen) -> None:
     """Test that __repr__ returns the label string."""
     label = TextLabel(parent, "Section Header")
     assert repr(label) == "Section Header"
 
 
 def test_repr_returns_empty_string_when_label_empty(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that __repr__ returns empty string when label is empty."""
     label = TextLabel(parent, "")
     assert repr(label) == ""
 
 
-def test_repr_matches_label_after_change(parent: TestScreen) -> None:
+def test_repr_matches_label_after_change(parent: _FakeScreen) -> None:
     """Test that __repr__ reflects the current label value."""
     label = TextLabel(parent, "Original")
     label.label = "Changed"
@@ -173,14 +173,14 @@ def test_repr_matches_label_after_change(parent: TestScreen) -> None:
 # name property Tests
 
 
-def test_name_returns_label_with_empty_role(parent: TestScreen) -> None:
+def test_name_returns_label_with_empty_role(parent: _FakeScreen) -> None:
     """Test that name property returns label followed by empty role."""
     label = TextLabel(parent, "Info")
     # role is "", so name is "Info "
     assert label.name == "Info "
 
 
-def test_name_with_empty_label(parent: TestScreen) -> None:
+def test_name_with_empty_label(parent: _FakeScreen) -> None:
     """Test that name property returns empty string with empty role when label is empty."""
     label = TextLabel(parent, "")
     assert label.name == " "
@@ -189,13 +189,13 @@ def test_name_with_empty_label(parent: TestScreen) -> None:
 # value property Tests
 
 
-def test_value_is_empty_string_by_default(parent: TestScreen) -> None:
+def test_value_is_empty_string_by_default(parent: _FakeScreen) -> None:
     """Test that value is an empty string after initialization."""
     label = TextLabel(parent, "Label")
     assert label.value == ""
 
 
-def test_value_setter_updates_value(parent: TestScreen) -> None:
+def test_value_setter_updates_value(parent: _FakeScreen) -> None:
     """Test that the value setter updates the value correctly."""
     label = TextLabel(parent, "Label")
     label.value = "new value"  # type: ignore[assignment]
@@ -206,7 +206,7 @@ def test_value_setter_updates_value(parent: TestScreen) -> None:
 
 
 def test_setup_outputs_speech_for_label(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that setup outputs speech for the label."""
     mock_output = mocker.patch.object(speech_manager, "output")
@@ -220,7 +220,7 @@ def test_setup_outputs_speech_for_label(
 
 
 def test_setup_does_not_output_speech_for_empty_label(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that setup does not output speech when label is empty."""
     mock_output = mocker.patch.object(speech_manager, "output")
@@ -232,7 +232,7 @@ def test_setup_does_not_output_speech_for_empty_label(
 
 
 def test_setup_does_not_push_window_handlers(
-    mocker: MockerFixture, window: Window, parent: TestScreen
+    mocker: MockerFixture, window: Window, parent: _FakeScreen
 ) -> None:
     """Test that setup does not push window handlers (use_key_handler=False)."""
     mocker.patch.object(speech_manager, "output")
@@ -245,7 +245,7 @@ def test_setup_does_not_push_window_handlers(
 
 
 def test_setup_dispatches_on_focus_event(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that setup dispatches the on_focus event."""
     mocker.patch.object(speech_manager, "output")
@@ -257,7 +257,7 @@ def test_setup_dispatches_on_focus_event(
     mock_dispatch.assert_called_once_with("on_focus", label)
 
 
-def test_setup_returns_true(parent: TestScreen) -> None:
+def test_setup_returns_true(parent: _FakeScreen) -> None:
     """Test that setup returns True."""
     label = TextLabel(parent, "Label")
     result = label.setup(lambda key, *a, **kw: None)
@@ -265,7 +265,7 @@ def test_setup_returns_true(parent: TestScreen) -> None:
 
 
 def test_setup_with_interrupt_speech(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that setup passes interrupt_speech flag to speech output."""
     mock_output = mocker.patch.object(speech_manager, "output")
@@ -279,7 +279,7 @@ def test_setup_with_interrupt_speech(
 
 
 def test_setup_on_focus_listener_receives_element(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that on_focus event listener receives the TextLabel instance."""
     mocker.patch.object(speech_manager, "output")
@@ -299,7 +299,7 @@ def test_setup_on_focus_listener_receives_element(
 
 
 def test_exit_dispatches_on_lose_focus_event(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that exit dispatches the on_lose_focus event."""
     label = TextLabel(parent, "Label")
@@ -311,7 +311,7 @@ def test_exit_dispatches_on_lose_focus_event(
 
 
 def test_exit_does_not_pop_window_handlers(
-    mocker: MockerFixture, window: Window, parent: TestScreen
+    mocker: MockerFixture, window: Window, parent: _FakeScreen
 ) -> None:
     """Test that exit does not pop window handlers (use_key_handler=False)."""
     mock_pop = mocker.patch.object(window, "pop_window_handlers")
@@ -322,7 +322,7 @@ def test_exit_does_not_pop_window_handlers(
     mock_pop.assert_not_called()
 
 
-def test_exit_returns_true(parent: TestScreen) -> None:
+def test_exit_returns_true(parent: _FakeScreen) -> None:
     """Test that exit returns True."""
     label = TextLabel(parent, "Label")
     result = label.exit()
@@ -330,7 +330,7 @@ def test_exit_returns_true(parent: TestScreen) -> None:
 
 
 def test_exit_on_lose_focus_listener_receives_element(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that on_lose_focus event listener receives the TextLabel instance."""
     label = TextLabel(parent, "Label")
@@ -349,7 +349,7 @@ def test_exit_on_lose_focus_listener_receives_element(
 
 
 def test_update_dispatches_on_update_event(
-    mocker: MockerFixture, parent: TestScreen
+    mocker: MockerFixture, parent: _FakeScreen
 ) -> None:
     """Test that update dispatches the on_update event."""
     label = TextLabel(parent, "Label")
@@ -360,7 +360,7 @@ def test_update_dispatches_on_update_event(
     mock_dispatch.assert_called_once_with("on_update", label, 0.016)
 
 
-def test_update_returns_true(parent: TestScreen) -> None:
+def test_update_returns_true(parent: _FakeScreen) -> None:
     """Test that update returns True."""
     label = TextLabel(parent, "Label")
     result = label.update(0.016)
@@ -368,7 +368,7 @@ def test_update_returns_true(parent: TestScreen) -> None:
 
 
 def test_update_on_update_listener_receives_element_and_delta(
-    parent: TestScreen,
+    parent: _FakeScreen,
 ) -> None:
     """Test that on_update listener receives both the element and delta_time."""
     label = TextLabel(parent, "Label")
@@ -389,13 +389,13 @@ def test_update_on_update_listener_receives_element_and_delta(
 # is-a / isinstance Tests
 
 
-def test_text_label_is_element(parent: TestScreen) -> None:
+def test_text_label_is_element(parent: _FakeScreen) -> None:
     """Test that TextLabel is an instance of Element."""
     label = TextLabel(parent, "Label")
     assert isinstance(label, Element)
 
 
-def test_text_label_is_ui_component(parent: TestScreen) -> None:
+def test_text_label_is_ui_component(parent: _FakeScreen) -> None:
     """Test that TextLabel is an instance of UIComponent."""
     label = TextLabel(parent, "Label")
     assert isinstance(label, UIComponent)

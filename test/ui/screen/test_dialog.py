@@ -30,7 +30,7 @@ class MockElement(Element[str]):
         self.reset_called = True
 
 
-class TestScreen(Screen):
+class _FakeScreen(Screen):
     """Test screen class for testing Dialog."""
 
     def __init__(self, parent: Window) -> None:
@@ -66,13 +66,13 @@ def window(mocker: MockerFixture) -> Window:
 
 
 @pytest.fixture
-def parent_screen(window: Window) -> TestScreen:
+def parent_screen(window: Window) -> _FakeScreen:
     """Create a parent screen fixture."""
-    return TestScreen(window)
+    return _FakeScreen(window)
 
 
 @pytest.fixture
-def dialog(parent_screen: TestScreen) -> Dialog:
+def dialog(parent_screen: _FakeScreen) -> Dialog:
     """Create a Dialog fixture."""
     return Dialog(parent_screen)
 
@@ -80,7 +80,7 @@ def dialog(parent_screen: TestScreen) -> Dialog:
 # Initialization Tests
 
 
-def test_init_sets_parent(parent_screen: TestScreen, dialog: Dialog) -> None:
+def test_init_sets_parent(parent_screen: _FakeScreen, dialog: Dialog) -> None:
     """Test that __init__ sets parent correctly."""
     assert dialog.parent == parent_screen
 
@@ -111,7 +111,7 @@ def test_init_creates_state_machine(dialog: Dialog) -> None:
 
 
 def test_open_dialog_saves_original_state_key(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog saves the original state key."""
     parent_screen.state_key = "original_state"
@@ -124,7 +124,7 @@ def test_open_dialog_saves_original_state_key(
 
 
 def test_open_dialog_adds_to_parent_state_machine(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog adds dialog to parent state machine."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -141,7 +141,7 @@ def test_open_dialog_adds_to_parent_state_machine(
 
 
 def test_open_dialog_saves_original_caption(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog saves the original caption."""
     dialog.caption = "Original Caption"
@@ -154,7 +154,7 @@ def test_open_dialog_saves_original_caption(
 
 
 def test_open_dialog_sets_new_caption(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog sets new caption."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -166,7 +166,7 @@ def test_open_dialog_sets_new_caption(
 
 
 def test_open_dialog_schedules_state_change(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog schedules state change."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -181,7 +181,7 @@ def test_open_dialog_schedules_state_change(
 
 
 def test_open_dialog_increments_count(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that open_dialog increments count based on parent state machine size."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -351,7 +351,7 @@ def test_close_returns_true(mocker: MockerFixture, dialog: Dialog) -> None:
 
 
 def test_reset_states_removes_from_parent(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that _reset_states removes dialog from parent."""
     dialog.state_key = "dialog_key"
@@ -365,7 +365,7 @@ def test_reset_states_removes_from_parent(
 
 
 def test_reset_states_sets_empty_state(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that _reset_states sets current_state to EmptyState."""
     dialog.state_key = "dialog_key"
@@ -379,7 +379,7 @@ def test_reset_states_sets_empty_state(
 
 
 def test_reset_states_calls_exit(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that _reset_states calls exit."""
     dialog.state_key = "dialog_key"
@@ -393,7 +393,7 @@ def test_reset_states_calls_exit(
 
 
 def test_reset_states_changes_parent_state(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that _reset_states changes parent state back to original."""
     dialog.state_key = "dialog_key"
@@ -408,7 +408,7 @@ def test_reset_states_changes_parent_state(
 
 
 def test_reset_states_changes_with_interrupt_false(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test that _reset_states changes state with interrupt_speech=False."""
     dialog.state_key = "dialog_key"
@@ -427,7 +427,7 @@ def test_reset_states_changes_with_interrupt_false(
 
 
 def test_full_dialog_lifecycle(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test complete dialog lifecycle: open -> close."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -501,7 +501,7 @@ def test_dialog_key_handler_has_tab_keys(dialog: Dialog) -> None:
 
 
 def test_open_dialog_multiple_times(
-    mocker: MockerFixture, parent_screen: TestScreen
+    mocker: MockerFixture, parent_screen: _FakeScreen
 ) -> None:
     """Test opening multiple dialogs increments count correctly."""
     parent_screen.state_machine.current_state.state_key = "original_state"
@@ -519,7 +519,7 @@ def test_open_dialog_multiple_times(
 
 
 def test_close_without_exit_mocked(
-    mocker: MockerFixture, parent_screen: TestScreen, dialog: Dialog
+    mocker: MockerFixture, parent_screen: _FakeScreen, dialog: Dialog
 ) -> None:
     """Test close doesn't fail when exit is mocked."""
     mocker.patch.object(dialog.get_window(), "pop_window_handlers")

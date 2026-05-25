@@ -2,6 +2,35 @@
 
 This guide shows a reusable intro/cutscene flow and runtime volume controls using the orchestration and sound APIs.
 
+## Preload Audio Assets At Startup
+
+Preloading avoids first-play latency during gameplay and validates asset paths
+up front.
+
+```python
+from sonartk.sound import sound_manager
+
+SOUND_MAP = {
+    "path": "audio/sfx/step_dirt.wav",
+    "wall": "audio/sfx/wall.wav",
+}
+INTRO_SOUND = "audio/sfx/intro.wav"
+MUSIC_SOUND = "audio/music/theme.ogg"
+COIN_SOUND = "audio/sfx/coin.wav"
+
+sound_manager.preload_sounds(
+    {
+        *SOUND_MAP.values(),
+        INTRO_SOUND,
+        MUSIC_SOUND,
+        COIN_SOUND,
+    }
+)
+```
+
+If you are using `SoundPool` directly, call `sound_pool.load_many(paths)` for
+the same behavior.
+
 ## Intro Scene That Transitions On End Or Enter
 
 ```python

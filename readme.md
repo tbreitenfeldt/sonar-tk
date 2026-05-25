@@ -88,6 +88,16 @@ The following exports are the intended stable import surface:
 - sonartk.util: Callback, Coordinates, Direction, EmptyState, Key,
   KeyHandler, State, StateMachine, speech_manager
 
+## Audio Preloading APIs
+
+When using the sound package, you can preload assets at startup to reduce
+runtime latency and fail early on missing/invalid files.
+
+- `sound_manager.preload_sounds(paths)`: preload through the shared default
+    sound manager.
+- `SoundPool.load_many(paths)`: lower-level preload API when managing your own
+    `SoundPool` instance.
+
 If you need symbols outside this list, import from the concrete module path
 and treat those imports as lower-level/internal APIs.
 

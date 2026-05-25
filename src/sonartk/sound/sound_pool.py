@@ -122,6 +122,20 @@ class SoundPool:
         self._stats["loads"] += 1
         return sound
 
+    def load_many(
+        self, paths: Iterable[str]
+    ) -> dict[str, LoadSound | BufferSound]:
+        """Load multiple sounds and return normalized cache keys to sounds.
+
+        Paths are loaded in iteration order and use the same validation and
+        caching behavior as `load`. Any error is propagated immediately.
+        """
+        loaded: dict[str, LoadSound | BufferSound] = {}
+        for path in paths:
+            sound = self.load(path)
+            loaded[str(self._normalize_path(path))] = sound
+        return loaded
+
     def unload(self, path: str) -> bool:
         """Unload a specific cached sound by path.
 

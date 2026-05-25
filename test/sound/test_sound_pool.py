@@ -240,6 +240,95 @@ def test_load_absolute_path_ignores_base_path(
     load_sound.assert_called_once_with(str(wav_path.resolve()))
 
 
+def test_load_many_loads_multiple_paths_and_returns_normalized_keys(
+    mocker: MockerFixture, tmp_path: Path
+) -> None:
+    """Test load_many loads each path and returns normalized cache keys."""
+    audio_dir = tmp_path / "audio"
+    audio_dir.mkdir(parents=True)
+    wav_path = audio_dir / "click.wav"
+    ogg_path = audio_dir / "music.ogg"
+    wav_path.touch()
+    ogg_path.touch()
+
+    sound_pool = SoundPool(base_path=tmp_path)
+
+    wav_sound = mocker.MagicMock(name="wav_sound")
+    ogg_sound = mocker.MagicMock(name="ogg_sound")
+    mocker.patch(
+        "sonartk.sound.sound_pool.LoadSound",
+        return_value=wav_sound,
+    )
+
+    vorbis = mocker.MagicMock()
+    vorbis.channels = 2
+    vorbis.frequency = 44100
+    vorbis.buffer = b"ogg"
+    mocker.patch("sonartk.sound.sound_pool.VorbisFile", return_value=vorbis)
+    mocker.patch(
+        "sonartk.sound.sound_pool.BufferSound",
+        return_value=ogg_sound,
+    )
+
+    loaded = sound_pool.load_many(["audio/click.wav", "audio/music.ogg"])
+
+    expected_wav_key = str(wav_path.resolve())
+    expected_ogg_key = str(ogg_path.resolve())
+    assert list(loaded.keys()) == [expected_wav_key, expected_ogg_key]
+    assert loaded[expected_wav_key] is wav_sound
+    assert loaded[expected_ogg_key] is ogg_sound
+    assert sound_pool.size == 2
+
+
+def test_load_many_reuses_cached_sounds_for_equivalent_paths(
+    mocker: MockerFixture,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test load_many dedupes through cache when paths normalize equally."""
+    audio_dir = tmp_path / "audio"
+    audio_dir.mkdir(parents=True)
+    wav_path = audio_dir / "ui.wav"
+    wav_path.touch()
+    monkeypatch.chdir(tmp_path)
+
+    sound_pool = SoundPool()
+    wav_sound = mocker.MagicMock()
+    load_sound = mocker.patch(
+        "sonartk.sound.sound_pool.LoadSound",
+        return_value=wav_sound,
+    )
+
+    loaded = sound_pool.load_many(["audio/ui.wav", "./audio/../audio/ui.wav"])
+
+    expected_key = str(wav_path.resolve())
+    load_sound.assert_called_once_with(expected_key)
+    assert list(loaded.keys()) == [expected_key]
+    assert loaded[expected_key] is wav_sound
+    assert sound_pool.get_stats()["hits"] == 1
+    assert sound_pool.get_stats()["misses"] == 1
+
+
+def test_load_many_raises_and_keeps_previously_loaded_items_cached(
+    mocker: MockerFixture, tmp_path: Path
+) -> None:
+    """Test load_many stops on first error while preserving prior successful loads."""
+    audio_dir = tmp_path / "audio"
+    audio_dir.mkdir(parents=True)
+    wav_path = audio_dir / "ok.wav"
+    wav_path.touch()
+
+    sound_pool = SoundPool(base_path=tmp_path)
+    wav_sound = mocker.MagicMock()
+    mocker.patch("sonartk.sound.sound_pool.LoadSound", return_value=wav_sound)
+
+    with pytest.raises(UnsupportedAudioFormatError):
+        sound_pool.load_many(["audio/ok.wav", "audio/not-supported.mp3"])
+
+    expected_key = str(wav_path.resolve())
+    assert sound_pool.pool == {expected_key: wav_sound}
+
+
 # unload Tests
 
 

@@ -5,6 +5,9 @@ from pyglet.window import key
 
 EXAMPLE_DIR = Path(__file__).resolve().parent
 PROJECT_SRC = EXAMPLE_DIR.parents[1] / "src"
+AUDIO_DIR = EXAMPLE_DIR / "audio"
+SFX_DIR = AUDIO_DIR / "sfx"
+MUSIC_DIR = AUDIO_DIR / "music"
 sys.path.insert(0, str(PROJECT_SRC))
 
 from sonartk.orchestration.game_builder import MapGridGameBuilder  # noqa: E402
@@ -43,14 +46,14 @@ TILE_REFERENCE: dict[str, MapTile] = {
 }
 
 SOUND_MAP = {
-    "path": str(EXAMPLE_DIR / "step_dirt.wav"),
-    "wall": str(EXAMPLE_DIR / "wall.wav"),
+    "path": str(SFX_DIR / "step_dirt.wav"),
+    "wall": str(SFX_DIR / "wall.wav"),
 }
-INTRO_SOUND = str(EXAMPLE_DIR / "intro.wav")
-MUSIC_SOUND = str(EXAMPLE_DIR / "music.wav")
-COIN_SOUND = str(EXAMPLE_DIR / "coin.wav")
-PICKUP_SOUND = str(EXAMPLE_DIR / "pickup.wav")
-REWARD_SOUND = str(EXAMPLE_DIR / "reward.wav")
+INTRO_SOUND = str(SFX_DIR / "intro.wav")
+MUSIC_SOUND = str(MUSIC_DIR / "music.wav")
+COIN_SOUND = str(SFX_DIR / "coin.wav")
+PICKUP_SOUND = str(SFX_DIR / "pickup.wav")
+REWARD_SOUND = str(SFX_DIR / "reward.wav")
 MAP_SFX_VOLUME = 1.0
 MUSIC_TO_SFX_VOLUME_RATIO = 0.14
 MUSIC_FADE_DURATION_SECONDS = 1.5
@@ -64,7 +67,21 @@ class Coin(MapObject):
     pass
 
 
+def preload_audio_assets() -> None:
+    required_sound_paths = {
+        *SOUND_MAP.values(),
+        INTRO_SOUND,
+        MUSIC_SOUND,
+        COIN_SOUND,
+        PICKUP_SOUND,
+        REWARD_SOUND,
+    }
+    sound_manager.preload_sounds(required_sound_paths)
+
+
 def main() -> None:
+    preload_audio_assets()
+
     start_coordinates = (1, 9)
     character: Character = Character(
         "Test Character", start_coordinates, Direction.DOWN

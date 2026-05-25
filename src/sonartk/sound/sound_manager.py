@@ -1,5 +1,5 @@
 import time
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 import pyglet.clock
 
@@ -95,6 +95,12 @@ class SoundManager:
     def stop_music(self) -> None:
         """Stop playback of the current music track."""
         self.music_player.stop()
+
+    def preload_sounds(
+        self, paths: Iterable[str]
+    ) -> dict[str, LoadSound | BufferSound]:
+        """Preload multiple sounds into the shared sound pool cache."""
+        return self.sound_pool.load_many(paths)
 
     def play_sound(
         self,
@@ -381,6 +387,12 @@ def play_sound(
         on_complete=on_complete,
         completion_poll_interval_seconds=completion_poll_interval_seconds,
     )
+
+
+def preload_sounds(paths: Iterable[str]) -> dict[str, LoadSound | BufferSound]:
+    """Preload multiple sounds into the shared module-level sound pool."""
+    _sync_default_manager_from_module()
+    return _default_manager.preload_sounds(paths)
 
 
 def clamp_volume(value: float) -> float:

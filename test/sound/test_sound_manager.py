@@ -768,3 +768,43 @@ def test_sound_manager_instance_play_sound_uses_injected_pools(
     sound_pool.load.assert_called_once_with("sfx/select.wav")
     player_pool.get_player.assert_called_once()
     assert player.position == (7, 8, 9)
+
+
+def test_sound_manager_instance_preload_sounds_uses_injected_pool(
+    mocker: MockerFixture,
+) -> None:
+    """Test SoundManager.preload_sounds delegates to injected sound_pool."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    expected = {"/abs/audio/a.wav": object()}
+    sound_pool.load_many.return_value = expected
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    result = manager.preload_sounds(["audio/a.wav"])
+
+    assert result is expected
+    sound_pool.load_many.assert_called_once_with(["audio/a.wav"])
+
+
+def test_module_preload_sounds_delegates_to_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    """Test module-level preload_sounds forwards to default manager."""
+    manager = mocker.MagicMock()
+    expected = {"/abs/audio/click.wav": object()}
+    manager.preload_sounds.return_value = expected
+    mocker.patch.object(sound_manager, "_default_manager", manager)
+
+    paths = ["audio/click.wav", "audio/music.ogg"]
+    result = sound_manager.preload_sounds(paths)
+
+    assert result is expected
+    manager.preload_sounds.assert_called_once_with(paths)

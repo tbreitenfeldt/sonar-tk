@@ -794,6 +794,50 @@ def test_sound_manager_instance_preload_sounds_uses_injected_pool(
     sound_pool.load_many.assert_called_once_with(["audio/a.wav"])
 
 
+def test_sound_manager_instance_allocate_players_by_role(
+    mocker: MockerFixture,
+) -> None:
+    """Test role-based player allocation uses injected player pool."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    player_a = mocker.MagicMock()
+    player_b = mocker.MagicMock()
+    player_pool.get_player.side_effect = [player_a, player_b]
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    allocated = manager.allocate_players_by_role(["nav", "ambient"])
+
+    assert allocated == {"nav": player_a, "ambient": player_b}
+    assert player_pool.get_player.call_count == 2
+
+
+def test_sound_manager_instance_allocate_players_by_role_rejects_duplicates(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    with pytest.raises(ValueError, match="Duplicate role name"):
+        manager.allocate_players_by_role(["nav", "nav"])
+
+
 def test_module_preload_sounds_delegates_to_default_manager(
     mocker: MockerFixture,
 ) -> None:
@@ -808,3 +852,17 @@ def test_module_preload_sounds_delegates_to_default_manager(
 
     assert result is expected
     manager.preload_sounds.assert_called_once_with(paths)
+
+
+def test_module_allocate_players_by_role_delegates_to_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    manager = mocker.MagicMock()
+    expected = {"nav": mocker.MagicMock()}
+    manager.allocate_players_by_role.return_value = expected
+    mocker.patch.object(sound_manager, "_default_manager", manager)
+
+    result = sound_manager.allocate_players_by_role(["nav"])
+
+    assert result is expected
+    manager.allocate_players_by_role.assert_called_once_with(["nav"])

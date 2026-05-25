@@ -20,7 +20,12 @@ from sonartk.map_builder.map_2d.map_object.character import (  # noqa: E402
 )
 from sonartk.map_builder.map_2d.map_object import MapObject  # noqa: E402
 from sonartk.orchestration.map_sound_navigation import (  # noqa: E402
+    AmbientTileSoundConfig,
     MapSoundNavigationController,
+    TerrainAudioProfile,
+)
+from sonartk.orchestration.audio_lifecycle import (  # noqa: E402
+    IntroGameAudioLifecycle,
 )
 from sonartk.orchestration.scene_audio_state import (  # noqa: E402
     SceneAudioState,
@@ -40,20 +45,12 @@ from sonartk.util import Direction, speech_manager  # noqa: E402
 from sonartk.sound import sound_manager  # noqa: E402
 from sonartk.sound.openal_lite.openal import Player  # noqa: E402
 
-TILE_REFERENCE: dict[str, MapTile] = {
-    "0": MapTile("path"),
-    "1": MapTile("wall", is_passable=False),
-}
-
-SOUND_MAP = {
-    "path": str(SFX_DIR / "step_dirt.wav"),
-    "wall": str(SFX_DIR / "wall.wav"),
-}
 INTRO_SOUND = str(SFX_DIR / "intro.wav")
 MUSIC_SOUND = str(MUSIC_DIR / "music.wav")
 COIN_SOUND = str(SFX_DIR / "coin.wav")
 PICKUP_SOUND = str(SFX_DIR / "pickup.wav")
 REWARD_SOUND = str(SFX_DIR / "reward.wav")
+RIVER_AMBIENT_SOUND = str(SFX_DIR / "river.wav")
 MAP_SFX_VOLUME = 1.0
 MUSIC_TO_SFX_VOLUME_RATIO = 0.14
 MUSIC_FADE_DURATION_SECONDS = 1.5
@@ -61,6 +58,58 @@ MUSIC_FADE_STEP_SECONDS = 0.05
 MUSIC_VOLUME_STEP = 0.1
 SFX_VOLUME_STEP = 0.1
 COIN_COUNT = 3
+RIVER_HEARING_DISTANCE_TILES = 3
+RIVER_AMBIENT_VOLUME = 0.7
+RIVER_AMBIENT_ROLLOFF = 1.5
+RIVER_MIN_VOLUME_AT_MAX_DISTANCE = 0.18
+RIVER_DISTANCE_CURVE_EXPONENT = 2.2
+
+TERRAIN_AUDIO_PROFILES: dict[str, TerrainAudioProfile] = {
+    "path": TerrainAudioProfile(
+        is_passable=True,
+        movement_sound_file=str(SFX_DIR / "step_dirt.wav"),
+    ),
+    "mud": TerrainAudioProfile(
+        is_passable=True,
+        movement_sound_file=str(SFX_DIR / "mud.wav"),
+    ),
+    "wall": TerrainAudioProfile(
+        is_passable=False,
+        movement_sound_file=str(SFX_DIR / "wall.wav"),
+    ),
+    "river": TerrainAudioProfile(
+        is_passable=False,
+        movement_sound_file=str(SFX_DIR / "wall.wav"),
+        ambient_sound=AmbientTileSoundConfig(
+            sound_file=RIVER_AMBIENT_SOUND,
+            max_distance_tiles=RIVER_HEARING_DISTANCE_TILES,
+            volume=RIVER_AMBIENT_VOLUME,
+            rolloff=RIVER_AMBIENT_ROLLOFF,
+            loop=True,
+            min_volume_at_max_distance=RIVER_MIN_VOLUME_AT_MAX_DISTANCE,
+            distance_curve_exponent=RIVER_DISTANCE_CURVE_EXPONENT,
+        ),
+    ),
+}
+
+MAP_VALUE_TO_TERRAIN_NAME: dict[str, str] = {
+    "0": "path",
+    "1": "wall",
+    "2": "river",
+    "3": "mud",
+}
+
+TILE_REFERENCE = (
+    MapSoundNavigationController.build_tile_reference_from_profiles(
+        MAP_VALUE_TO_TERRAIN_NAME,
+        TERRAIN_AUDIO_PROFILES,
+    )
+)
+SOUND_MAP, AMBIENT_SOUND_MAP = (
+    MapSoundNavigationController.build_audio_maps_from_profiles(
+        TERRAIN_AUDIO_PROFILES
+    )
+)
 
 
 class Coin(MapObject):
@@ -75,6 +124,7 @@ def preload_audio_assets() -> None:
         COIN_SOUND,
         PICKUP_SOUND,
         REWARD_SOUND,
+        RIVER_AMBIENT_SOUND,
     }
     sound_manager.preload_sounds(required_sound_paths)
 
@@ -82,21 +132,31 @@ def preload_audio_assets() -> None:
 def main() -> None:
     preload_audio_assets()
 
-    start_coordinates = (1, 9)
+    start_coordinates = (1, 2)
     character: Character = Character(
         "Test Character", start_coordinates, Direction.DOWN
     )
-    (
-        map_navigation_player,
-        coin_player,
-        pickup_player,
-        reward_player,
-        intro_player,
-    ) = allocate_players()
+    players = sound_manager.allocate_players_by_role(
+        [
+            "map_navigation",
+            "ambient_river",
+            "coin",
+            "pickup",
+            "reward",
+            "intro",
+        ]
+    )
+    map_navigation_player = players["map_navigation"]
+    ambient_river_player = players["ambient_river"]
+    coin_player = players["coin"]
+    pickup_player = players["pickup"]
+    reward_player = players["reward"]
+    intro_player = players["intro"]
     sound_manager.set_sfx_volume(
         MAP_SFX_VOLUME,
         players=[
             map_navigation_player,
+            ambient_river_player,
             coin_player,
             pickup_player,
             reward_player,
@@ -121,10 +181,12 @@ def main() -> None:
         excluded_coordinates={start_coordinates},
         object_label="coins",
     )
-    map_navigation = MapSoundNavigationController(
+    map_navigation = MapSoundNavigationController.from_terrain_audio_profiles(
         map2d=builder.map2d,
-        sound_map=SOUND_MAP,
+        terrain_audio_profiles=TERRAIN_AUDIO_PROFILES,
         player=map_navigation_player,
+        ambient_player=ambient_river_player,
+        validate_sound_map=True,
     )
 
     def on_navigation_with_coins(
@@ -219,11 +281,30 @@ def main() -> None:
             fade_step_seconds=MUSIC_FADE_STEP_SECONDS,
         )
 
+    def stop_intro_audio() -> None:
+        ambient_river_player.stop()
+        ambient_river_player.remove()
+
+    def start_game_ambience() -> None:
+        map_navigation.update_ambient_sound(
+            builder.map2d.character.coordinates
+        )
+
+    def reset_for_intro() -> None:
+        audio_lifecycle.prepare_intro()
+        reset_game()
+
+    audio_lifecycle = IntroGameAudioLifecycle(
+        stop_intro_audio=stop_intro_audio,
+        start_game_music=start_music_after_intro,
+        start_game_ambience=start_game_ambience,
+    )
+
     register_game_states(
         window,
         intro_player,
-        reset_game,
-        start_music_after_intro,
+        reset_for_intro,
+        audio_lifecycle,
     )
 
     sound_manager.listener.position = as_listener_position(
@@ -252,21 +333,11 @@ def tile_mapper(map_value: str) -> MapTile:
     return TILE_REFERENCE[map_value]
 
 
-def allocate_players() -> tuple[Player, Player, Player, Player, Player]:
-    return (
-        sound_manager.player_pool.get_player(),
-        sound_manager.player_pool.get_player(),
-        sound_manager.player_pool.get_player(),
-        sound_manager.player_pool.get_player(),
-        sound_manager.player_pool.get_player(),
-    )
-
-
 def register_game_states(
     window: Window,
     intro_player: Player,
-    reset_game: Callable[[], None],
-    start_music_after_intro: Callable[[], None],
+    reset_for_intro: Callable[[], None],
+    audio_lifecycle: IntroGameAudioLifecycle,
 ) -> None:
     intro_state = SceneAudioState(
         window=window,
@@ -274,14 +345,14 @@ def register_game_states(
         scene_player=intro_player,
         next_state_key="main",
         continue_keys=[key.ENTER],
-        on_continue=start_music_after_intro,
+        on_continue=audio_lifecycle.start_game_audio,
     )
     won_state = MessageActionState(
         window=window,
         message="You collected all the coins and won the game. Press Enter to restart.",
         continue_keys=[key.ENTER],
         next_state_key="intro",
-        on_continue=reset_game,
+        on_continue=reset_for_intro,
     )
     window.add("intro", intro_state)
     window.add("won", won_state)

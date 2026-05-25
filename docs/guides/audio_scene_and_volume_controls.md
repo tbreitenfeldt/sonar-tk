@@ -2,6 +2,86 @@
 
 This guide shows a reusable intro/cutscene flow and runtime volume controls using the orchestration and sound APIs.
 
+## Terrain Audio Profiles And Validation
+
+Use `TerrainAudioProfile` to keep tile passability, movement audio, and
+ambient audio in one place. Build `MapSoundNavigationController` directly from
+profiles and validate map coverage at startup.
+
+```python
+from sonartk.orchestration import (
+    AmbientTileSoundConfig,
+    MapSoundNavigationController,
+    TerrainAudioProfile,
+)
+
+terrain_audio_profiles = {
+    "path": TerrainAudioProfile(
+        is_passable=True,
+        movement_sound_file="audio/sfx/step_dirt.wav",
+    ),
+    "mud": TerrainAudioProfile(
+        is_passable=True,
+        movement_sound_file="audio/sfx/mud.wav",
+    ),
+    "wall": TerrainAudioProfile(
+        is_passable=False,
+        movement_sound_file="audio/sfx/wall.wav",
+    ),
+    "river": TerrainAudioProfile(
+        is_passable=False,
+        movement_sound_file="audio/sfx/wall.wav",
+        ambient_sound=AmbientTileSoundConfig(
+            sound_file="audio/sfx/river.wav",
+            max_distance_tiles=3,
+            volume=0.7,
+            rolloff=1.5,
+            min_volume_at_max_distance=0.18,
+            distance_curve_exponent=2.2,
+        ),
+    ),
+}
+
+controller = MapSoundNavigationController.from_terrain_audio_profiles(
+    map2d=map2d,
+    terrain_audio_profiles=terrain_audio_profiles,
+    player=movement_player,
+    ambient_player=ambient_player,
+    validate_sound_map=True,
+)
+```
+
+Validation catches:
+- Missing movement sounds for passable map tiles.
+- Missing required `wall` collision mapping.
+- Ambient tile names that are not present in the map.
+
+## Intro-To-Game Audio Lifecycle
+
+`IntroGameAudioLifecycle` provides a reusable pattern for keeping intro scenes
+quiet and starting game music + ambience together on transition.
+
+```python
+from sonartk.orchestration import IntroGameAudioLifecycle
+
+
+def stop_intro_audio() -> None:
+    ambient_player.stop()
+    ambient_player.remove()
+
+audio_lifecycle = IntroGameAudioLifecycle(
+    stop_intro_audio=stop_intro_audio,
+    start_game_music=start_music,
+    start_game_ambience=start_ambience,
+)
+
+# Before intro: silence long-running ambience.
+audio_lifecycle.prepare_intro()
+
+# On intro continue: start game audio layers together.
+audio_lifecycle.start_game_audio()
+```
+
 ## Preload Audio Assets At Startup
 
 Preloading avoids first-play latency during gameplay and validates asset paths
@@ -98,6 +178,23 @@ Default bindings:
 - `Shift+F6`: sfx down
 
 If `couple_music_to_sfx_ratio` is set, SFX changes also update music volume using `sfx * ratio`.
+
+## Allocate Players By Role
+
+Avoid positional tuples when multiple players are needed. Allocate named roles
+through `sound_manager.allocate_players_by_role(...)`.
+
+```python
+from sonartk.sound import sound_manager
+
+players = sound_manager.allocate_players_by_role(
+    ["map_navigation", "ambient_river", "coin", "pickup", "reward", "intro"]
+)
+
+map_navigation_player = players["map_navigation"]
+ambient_player = players["ambient_river"]
+intro_player = players["intro"]
+```
 
 ## Useful Sound Manager Helpers
 

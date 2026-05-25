@@ -83,7 +83,7 @@ The following exports are the intended stable import surface:
 - sonartk.map_builder.map_2d: Map2d, Map2dQueries, MapQueryResult, PathfindingResult, PathfindingState, MapTile, load_2d_map
 - sonartk.map_builder.map_2d.map_object: MapObject, Character
 - sonartk.map_builder.map_2d.parser: MapParser, CSVParser, JSONParser
-- sonartk.orchestration: BuiltMapGridGame, MapGridGameBuilder, MapSoundNavigationController
+- sonartk.orchestration: AmbientTileSoundConfig, IntroGameAudioLifecycle, TerrainAudioProfile, BuiltMapGridGame, MapGridGameBuilder, MapSoundNavigationController
 - sonartk.sound: sound_manager
 - sonartk.util: Callback, Coordinates, Direction, EmptyState, Key,
   KeyHandler, State, StateMachine, speech_manager
@@ -95,8 +95,24 @@ runtime latency and fail early on missing/invalid files.
 
 - `sound_manager.preload_sounds(paths)`: preload through the shared default
     sound manager.
+- `sound_manager.allocate_players_by_role(role_names)`: allocate named players
+    for gameplay roles without positional tuple wiring.
 - `SoundPool.load_many(paths)`: lower-level preload API when managing your own
     `SoundPool` instance.
+
+## New Orchestration Audio APIs
+
+- `TerrainAudioProfile`: unify passability + movement + ambient terrain audio.
+- `MapSoundNavigationController.from_terrain_audio_profiles(...)`: build
+    movement + ambient controller directly from terrain profiles.
+- `MapSoundNavigationController.validate_sound_map_for_map()`: fail fast on
+    missing movement/collision mappings.
+- `IntroGameAudioLifecycle`: reusable intro-to-game audio transition helper.
+
+## Map Terrain Utility
+
+- `sonartk.map_builder.map_2d.map_tools.mark_adjacent_tiles(...)`: generic
+    terrain post-processing helper (for example, mark mud banks around rivers).
 
 If you need symbols outside this list, import from the concrete module path
 and treat those imports as lower-level/internal APIs.

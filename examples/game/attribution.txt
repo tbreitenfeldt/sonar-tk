@@ -1,15 +1,23 @@
 Audio Attributions
 
-music.wav -- New Planet Explorer by SergeQuadrado -- https://freesound.org/s/670096/ -- License: Attribution NonCommercial 4.0
+audio/music/music.wav
+New Planet Explorer by SergeQuadrado -- https://freesound.org/s/670096/ -- License: Attribution NonCommercial 4.0
 
-reward.wav - Game Reward by IENBA -- https://freesound.org/s/656643/ -- License: Creative Commons 0
+audio/sfx/reward.wav
+Game Reward by IENBA -- https://freesound.org/s/656643/ -- License: Creative Commons 0
 
-  * intro.wav -- 853656__coghezzi__sacred-rune-lock-holy-magic-seal-activation.wav
+audio/sfx/intro.wav
+853656__coghezzi__sacred-rune-lock-holy-magic-seal-activation.wav
     * url: https://freesound.org/s/853656/
     * license: Attribution 4.0
 
-  * coin.wav - 614069__stormwaveaudio__coins-14.wav
+audio/sfx/coin.wav
+614069__stormwaveaudio__coins-14.wav
     * url: https://freesound.org/s/614069/
     * license: Attribution NonCommercial 4.0
 
-pickup.wav - Synth glockenspiel bell item money gold coin pick up.wav by ryusa -- https://freesound.org/s/531175/ -- License: Attribution 4.0
+audio/sfx/pickup.wav
+Synth glockenspiel bell item money gold coin pick up.wav by ryusa -- https://freesound.org/s/531175/ -- License: Attribution 4.0
+
+audio/sfx/river.wav
+River layers 03 by hidetora -- https://freesound.org/s/828410/ -- License: Creative Commons 0

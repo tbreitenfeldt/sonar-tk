@@ -15,6 +15,10 @@
 
 ::: sonartk.orchestration.map_sound_navigation
 
+## audio_lifecycle
+
+::: sonartk.orchestration.audio_lifecycle
+
 ## map_object_collection
 
 ::: sonartk.orchestration.map_object_collection

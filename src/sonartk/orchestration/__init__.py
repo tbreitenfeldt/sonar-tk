@@ -2,6 +2,9 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any
 
 __all__ = [
+    "AmbientTileSoundConfig",
+    "IntroGameAudioLifecycle",
+    "TerrainAudioProfile",
     "bind_volume_hotkeys",
     "BuiltMapGridGame",
     "MapObjectCollectionSession",
@@ -17,8 +20,11 @@ if TYPE_CHECKING:
         MapGridGameBuilder,
     )
     from sonartk.orchestration.map_sound_navigation import (
+        AmbientTileSoundConfig,
         MapSoundNavigationController,
+        TerrainAudioProfile,
     )
+    from sonartk.orchestration.audio_lifecycle import IntroGameAudioLifecycle
     from sonartk.orchestration.map_object_collection import (
         MapObjectCollectionSession,
     )
@@ -40,8 +46,15 @@ def __getattr__(name: str) -> Any:
     if name == "MessageActionState":
         module = import_module("sonartk.orchestration.message_action_state")
         return getattr(module, name)
-    if name == "MapSoundNavigationController":
+    if name in {
+        "MapSoundNavigationController",
+        "AmbientTileSoundConfig",
+        "TerrainAudioProfile",
+    }:
         module = import_module("sonartk.orchestration.map_sound_navigation")
+        return getattr(module, name)
+    if name == "IntroGameAudioLifecycle":
+        module = import_module("sonartk.orchestration.audio_lifecycle")
         return getattr(module, name)
     if name == "SceneAudioState":
         module = import_module("sonartk.orchestration.scene_audio_state")

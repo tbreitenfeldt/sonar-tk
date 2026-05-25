@@ -102,6 +102,20 @@ class SoundManager:
         """Preload multiple sounds into the shared sound pool cache."""
         return self.sound_pool.load_many(paths)
 
+    def allocate_players_by_role(
+        self, role_names: Iterable[str]
+    ) -> dict[str, Player]:
+        """Allocate and return players keyed by caller-provided role names."""
+        players: dict[str, Player] = {}
+        for role_name in role_names:
+            normalized = role_name.strip()
+            if normalized == "":
+                raise ValueError("role_names cannot include empty names")
+            if normalized in players:
+                raise ValueError(f"Duplicate role name: '{normalized}'")
+            players[normalized] = self.player_pool.get_player()
+        return players
+
     def play_sound(
         self,
         sound: str | LoadSound | BufferSound,
@@ -393,6 +407,12 @@ def preload_sounds(paths: Iterable[str]) -> dict[str, LoadSound | BufferSound]:
     """Preload multiple sounds into the shared module-level sound pool."""
     _sync_default_manager_from_module()
     return _default_manager.preload_sounds(paths)
+
+
+def allocate_players_by_role(role_names: Iterable[str]) -> dict[str, Player]:
+    """Allocate named players from the shared module-level player pool."""
+    _sync_default_manager_from_module()
+    return _default_manager.allocate_players_by_role(role_names)
 
 
 def clamp_volume(value: float) -> float:

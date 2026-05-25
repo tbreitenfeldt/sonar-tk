@@ -9,8 +9,11 @@ from sonartk.orchestration.game_builder import (
     MapGridGameBuilder,
 )
 from sonartk.orchestration.map_sound_navigation import (
+    AmbientTileSoundConfig,
     MapSoundNavigationController,
+    TerrainAudioProfile,
 )
+from sonartk.orchestration.audio_lifecycle import IntroGameAudioLifecycle
 from sonartk.orchestration.map_object_collection import (
     MapObjectCollectionSession,
 )
@@ -37,6 +40,9 @@ def test_top_level_exports_are_explicit() -> None:
 
 def test_orchestration_exports_are_explicit() -> None:
     assert sonartk.orchestration.__all__ == [
+        "AmbientTileSoundConfig",
+        "IntroGameAudioLifecycle",
+        "TerrainAudioProfile",
         "bind_volume_hotkeys",
         "BuiltMapGridGame",
         "MapObjectCollectionSession",
@@ -45,6 +51,14 @@ def test_orchestration_exports_are_explicit() -> None:
         "MapSoundNavigationController",
         "SceneAudioState",
     ]
+    assert (
+        sonartk.orchestration.AmbientTileSoundConfig is AmbientTileSoundConfig
+    )
+    assert (
+        sonartk.orchestration.IntroGameAudioLifecycle
+        is IntroGameAudioLifecycle
+    )
+    assert sonartk.orchestration.TerrainAudioProfile is TerrainAudioProfile
     assert sonartk.orchestration.bind_volume_hotkeys is bind_volume_hotkeys
     assert sonartk.orchestration.BuiltMapGridGame is BuiltMapGridGame
     assert (

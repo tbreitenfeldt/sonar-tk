@@ -239,45 +239,38 @@ class MapSoundNavigationController:
         Returns True when the event should be handled (blocked movement), and
         False when grid navigation should continue.
         """
-        is_handled = False
+        self.map2d.character.directional_orientation = direction
+        new_coordinates, tile = grid.get_next_cell(direction)
+        if tile is None:
+            if self.on_move_blocked is not None:
+                self.on_move_blocked(direction)
+            return True
 
-        try:
-            self.map2d.character.directional_orientation = direction
-            new_coordinates, tile = grid.get_next_cell(direction)
-            if tile is None:
-                if self.on_move_blocked is not None:
-                    self.on_move_blocked(direction)
-                return True
+        new_position = self.position_resolver(new_coordinates)
+        sound_file = self.sound_map[tile.name]
 
-            new_position = self.position_resolver(new_coordinates)
-            sound_file = self.sound_map[tile.name]
+        if tile.is_passable:
+            # Replacement policy may return a displaced character; navigation
+            # intentionally ignores that value and only advances the active
+            # player character.
+            _ = self.map2d.move_character(
+                self.map2d.character, new_coordinates
+            )
+            self.sound_service.listener.position = new_position
+            self.sound_service.play_sound(
+                sound_file,
+                position=new_position,
+                player=self.player,
+            )
+            self.update_ambient_sound(new_coordinates)
+            if self.on_move_success is not None:
+                self.on_move_success(new_coordinates, tile)
+            return False
 
-            if tile.is_passable:
-                # Replacement policy may return a displaced character; navigation
-                # intentionally ignores that value and only advances the active
-                # player character.
-                _ = self.map2d.move_character(
-                    self.map2d.character, new_coordinates
-                )
-                self.sound_service.listener.position = new_position
-                self.sound_service.play_sound(
-                    sound_file,
-                    position=new_position,
-                    player=self.player,
-                )
-                self.update_ambient_sound(new_coordinates)
-                if self.on_move_success is not None:
-                    self.on_move_success(new_coordinates, tile)
-                is_handled = False
-            else:
-                self.play_blocked_sound(grid, direction)
-                if self.on_move_blocked is not None:
-                    self.on_move_blocked(direction)
-                is_handled = True
-        except KeyError:
-            pass
-
-        return is_handled
+        self.play_blocked_sound(grid, direction)
+        if self.on_move_blocked is not None:
+            self.on_move_blocked(direction)
+        return True
 
     def on_border(self, grid: Grid[MapTile], direction: Direction) -> bool:
         """Play a border collision sound.
@@ -290,17 +283,14 @@ class MapSoundNavigationController:
         self, grid: Grid[MapTile], direction: Direction
     ) -> bool:
         """Play a blocked collision sound from the next tile position."""
-        try:
-            sound_file = self.sound_map[self.blocked_tile_sound_name]
-            next_coordinates, _ = grid.get_next_cell(direction)
-            self.sound_service.play_sound(
-                sound_file,
-                position=self.position_resolver(next_coordinates),
-                player=self.player,
-            )
-            return True
-        except KeyError:
-            return False
+        sound_file = self.sound_map[self.blocked_tile_sound_name]
+        next_coordinates, _ = grid.get_next_cell(direction)
+        self.sound_service.play_sound(
+            sound_file,
+            position=self.position_resolver(next_coordinates),
+            player=self.player,
+        )
+        return True
 
     def play_wall_sound(
         self, grid: Grid[MapTile], direction: Direction

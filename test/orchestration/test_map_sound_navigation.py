@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+import pytest
+
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.orchestration.map_sound_navigation import (
     AmbientTileSoundConfig,
@@ -172,7 +174,7 @@ def test_on_navigation_handles_none_tile_as_border() -> None:
     assert sound_service.play_calls == []
 
 
-def test_on_border_returns_false_when_wall_sound_is_missing() -> None:
+def test_on_border_raises_when_wall_sound_is_missing() -> None:
     map2d = _FakeMap2D()
     sound_service = _FakeSoundService()
     player = object()
@@ -189,10 +191,31 @@ def test_on_border_returns_false_when_wall_sound_is_missing() -> None:
         sound_service=sound_service,  # type: ignore[arg-type]
     )
 
-    is_handled = controller.on_border(grid, Direction.DOWN)  # type: ignore[arg-type]
+    with pytest.raises(KeyError):
+        controller.on_border(grid, Direction.DOWN)  # type: ignore[arg-type]
 
-    assert is_handled is False
     assert sound_service.play_calls == []
+
+
+def test_on_navigation_raises_when_tile_sound_is_missing() -> None:
+    map2d = _FakeMap2D()
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(1, 1),
+        next_coordinates=(2, 1),
+        next_tile=MapTile("path", is_passable=True),
+    )
+
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"wall": "wall.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+    )
+
+    with pytest.raises(KeyError):
+        controller.on_navigation(grid, Direction.RIGHT)  # type: ignore[arg-type]
 
 
 def test_custom_position_resolver_is_used_for_sound_position() -> None:

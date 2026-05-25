@@ -314,6 +314,25 @@ def test_required_coordinates_and_coordinate_predicate_filters() -> None:
     assert gem_coordinates == {(2, 0), (2, 1)}
 
 
+def test_required_coordinates_rejects_out_of_range_values() -> None:
+    map2d = _make_map()
+
+    with pytest.raises(ValueError, match="required_coordinates"):
+        MapObjectCollectionSession[Gem](
+            map2d,
+            object_count=1,
+            object_type=Gem,
+            object_factory=lambda index, coordinates: Gem(
+                f"gem-{index}",
+                coordinates,
+                power=1,
+            ),
+            required_coordinates={(2, 2), (3, 2)},
+            object_label="gems",
+            rng=random.Random(1),
+        )
+
+
 def test_transactional_reset_rolls_back_on_factory_failure() -> None:
     map2d = _make_map()
     session = MapObjectCollectionSession[Gem](

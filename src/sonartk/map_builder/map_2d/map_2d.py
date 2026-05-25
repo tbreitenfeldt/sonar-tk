@@ -99,6 +99,7 @@ class Map2d:
 
     def register_character(self, character: Character) -> Optional[Character]:
         """Register a character and return any displaced occupant at that coordinate."""
+        self._validate_coordinate_for_registration(character.coordinates)
         displaced = self._ensure_character_slot_available(
             character.coordinates, character
         )
@@ -109,6 +110,7 @@ class Map2d:
         self, character: Character, new_coordinates: Coordinates
     ) -> Optional[Character]:
         """Move a character and return any displaced occupant at destination."""
+        self._validate_coordinate_for_registration(new_coordinates)
         current_coordinates = character.coordinates
         if self._character_index.get(current_coordinates) is not character:
             raise LookupError(
@@ -138,6 +140,7 @@ class Map2d:
         self, map_object: MapObject
     ) -> Optional[MapObject]:
         """Register a map object and return any displaced occupant at that coordinate."""
+        self._validate_coordinate_for_registration(map_object.coordinates)
         displaced = self._ensure_object_slot_available(
             map_object.coordinates, map_object
         )
@@ -148,6 +151,7 @@ class Map2d:
         self, map_object: MapObject, new_coordinates: Coordinates
     ) -> Optional[MapObject]:
         """Move a map object and return any displaced occupant at destination."""
+        self._validate_coordinate_for_registration(new_coordinates)
         current_coordinates = map_object.coordinates
         if self._object_index.get(current_coordinates) is not map_object:
             raise LookupError(
@@ -218,6 +222,24 @@ class Map2d:
         raise ValueError(
             f"Character coordinate collision at {coordinates} for '{character.name}'."
         )
+
+    def _validate_coordinate_for_registration(
+        self, coordinates: Coordinates
+    ) -> None:
+        """Validate coordinates when map dimensions are known.
+
+        Map entities are constructed before rows are loaded in many flows, so
+        bounds checks are deferred until width/height are available.
+        """
+        if self.width == 0 or self.height == 0:
+            return
+
+        x, y = coordinates
+        if x < 0 or y < 0 or x >= self.width or y >= self.height:
+            raise ValueError(
+                "Coordinates out of map bounds: "
+                f"{coordinates} for map size ({self.width}, {self.height})."
+            )
 
     def _ensure_object_slot_available(
         self, coordinates: Coordinates, map_object: MapObject

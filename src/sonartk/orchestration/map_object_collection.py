@@ -42,6 +42,7 @@ class MapObjectCollectionSession(Generic[TMapObject]):
         self.excluded_coordinates = set(excluded_coordinates or set())
         self.forbidden_coordinates = set(forbidden_coordinates or set())
         self.required_coordinates = set(required_coordinates or set())
+        self._validate_required_coordinates_in_bounds()
         self.coordinate_predicate = coordinate_predicate
         self.object_label = object_label
         self.rng = rng
@@ -145,7 +146,7 @@ class MapObjectCollectionSession(Generic[TMapObject]):
         passable_coordinates = [
             (x, y)
             for x, y in candidate_coordinates
-            if self.map2d.tile_map[(y * self.map2d.width) + x].is_passable
+            if self.map2d.get_tile((x, y)).is_passable
             and (x, y) not in forbidden_coordinates
             and (x, y) not in active_object_coordinates
             and (x, y) not in self.map2d.character_index
@@ -162,3 +163,21 @@ class MapObjectCollectionSession(Generic[TMapObject]):
 
         chooser = self.rng if self.rng is not None else random
         return set(chooser.sample(passable_coordinates, k=count))
+
+    def _validate_required_coordinates_in_bounds(self) -> None:
+        """Treat required coordinates as public API input and validate eagerly."""
+        if not self.required_coordinates:
+            return
+
+        invalid_coordinates = sorted(
+            coordinates
+            for coordinates in self.required_coordinates
+            if not self.map2d.queries.is_coordinates_in_range(coordinates)
+        )
+        if invalid_coordinates:
+            raise ValueError(
+                "required_coordinates contains out-of-range coordinates: "
+                + ", ".join(
+                    str(coordinates) for coordinates in invalid_coordinates
+                )
+            )

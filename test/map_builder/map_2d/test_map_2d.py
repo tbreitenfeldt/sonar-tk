@@ -113,6 +113,23 @@ def test_move_character_replaces_when_policy_allows() -> None:
     assert blocker.coordinates == (1, 0)
 
 
+def test_register_character_raises_for_out_of_bounds_coordinates() -> None:
+    map2d = make_map()
+    out_of_bounds = Character("ally", (3, 0), Direction.RIGHT)
+
+    with pytest.raises(ValueError, match="out of map bounds"):
+        map2d.register_character(out_of_bounds)
+
+
+def test_move_character_raises_for_out_of_bounds_destination() -> None:
+    map2d = make_map()
+    ally = Character("ally", (0, 0), Direction.RIGHT)
+    map2d.register_character(ally)
+
+    with pytest.raises(ValueError, match="out of map bounds"):
+        map2d.move_character(ally, (3, 0))
+
+
 def test_register_move_and_remove_map_object_use_entity_coordinates() -> None:
     map2d = make_map()
     obj = MapObject("switch", (1, 2))
@@ -196,6 +213,23 @@ def test_move_map_object_replaces_when_policy_allows() -> None:
     assert displaced is orb
     assert map2d.object_index[(1, 0)] is chest
     assert orb.coordinates == (1, 0)
+
+
+def test_register_map_object_raises_for_out_of_bounds_coordinates() -> None:
+    map2d = make_map()
+    obj = MapObject("switch", (3, 0))
+
+    with pytest.raises(ValueError, match="out of map bounds"):
+        map2d.register_map_object(obj)
+
+
+def test_move_map_object_raises_for_out_of_bounds_destination() -> None:
+    map2d = make_map()
+    obj = MapObject("switch", (1, 2))
+    map2d.register_map_object(obj)
+
+    with pytest.raises(ValueError, match="out of map bounds"):
+        map2d.move_map_object(obj, (3, 2))
 
 
 def test_add_row_sets_width_and_updates_height() -> None:

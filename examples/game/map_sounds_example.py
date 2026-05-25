@@ -138,6 +138,10 @@ class Coin(MapObject):
     pass
 
 
+class Monster(Character):
+    pass
+
+
 def preload_audio_assets() -> None:
     required_sound_paths = {
         *SOUND_MAP.values(),
@@ -221,6 +225,18 @@ def main() -> None:  # noqa: C901
         object_label="coins",
         excluded_coordinates={start_coordinates},
     )
+    monster_character = Monster(
+        "Monster",
+        MONSTER_TILE_COORDINATES,
+        Direction.LEFT,
+    )
+
+    def is_monster_registered() -> bool:
+        return any(
+            registered_character is monster_character
+            for registered_character in builder.map2d.character_index.values()
+        )
+
     map_navigation = MapSoundNavigationController.from_terrain_audio_profiles(
         map2d=builder.map2d,
         terrain_audio_profiles=TERRAIN_AUDIO_PROFILES,
@@ -321,6 +337,8 @@ def main() -> None:  # noqa: C901
     def close_monster_section() -> None:
         nonlocal monster_section_open
         monster_section_open = False
+        if is_monster_registered():
+            builder.map2d.remove_character(monster_character)
         builder.map2d.set_tiles(
             {
                 **{
@@ -339,6 +357,8 @@ def main() -> None:  # noqa: C901
         nonlocal monster_section_open
         monster_section_open = True
         input_gate.unlock()
+        if not is_monster_registered():
+            builder.map2d.register_character(monster_character)
         builder.map2d.set_tiles(
             {
                 **{
@@ -387,10 +407,12 @@ def main() -> None:  # noqa: C901
             builder.map2d.character.directional_orientation,
             distance=1,
         )
-        target_tile = grid.get_cell(target_coordinates)
+        target_hit = builder.map2d.queries.get_coordinate_hit(
+            target_coordinates
+        )
         if (
-            target_tile is not None
-            and target_tile.name == "monster"
+            target_hit is not None
+            and target_hit.character is monster_character
             and monster_section_open
         ):
             input_gate.lock()

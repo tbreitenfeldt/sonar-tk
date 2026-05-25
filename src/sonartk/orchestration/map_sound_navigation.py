@@ -76,6 +76,7 @@ class _SoundServiceLike(Protocol):
         volume: float = 1.0,
         rolloff: float = 0.01,
         loop: bool = False,
+        retrigger_if_same: bool = True,
     ) -> None: ...
 
 
@@ -332,6 +333,7 @@ class MapSoundNavigationController:
             volume=self._effective_ambient_volume(distance, config),
             rolloff=config.rolloff,
             loop=config.loop,
+            retrigger_if_same=False,
         )
         return True
 
@@ -353,6 +355,17 @@ class MapSoundNavigationController:
                     continue
 
                 if best is None or distance < best[2]:
+                    best = (coordinates, config, distance)
+                    continue
+
+                if distance != best[2]:
+                    continue
+
+                best_gain = self._effective_ambient_volume(best[2], best[1])
+                candidate_gain = self._effective_ambient_volume(
+                    distance, config
+                )
+                if candidate_gain > best_gain:
                     best = (coordinates, config, distance)
 
         if best is None:

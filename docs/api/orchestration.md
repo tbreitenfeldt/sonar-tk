@@ -19,6 +19,22 @@
 
 ::: sonartk.orchestration.audio_lifecycle
 
+## message_action_state
+
+::: sonartk.orchestration.message_action_state
+
+## scene_audio_state
+
+::: sonartk.orchestration.scene_audio_state
+
+## input_gate
+
+::: sonartk.orchestration.input_gate
+
+## proximity_audio
+
+::: sonartk.orchestration.proximity_audio
+
 ## map_object_collection
 
 ::: sonartk.orchestration.map_object_collection

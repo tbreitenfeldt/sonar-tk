@@ -78,6 +78,25 @@ class Map2d:
 
         return self.tile_map[y * self.width + x]
 
+    def set_tile(self, coordinates: Coordinates, tile: MapTile) -> None:
+        """Replace the tile at coordinates, raising on out-of-range access."""
+        x, y = coordinates
+        if x >= self.width or x < 0:
+            raise IndexError(
+                f"x value is out of bounds. x cannot be less than0 or greater than map width.  x: {x} - map width: {self.width}"
+            )
+        if y >= self.height or y < 0:
+            raise IndexError(
+                f"y value is out of bounds. y cannot be less than 0 or greater than map height.  y: {y} - map height: {self.height}"
+            )
+
+        self.tile_map[y * self.width + x] = tile
+
+    def set_tiles(self, updates: Mapping[Coordinates, MapTile]) -> None:
+        """Apply multiple tile replacements as a single convenience operation."""
+        for coordinates, tile in updates.items():
+            self.set_tile(coordinates, tile)
+
     def register_character(self, character: Character) -> Optional[Character]:
         """Register a character and return any displaced occupant at that coordinate."""
         displaced = self._ensure_character_slot_available(

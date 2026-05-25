@@ -573,6 +573,24 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.SoundManager.preload_sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      preload_sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.SoundManager.allocate_players_by_role" class="md-nav__link">
+    <span class="md-ellipsis">
+      allocate_players_by_role
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sonartk.sound.sound_manager.SoundManager.play_sound" class="md-nav__link">
     <span class="md-ellipsis">
       play_sound
@@ -680,6 +698,24 @@
   <a href="#sonartk.sound.sound_manager.play_sound" class="md-nav__link">
     <span class="md-ellipsis">
       play_sound
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.preload_sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      preload_sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.allocate_players_by_role" class="md-nav__link">
+    <span class="md-ellipsis">
+      allocate_players_by_role
     </span>
   </a>
   
@@ -849,6 +885,15 @@
   <a href="#sonartk.sound.sound_pool.SoundPool.load" class="md-nav__link">
     <span class="md-ellipsis">
       load
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_pool.SoundPool.load_many" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_many
     </span>
   </a>
   
@@ -1113,6 +1158,24 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.SoundManager.preload_sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      preload_sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.SoundManager.allocate_players_by_role" class="md-nav__link">
+    <span class="md-ellipsis">
+      allocate_players_by_role
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sonartk.sound.sound_manager.SoundManager.play_sound" class="md-nav__link">
     <span class="md-ellipsis">
       play_sound
@@ -1220,6 +1283,24 @@
   <a href="#sonartk.sound.sound_manager.play_sound" class="md-nav__link">
     <span class="md-ellipsis">
       play_sound
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.preload_sounds" class="md-nav__link">
+    <span class="md-ellipsis">
+      preload_sounds
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_manager.allocate_players_by_role" class="md-nav__link">
+    <span class="md-ellipsis">
+      allocate_players_by_role
     </span>
   </a>
   
@@ -1395,6 +1476,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sonartk.sound.sound_pool.SoundPool.load_many" class="md-nav__link">
+    <span class="md-ellipsis">
+      load_many
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sonartk.sound.sound_pool.SoundPool.unload" class="md-nav__link">
     <span class="md-ellipsis">
       unload
@@ -1550,7 +1640,10 @@
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -1588,7 +1681,10 @@
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -1611,6 +1707,7 @@
     <div class="doc doc-contents ">
 
 
+
         <p>Manage shared audio resources and playback operations.</p>
 
 
@@ -1621,7 +1718,10 @@
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -1645,6 +1745,7 @@
         <p>Load and play background music.</p>
 <p>Any currently playing music is stopped and replaced.</p>
 
+
     </div>
 
 </div>
@@ -1661,6 +1762,7 @@
     <div class="doc doc-contents ">
 
         <p>Pause the currently playing music track.</p>
+
 
     </div>
 
@@ -1679,6 +1781,7 @@
 
         <p>Resume playback of the paused music track.</p>
 
+
     </div>
 
 </div>
@@ -1696,6 +1799,43 @@
 
         <p>Stop playback of the current music track.</p>
 
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.sound.sound_manager.SoundManager.preload_sounds" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">preload_sounds</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Preload multiple sounds into the shared sound pool cache.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.sound.sound_manager.SoundManager.allocate_players_by_role" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">allocate_players_by_role</span><span class="p">(</span><span class="n">role_names</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Allocate and return players keyed by caller-provided role names.</p>
+
+
     </div>
 
 </div>
@@ -1704,7 +1844,7 @@
 
 
 <h4 id="sonartk.sound.sound_manager.SoundManager.play_sound" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">play_sound</span><span class="p">(</span><span class="n">sound</span><span class="p">,</span> <span class="n">player</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;sfx&#39;</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait_until_finished</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">on_complete</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">completion_poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">play_sound</span><span class="p">(</span><span class="n">sound</span><span class="p">,</span> <span class="n">player</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;sfx&#39;</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait_until_finished</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">on_complete</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">completion_poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">retrigger_if_same</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 </h4>
 
@@ -1717,6 +1857,7 @@
 Avoid this on the UI thread to prevent freezing input.</p>
 <p>If on_complete is provided, completion is detected non-blockingly via
 pyglet clock polling and callback invocation when playback stops.</p>
+
 
     </div>
 
@@ -1735,6 +1876,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Return the current volume scalar for a named channel.</p>
 
+
     </div>
 
 </div>
@@ -1751,6 +1893,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Set and return the clamped volume scalar for a named channel.</p>
+
 
     </div>
 
@@ -1769,6 +1912,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Set music channel volume and optionally fade currently playing music.</p>
 
+
     </div>
 
 </div>
@@ -1785,6 +1929,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Set sfx channel volume and optionally apply it to active players.</p>
+
 
     </div>
 
@@ -1803,6 +1948,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Apply effective sfx volume to a player using an optional base volume.</p>
 
+
     </div>
 
 </div>
@@ -1819,6 +1965,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Release all shared audio resources managed by the sound subsystem.</p>
+
 
     </div>
 
@@ -1846,6 +1993,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Load and play background music.</p>
 
+
     </div>
 
 </div>
@@ -1862,6 +2010,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Pause the currently playing music track.</p>
+
 
     </div>
 
@@ -1880,6 +2029,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Resume playback of the paused music track.</p>
 
+
     </div>
 
 </div>
@@ -1897,6 +2047,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Stop playback of the current music track.</p>
 
+
     </div>
 
 </div>
@@ -1905,7 +2056,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
 
 <h3 id="sonartk.sound.sound_manager.play_sound" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">play_sound</span><span class="p">(</span><span class="n">sound</span><span class="p">,</span> <span class="n">player</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;sfx&#39;</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait_until_finished</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">on_complete</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">completion_poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span></code>
+            <code class="highlight language-python"><span class="n">play_sound</span><span class="p">(</span><span class="n">sound</span><span class="p">,</span> <span class="n">player</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">position</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">channel</span><span class="o">=</span><span class="s1">&#39;sfx&#39;</span><span class="p">,</span> <span class="n">rolloff</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">effects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait_until_finished</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">on_complete</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">completion_poll_interval_seconds</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">retrigger_if_same</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 </h3>
 
@@ -1913,6 +2064,43 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Play a sound effect.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sonartk.sound.sound_manager.preload_sounds" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">preload_sounds</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Preload multiple sounds into the shared module-level sound pool.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="sonartk.sound.sound_manager.allocate_players_by_role" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">allocate_players_by_role</span><span class="p">(</span><span class="n">role_names</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Allocate named players from the shared module-level player pool.</p>
+
 
     </div>
 
@@ -1931,6 +2119,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Clamp a volume scalar to the supported [0.0, 1.0] range.</p>
 
+
     </div>
 
 </div>
@@ -1947,6 +2136,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Return the active volume for a named channel.</p>
+
 
     </div>
 
@@ -1965,6 +2155,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Set a named channel volume and return the clamped result.</p>
 
+
     </div>
 
 </div>
@@ -1981,6 +2172,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Set music volume and optionally fade currently playing music.</p>
+
 
     </div>
 
@@ -1999,6 +2191,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Set sfx volume and optionally apply it to supplied players.</p>
 
+
     </div>
 
 </div>
@@ -2016,6 +2209,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Apply effective sfx volume to a player.</p>
 
+
     </div>
 
 </div>
@@ -2032,6 +2226,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Release all shared audio resources managed by the sound subsystem.</p>
+
 
     </div>
 
@@ -2065,7 +2260,10 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -2090,7 +2288,10 @@ pyglet clock polling and callback invocation when playback stops.</p>
               Bases: <code><span title="Exception">Exception</span></code></p>
 
 
+
         <p>Base exception for sound pool operations.</p>
+
+
 
 
 
@@ -2115,10 +2316,13 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.sound.sound_pool.SoundPoolError" href="#sonartk.sound.sound_pool.SoundPoolError">SoundPoolError</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="SoundPoolError (sonartk.sound.sound_pool.SoundPoolError)" href="#sonartk.sound.sound_pool.SoundPoolError">SoundPoolError</a></code></p>
+
 
 
         <p>Raised when a sound path has an unsupported file extension.</p>
+
+
 
 
 
@@ -2143,10 +2347,13 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.sound.sound_pool.SoundPoolError" href="#sonartk.sound.sound_pool.SoundPoolError">SoundPoolError</a></code>, <code><span title="FileNotFoundError">FileNotFoundError</span></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="SoundPoolError (sonartk.sound.sound_pool.SoundPoolError)" href="#sonartk.sound.sound_pool.SoundPoolError">SoundPoolError</a></code>, <code><span title="FileNotFoundError">FileNotFoundError</span></code></p>
+
 
 
         <p>Raised when a supported sound file cannot be found.</p>
+
+
 
 
 
@@ -2180,7 +2387,10 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -2205,9 +2415,11 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Return the number of cached sounds.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -2223,6 +2435,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Return whether a path is currently cached.</p>
+
 
     </div>
 
@@ -2241,6 +2454,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Return the normalized cache keys for currently loaded sounds.</p>
 
+
     </div>
 
 </div>
@@ -2258,6 +2472,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Return cache usage statistics.</p>
 
+
     </div>
 
 </div>
@@ -2274,6 +2489,27 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Load and cache an audio file by normalized absolute path.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.sound.sound_pool.SoundPool.load_many" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_many</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load multiple sounds and return normalized cache keys to sounds.</p>
+<p>Paths are loaded in iteration order and use the same validation and
+caching behavior as <code>load</code>. Any error is propagated immediately.</p>
+
 
     </div>
 
@@ -2293,6 +2529,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
         <p>Unload a specific cached sound by path.</p>
 <p>Returns True if a sound was removed; otherwise False.</p>
 
+
     </div>
 
 </div>
@@ -2309,6 +2546,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Destroy.</p>
+
 
     </div>
 
@@ -2351,7 +2589,10 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -2382,7 +2623,10 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -2408,6 +2652,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Backward-compatible alias for total_allocated_players.</p>
+
     </div>
 
 </div>
@@ -2430,9 +2675,11 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Return the idle player pool size.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -2448,6 +2695,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Get player.</p>
+
 
     </div>
 
@@ -2466,6 +2714,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
 
         <p>Unload player.</p>
 
+
     </div>
 
 </div>
@@ -2482,6 +2731,7 @@ pyglet clock polling and callback invocation when playback stops.</p>
     <div class="doc doc-contents ">
 
         <p>Destroy.</p>
+
 
     </div>
 

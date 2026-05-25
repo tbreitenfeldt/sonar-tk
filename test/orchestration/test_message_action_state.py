@@ -17,6 +17,15 @@ class _FakeWindow:
         self.popped_count += 1
 
 
+class _FakeSoundService:
+    def __init__(self) -> None:
+        self.calls: list[tuple[str, object | None]] = []
+
+    def play_sound(self, sound: str, player: object | None = None) -> object:
+        self.calls.append((sound, player))
+        return object()
+
+
 def test_message_action_state_setup_speaks_and_pushes_handlers(
     mocker: MockerFixture,
 ) -> None:
@@ -88,3 +97,20 @@ def test_message_action_state_update_returns_true() -> None:
     )
 
     assert state.update(0.016) is True
+
+
+def test_message_action_state_setup_plays_optional_entry_sound() -> None:
+    window = _FakeWindow()
+    sound_service = _FakeSoundService()
+    player = object()
+
+    state = MessageActionState(
+        window=window,  # type: ignore[arg-type]
+        message="Done",
+        entry_sound="announce.wav",
+        entry_sound_player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+    )
+
+    assert state.setup(lambda *_args, **_kwargs: None) is True
+    assert sound_service.calls == [("announce.wav", player)]

@@ -1,4 +1,6 @@
 Audio Attributions
+All sounds and music for this sample game are from freesound.org
+
 
 audio/music/music.wav
 New Planet Explorer by SergeQuadrado -- https://freesound.org/s/670096/ -- License: Attribution NonCommercial 4.0
@@ -7,17 +9,25 @@ audio/sfx/reward.wav
 Game Reward by IENBA -- https://freesound.org/s/656643/ -- License: Creative Commons 0
 
 audio/sfx/intro.wav
-853656__coghezzi__sacred-rune-lock-holy-magic-seal-activation.wav
-    * url: https://freesound.org/s/853656/
-    * license: Attribution 4.0
+Sacred Rune Lock – Holy Magic Seal Activation by Coghezzi -- https://freesound.org/s/853656/ -- License: Attribution 4.0
 
 audio/sfx/coin.wav
-614069__stormwaveaudio__coins-14.wav
-    * url: https://freesound.org/s/614069/
-    * license: Attribution NonCommercial 4.0
+Coins 14.wav by StormwaveAudio -- https://freesound.org/s/614069/ -- License: Attribution NonCommercial 4.0
 
 audio/sfx/pickup.wav
 Synth glockenspiel bell item money gold coin pick up.wav by ryusa -- https://freesound.org/s/531175/ -- License: Attribution 4.0
 
 audio/sfx/river.wav
 River layers 03 by hidetora -- https://freesound.org/s/828410/ -- License: Creative Commons 0
+
+audio/sfx/monster.wav
+MonsterSynthesizedGrowl_03 by Johnny25225 -- https://freesound.org/s/718008/ -- License: Creative Commons 0
+
+audio/sfx/sword.wav
+heavy_whoosh_sword_clash_attack_04192026 by Artninja -- https://freesound.org/s/851339/ -- License: Attribution 4.0
+
+AUDIO/SFX/monster_scream.wav
+Monster screams.wav by gpag1 -- https://freesound.org/s/391552/ -- License: Creative Commons 0
+
+AUDIO/SFX/MONSTER_BLOCK.WAV
+GruntAlien[Norberd] by deleted_user_3330286 -- https://freesound.org/s/188600/ -- License: Attribution NonCommercial 3.0

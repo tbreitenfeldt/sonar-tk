@@ -68,6 +68,7 @@ class _FakeSoundService:
         volume: float = 1.0,
         rolloff: float = 0.01,
         loop: bool = False,
+        retrigger_if_same: bool = True,
     ) -> None:
         self.play_calls.append(
             (sound_file, position, player, volume, rolloff, loop)

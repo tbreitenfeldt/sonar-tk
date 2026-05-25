@@ -248,6 +248,41 @@ def test_get_tile_raises_for_out_of_range_coordinates() -> None:
         map2d.get_tile((0, 3))
 
 
+def test_set_tile_replaces_tile_at_coordinates() -> None:
+    map2d = make_map()
+
+    map2d.set_tile((1, 1), MapTile("changed"))
+
+    assert map2d.get_tile((1, 1)).name == "changed"
+
+
+def test_set_tile_raises_for_out_of_range_coordinates() -> None:
+    map2d = make_map()
+
+    with pytest.raises(IndexError):
+        map2d.set_tile((-1, 0), MapTile("x"))
+    with pytest.raises(IndexError):
+        map2d.set_tile((0, -1), MapTile("x"))
+    with pytest.raises(IndexError):
+        map2d.set_tile((3, 0), MapTile("x"))
+    with pytest.raises(IndexError):
+        map2d.set_tile((0, 3), MapTile("x"))
+
+
+def test_set_tiles_replaces_multiple_tiles() -> None:
+    map2d = make_map()
+
+    map2d.set_tiles(
+        {
+            (0, 0): MapTile("a1"),
+            (2, 2): MapTile("i1"),
+        }
+    )
+
+    assert map2d.get_tile((0, 0)).name == "a1"
+    assert map2d.get_tile((2, 2)).name == "i1"
+
+
 def test_character_and_object_coordinate_changes() -> None:
     map2d = make_map()
     ally = Character("ally", (0, 0), Direction.RIGHT)

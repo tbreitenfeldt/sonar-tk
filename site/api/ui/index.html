@@ -618,6 +618,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_start_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_start_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sonartk.ui.Window.change" class="md-nav__link">
     <span class="md-ellipsis">
       change
@@ -918,6 +927,15 @@
   <a href="#sonartk.ui.window.Window.remove" class="md-nav__link">
     <span class="md-ellipsis">
       remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_start_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_start_state
     </span>
   </a>
   
@@ -2361,6 +2379,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#sonartk.ui.Window.set_start_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_start_state
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#sonartk.ui.Window.change" class="md-nav__link">
     <span class="md-ellipsis">
       change
@@ -2661,6 +2688,15 @@
   <a href="#sonartk.ui.window.Window.remove" class="md-nav__link">
     <span class="md-ellipsis">
       remove
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sonartk.ui.window.Window.set_start_state" class="md-nav__link">
+    <span class="md-ellipsis">
+      set_start_state
     </span>
   </a>
   
@@ -3910,7 +3946,10 @@
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -3935,6 +3974,7 @@
               Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
 
 
+
         <p>Protocol for UI components that contain focusable child elements.</p>
 <p>Components implementing this protocol maintain a reference to their
 currently active/focused child element, allowing the UI to drill down
@@ -3949,7 +3989,9 @@ element with focus for accessibility announcements.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
 
 
 
@@ -3987,7 +4029,7 @@ element with focus for accessibility announcements.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -3997,7 +4039,7 @@ element with focus for accessibility announcements.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4007,9 +4049,11 @@ element with focus for accessibility announcements.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
+
 
 
 
@@ -4037,6 +4081,7 @@ element with focus for accessibility announcements.</p>
               Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
+
         <p>Base class for all UI hierarchy components.</p>
 <p>Provides the contract for accessing the root Window from any level
 in the UI hierarchy (Window → Screen → Element → nested Elements).</p>
@@ -4052,7 +4097,9 @@ operations.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
 
 
 
@@ -4078,9 +4125,11 @@ operations.</p>
     <div class="doc doc-contents ">
 
         <p>Return this component's parent in the UI hierarchy.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -4111,7 +4160,7 @@ Window overrides this to return self.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="#sonartk.ui.window.Window">Window</a></code>
+                  <code><a class="autorefs autorefs-internal" title="Window (sonartk.ui.window.Window)" href="#sonartk.ui.window.Window">Window</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4145,6 +4194,7 @@ Window overrides this to return self.</p>
       </tbody>
     </table>
 
+
     </div>
 
 </div>
@@ -4170,7 +4220,7 @@ Window overrides this to return self.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="UIComponent (sonartk.ui.ui_component.UIComponent)" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
 
 
 
@@ -4181,7 +4231,10 @@ Window overrides this to return self.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -4207,9 +4260,11 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Return the current window caption.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -4225,6 +4280,7 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Register window-level keyboard shortcuts and escape behavior.</p>
+
 
     </div>
 
@@ -4243,6 +4299,7 @@ Window overrides this to return self.</p>
 
         <p>Create, initialize, and start the pyglet event loop for this window.</p>
 
+
     </div>
 
 </div>
@@ -4259,6 +4316,7 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Handle window activation - announce the currently focused element.</p>
+
 
     </div>
 
@@ -4277,6 +4335,7 @@ Window overrides this to return self.</p>
 
         <p>Schedule initial state activation after the window opens.</p>
 
+
     </div>
 
 </div>
@@ -4293,6 +4352,7 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Dispatch update events and advance the active state each frame.</p>
+
 
     </div>
 
@@ -4311,6 +4371,7 @@ Window overrides this to return self.</p>
 
         <p>Register a named state in this window's state machine.</p>
 
+
     </div>
 
 </div>
@@ -4327,6 +4388,27 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Remove and return a previously registered state by key.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.Window.set_start_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_start_state</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Set the state key that should be activated first by setup/set_state.</p>
+<p>This avoids callers depending on internal state order or key index math.
+If states already exist, the key is validated immediately.</p>
+
 
     </div>
 
@@ -4345,6 +4427,7 @@ Window overrides this to return self.</p>
 
         <p>Switch to another registered state, forwarding optional arguments.</p>
 
+
     </div>
 
 </div>
@@ -4362,6 +4445,7 @@ Window overrides this to return self.</p>
 
         <p>Return this window (base case for parent chain traversal).</p>
 
+
     </div>
 
 </div>
@@ -4378,6 +4462,7 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Push one or more event handlers onto the pyglet handler stack.</p>
+
 
     </div>
 
@@ -4419,6 +4504,7 @@ Window overrides this to return self.</p>
       </tbody>
     </table>
 
+
     </div>
 
 </div>
@@ -4435,6 +4521,7 @@ Window overrides this to return self.</p>
     <div class="doc doc-contents ">
 
         <p>Get the current number of handlers on the event stack.</p>
+
 
     </div>
 
@@ -4489,6 +4576,7 @@ falls back to 3.</p>
         <p>Call this in development/debug mode after state transitions to
 detect states that forgot to pop their handlers.</p>
 
+
     </div>
 
 </div>
@@ -4539,6 +4627,7 @@ detect states that forgot to pop their handlers.</p>
       </tbody>
     </table>
 
+
     </div>
 
 </div>
@@ -4555,6 +4644,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Enable or disable runtime debug checks for this window.</p>
+
 
     </div>
 
@@ -4573,6 +4663,7 @@ detect states that forgot to pop their handlers.</p>
 
         <p>Close this window, clean up states and handlers, and optionally close child windows.</p>
 
+
     </div>
 
 </div>
@@ -4589,6 +4680,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Activate the state at the current window position when available.</p>
+
 
     </div>
 
@@ -4631,7 +4723,10 @@ detect states that forgot to pop their handlers.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -4656,6 +4751,7 @@ detect states that forgot to pop their handlers.</p>
               Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
+
         <p>Base class for all UI hierarchy components.</p>
 <p>Provides the contract for accessing the root Window from any level
 in the UI hierarchy (Window → Screen → Element → nested Elements).</p>
@@ -4671,7 +4767,9 @@ operations.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
 
 
 
@@ -4697,9 +4795,11 @@ operations.</p>
     <div class="doc doc-contents ">
 
         <p>Return this component's parent in the UI hierarchy.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -4730,7 +4830,7 @@ Window overrides this to return self.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><a class="autorefs autorefs-internal" title="sonartk.ui.window.Window" href="#sonartk.ui.window.Window">Window</a></code>
+                  <code><a class="autorefs autorefs-internal" title="Window (sonartk.ui.window.Window)" href="#sonartk.ui.window.Window">Window</a></code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4763,6 +4863,7 @@ Window overrides this to return self.</p>
           </tr>
       </tbody>
     </table>
+
 
     </div>
 
@@ -4805,7 +4906,10 @@ Window overrides this to return self.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -4830,6 +4934,7 @@ Window overrides this to return self.</p>
               Bases: <code><span title="typing.Protocol">Protocol</span></code></p>
 
 
+
         <p>Protocol for UI components that contain focusable child elements.</p>
 <p>Components implementing this protocol maintain a reference to their
 currently active/focused child element, allowing the UI to drill down
@@ -4844,7 +4949,9 @@ element with focus for accessibility announcements.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
 
 
 
@@ -4882,7 +4989,7 @@ element with focus for accessibility announcements.</p>
       <tbody>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4892,7 +4999,7 @@ element with focus for accessibility announcements.</p>
           </tr>
           <tr class="doc-section-item">
             <td>
-                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a>]</code>
+                  <code><span title="typing.Optional">Optional</span>[<a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a>]</code>
             </td>
             <td>
               <div class="doc-md-description">
@@ -4902,9 +5009,11 @@ element with focus for accessibility announcements.</p>
           </tr>
       </tbody>
     </table>
+
     </div>
 
 </div>
+
 
 
 
@@ -4945,7 +5054,10 @@ element with focus for accessibility announcements.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -4967,7 +5079,7 @@ element with focus for accessibility announcements.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="UIComponent (sonartk.ui.ui_component.UIComponent)" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
 
 
 
@@ -4978,7 +5090,10 @@ element with focus for accessibility announcements.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -5004,9 +5119,11 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Return the current window caption.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -5022,6 +5139,7 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Register window-level keyboard shortcuts and escape behavior.</p>
+
 
     </div>
 
@@ -5040,6 +5158,7 @@ element with focus for accessibility announcements.</p>
 
         <p>Create, initialize, and start the pyglet event loop for this window.</p>
 
+
     </div>
 
 </div>
@@ -5056,6 +5175,7 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Handle window activation - announce the currently focused element.</p>
+
 
     </div>
 
@@ -5074,6 +5194,7 @@ element with focus for accessibility announcements.</p>
 
         <p>Schedule initial state activation after the window opens.</p>
 
+
     </div>
 
 </div>
@@ -5090,6 +5211,7 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Dispatch update events and advance the active state each frame.</p>
+
 
     </div>
 
@@ -5108,6 +5230,7 @@ element with focus for accessibility announcements.</p>
 
         <p>Register a named state in this window's state machine.</p>
 
+
     </div>
 
 </div>
@@ -5124,6 +5247,27 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Remove and return a previously registered state by key.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h4 id="sonartk.ui.window.Window.set_start_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">set_start_state</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></code>
+
+</h4>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Set the state key that should be activated first by setup/set_state.</p>
+<p>This avoids callers depending on internal state order or key index math.
+If states already exist, the key is validated immediately.</p>
+
 
     </div>
 
@@ -5142,6 +5286,7 @@ element with focus for accessibility announcements.</p>
 
         <p>Switch to another registered state, forwarding optional arguments.</p>
 
+
     </div>
 
 </div>
@@ -5159,6 +5304,7 @@ element with focus for accessibility announcements.</p>
 
         <p>Return this window (base case for parent chain traversal).</p>
 
+
     </div>
 
 </div>
@@ -5175,6 +5321,7 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Push one or more event handlers onto the pyglet handler stack.</p>
+
 
     </div>
 
@@ -5216,6 +5363,7 @@ element with focus for accessibility announcements.</p>
       </tbody>
     </table>
 
+
     </div>
 
 </div>
@@ -5232,6 +5380,7 @@ element with focus for accessibility announcements.</p>
     <div class="doc doc-contents ">
 
         <p>Get the current number of handlers on the event stack.</p>
+
 
     </div>
 
@@ -5286,6 +5435,7 @@ falls back to 3.</p>
         <p>Call this in development/debug mode after state transitions to
 detect states that forgot to pop their handlers.</p>
 
+
     </div>
 
 </div>
@@ -5336,6 +5486,7 @@ detect states that forgot to pop their handlers.</p>
       </tbody>
     </table>
 
+
     </div>
 
 </div>
@@ -5352,6 +5503,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Enable or disable runtime debug checks for this window.</p>
+
 
     </div>
 
@@ -5370,6 +5522,7 @@ detect states that forgot to pop their handlers.</p>
 
         <p>Close this window, clean up states and handlers, and optionally close child windows.</p>
 
+
     </div>
 
 </div>
@@ -5386,6 +5539,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Activate the state at the current window position when available.</p>
+
 
     </div>
 
@@ -5428,7 +5582,10 @@ detect states that forgot to pop their handlers.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -5450,7 +5607,7 @@ detect states that forgot to pop their handlers.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
 
 
 
@@ -5461,7 +5618,11 @@ detect states that forgot to pop their handlers.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -5484,6 +5645,7 @@ detect states that forgot to pop their handlers.</p>
 
         <p>Bind keys.</p>
 
+
     </div>
 
 </div>
@@ -5501,6 +5663,7 @@ detect states that forgot to pop their handlers.</p>
 
         <p>Submit.</p>
 
+
     </div>
 
 </div>
@@ -5517,6 +5680,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Reset.</p>
+
 
     </div>
 
@@ -5543,7 +5707,7 @@ detect states that forgot to pop their handlers.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="bool">bool</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="bool">bool</span>]</code></p>
 
 
 
@@ -5554,7 +5718,10 @@ detect states that forgot to pop their handlers.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -5579,9 +5746,11 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Return the name.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -5597,6 +5766,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Bind keys.</p>
+
 
     </div>
 
@@ -5615,6 +5785,7 @@ detect states that forgot to pop their handlers.</p>
 
         <p>Toggle state.</p>
 
+
     </div>
 
 </div>
@@ -5631,6 +5802,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Reset.</p>
+
 
     </div>
 
@@ -5657,7 +5829,7 @@ detect states that forgot to pop their handlers.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.element.V">V</span>]</code>, <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+              Bases: <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.element.V">V</span>]</code>, <code><a class="autorefs autorefs-internal" title="UIComponent (sonartk.ui.ui_component.UIComponent)" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
 
 
 
@@ -5668,7 +5840,10 @@ detect states that forgot to pop their handlers.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -5694,6 +5869,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Return the value.</p>
+
     </div>
 
 </div>
@@ -5715,9 +5891,11 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Return the name.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -5737,6 +5915,7 @@ detect states that forgot to pop their handlers.</p>
     <div class="doc doc-contents ">
 
         <p>Bind keys for this element. Called automatically when use_key_handler is True.</p>
+
 
     </div>
 
@@ -5762,6 +5941,7 @@ detect states that forgot to pop their handlers.</p>
 setup behavior minimal and deterministic where possible so failures
 do not leave the state machine and handler stack out of sync.</p>
 </details>
+
     </div>
 
 </div>
@@ -5778,6 +5958,7 @@ do not leave the state machine and handler stack out of sync.</p>
     <div class="doc doc-contents ">
 
         <p>Update.</p>
+
 
     </div>
 
@@ -5802,6 +5983,7 @@ do not leave the state machine and handler stack out of sync.</p>
   <p>exit() runs before the next state's setup(). Return False to block
 transitions that would leave this element in an invalid state.</p>
 </details>
+
     </div>
 
 </div>
@@ -5822,6 +6004,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Reset.</p>
+
 
     </div>
 
@@ -5848,7 +6031,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code>, <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.grid.T">T</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code>, <code><span title="typing.Generic">Generic</span>[<span title="sonartk.ui.element.grid.T">T</span>]</code></p>
 
 
 
@@ -5859,7 +6042,10 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -5885,6 +6071,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the repeat interval used for arrow-key navigation.</p>
+
     </div>
 
 </div>
@@ -5906,6 +6093,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the cell at the current cursor coordinates.</p>
+
     </div>
 
 </div>
@@ -5928,6 +6116,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the current cursor coordinates as (x, y).</p>
+
     </div>
 
 </div>
@@ -5950,9 +6139,11 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the configured property from the current cell as text.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -5968,6 +6159,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Bind directional keys used to navigate between grid cells.</p>
+
 
     </div>
 
@@ -5986,6 +6178,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move one row up, or emit a border event at the top edge.</p>
 
+
     </div>
 
 </div>
@@ -6002,6 +6195,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move one row down, or emit a border event at the bottom edge.</p>
+
 
     </div>
 
@@ -6020,6 +6214,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move one column left, or emit a border event at the left edge.</p>
 
+
     </div>
 
 </div>
@@ -6036,6 +6231,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move one column right, or emit a border event at the right edge.</p>
+
 
     </div>
 
@@ -6054,6 +6250,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Apply movement, then optionally announce value and coordinates.</p>
 
+
     </div>
 
 </div>
@@ -6070,6 +6267,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the cell at coordinates, or None when out of bounds.</p>
+
 
     </div>
 
@@ -6088,6 +6286,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Return the next coordinates and cell for a movement direction.</p>
 
+
     </div>
 
 </div>
@@ -6104,6 +6303,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Append a row to the grid, validating width compatibility.</p>
+
 
     </div>
 
@@ -6122,6 +6322,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Initialize the grid for focus and emit an initial change event.</p>
 
+
     </div>
 
 </div>
@@ -6138,6 +6339,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Clear all grid state, including coordinates and cell storage.</p>
+
 
     </div>
 
@@ -6164,7 +6366,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
 
 
 
@@ -6175,7 +6377,10 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -6201,6 +6406,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the key of the currently selected menu item.</p>
+
     </div>
 
 </div>
@@ -6222,9 +6428,11 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Get the currently active menu item.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -6240,6 +6448,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Bind keyboard controls for navigation, submission, and text lookup.</p>
+
 
     </div>
 
@@ -6258,6 +6467,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Prepare menu focus state and activate the current item.</p>
 
+
     </div>
 
 </div>
@@ -6274,6 +6484,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Update both the base element and the active menu item state.</p>
+
 
     </div>
 
@@ -6292,6 +6503,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Exit the active menu item and then exit this menu element.</p>
 
+
     </div>
 
 </div>
@@ -6308,6 +6520,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move to the next menu item, honoring border behavior.</p>
+
 
     </div>
 
@@ -6326,6 +6539,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move to the previous menu item, honoring border behavior.</p>
 
+
     </div>
 
 </div>
@@ -6342,6 +6556,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Jump focus to the first menu item.</p>
+
 
     </div>
 
@@ -6360,6 +6575,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Jump focus to the last menu item.</p>
 
+
     </div>
 
 </div>
@@ -6376,6 +6592,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Emit the submit event for the currently selected item.</p>
+
 
     </div>
 
@@ -6394,6 +6611,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Queue incremental first-letter navigation from typed text.</p>
 
+
     </div>
 
 </div>
@@ -6410,6 +6628,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Activate the state associated with the current menu position.</p>
+
 
     </div>
 
@@ -6428,6 +6647,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Add a menu item state from text or an Element instance.</p>
 
+
     </div>
 
 </div>
@@ -6445,6 +6665,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Remove and return a menu item by key.</p>
 
+
     </div>
 
 </div>
@@ -6461,6 +6682,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Restore default position and reset all menu item elements.</p>
+
 
     </div>
 
@@ -6487,7 +6709,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a></code></p>
 
 
 
@@ -6498,7 +6720,10 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -6524,9 +6749,11 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the current textbox content as a string.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -6542,6 +6769,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Bind editing, navigation, clipboard, and selection shortcuts.</p>
+
 
     </div>
 
@@ -6560,6 +6788,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Announce current content and read-only state when focused.</p>
 
+
     </div>
 
 </div>
@@ -6576,6 +6805,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Delete the character before the cursor or current selection.</p>
+
 
     </div>
 
@@ -6594,6 +6824,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Delete the character at or after the cursor or current selection.</p>
 
+
     </div>
 
 </div>
@@ -6610,6 +6841,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Speak the full textbox value, masking characters when hidden.</p>
+
 
     </div>
 
@@ -6628,6 +6860,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move to the next word boundary and announce the word at that position.</p>
 
+
     </div>
 
 </div>
@@ -6644,6 +6877,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move to the previous word boundary and announce the word at that position.</p>
+
 
     </div>
 
@@ -6662,6 +6896,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move cursor right and announce the newly focused character.</p>
 
+
     </div>
 
 </div>
@@ -6678,6 +6913,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move cursor left and announce the newly focused character.</p>
+
 
     </div>
 
@@ -6696,6 +6932,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Extend or shrink selection one character to the right.</p>
 
+
     </div>
 
 </div>
@@ -6712,6 +6949,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Extend or shrink selection one character to the left.</p>
+
 
     </div>
 
@@ -6730,6 +6968,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Extend or shrink selection one word to the right.</p>
 
+
     </div>
 
 </div>
@@ -6746,6 +6985,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Extend or shrink selection one word to the left.</p>
+
 
     </div>
 
@@ -6764,6 +7004,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Select the entire textbox content and announce the selection.</p>
 
+
     </div>
 
 </div>
@@ -6780,6 +7021,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Emit the submit event for the textbox value.</p>
+
 
     </div>
 
@@ -6798,6 +7040,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Copy current selection to the clipboard when a selection exists.</p>
 
+
     </div>
 
 </div>
@@ -6814,6 +7057,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Insert clipboard text at the cursor when size limits allow.</p>
+
 
     </div>
 
@@ -6832,6 +7076,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move the cursor to the beginning and announce the first character.</p>
 
+
     </div>
 
 </div>
@@ -6848,6 +7093,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Move the cursor to the end and announce blank.</p>
+
 
     </div>
 
@@ -6866,6 +7112,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Insert an allowed character and perform speech feedback.</p>
 
+
     </div>
 
 </div>
@@ -6882,6 +7129,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the textbox content by joining the internal character buffer.</p>
+
 
     </div>
 
@@ -6900,6 +7148,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Return whether any text range is currently selected.</p>
 
+
     </div>
 
 </div>
@@ -6916,6 +7165,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Clear selection tracking and announce unselection when needed.</p>
+
 
     </div>
 
@@ -6934,6 +7184,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Update selection bounds while extending selection rightward.</p>
 
+
     </div>
 
 </div>
@@ -6950,6 +7201,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Update selection bounds while extending selection leftward.</p>
+
 
     </div>
 
@@ -6968,6 +7220,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Delete the currently selected character range.</p>
 
+
     </div>
 
 </div>
@@ -6984,6 +7237,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Restore default value and clear cursor and selection state.</p>
+
 
     </div>
 
@@ -7010,7 +7264,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
 
 
 
@@ -7021,7 +7275,11 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -7044,6 +7302,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>No key bindings needed for TextLabel.</p>
 
+
     </div>
 
 </div>
@@ -7060,6 +7319,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Reset.</p>
+
 
     </div>
 
@@ -7086,7 +7346,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.element.element.Element" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Element (sonartk.ui.element.element.Element)" href="#sonartk.ui.element.Element">Element</a>[<span title="str">str</span>]</code></p>
 
 
 
@@ -7097,7 +7357,11 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -7120,6 +7384,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Bind keys.</p>
 
+
     </div>
 
 </div>
@@ -7136,6 +7401,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Setup.</p>
+
 
     </div>
 
@@ -7154,6 +7420,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Next.</p>
 
+
     </div>
 
 </div>
@@ -7171,6 +7438,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Add.</p>
 
+
     </div>
 
 </div>
@@ -7187,6 +7455,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Reset.</p>
+
 
     </div>
 
@@ -7229,7 +7498,10 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -7251,7 +7523,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.screen.Screen" href="#sonartk.ui.screen.Screen">Screen</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="Screen (sonartk.ui.screen.screen.Screen)" href="#sonartk.ui.screen.Screen">Screen</a></code></p>
 
 
 
@@ -7262,7 +7534,11 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -7285,6 +7561,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Bind tab-navigation keys used to change focused child elements.</p>
 
+
     </div>
 
 </div>
@@ -7301,6 +7578,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Attach key handlers and activate the initial focused element.</p>
+
 
     </div>
 
@@ -7319,6 +7597,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Activate the currently selected child element state.</p>
 
+
     </div>
 
 </div>
@@ -7335,6 +7614,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Update the active child element state.</p>
+
 
     </div>
 
@@ -7353,6 +7633,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Exit active child state and detach this screen key handlers.</p>
 
+
     </div>
 
 </div>
@@ -7369,6 +7650,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Close this screen and then close its parent container.</p>
+
 
     </div>
 
@@ -7395,7 +7677,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.screen.container_screen.ContainerScreen" href="#sonartk.ui.screen.ContainerScreen">ContainerScreen</a></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="ContainerScreen (sonartk.ui.screen.container_screen.ContainerScreen)" href="#sonartk.ui.screen.ContainerScreen">ContainerScreen</a></code></p>
 
 
 
@@ -7406,7 +7688,11 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
+
 
 
 
@@ -7429,6 +7715,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Attach this dialog to the parent and switch focus into it.</p>
 
+
     </div>
 
 </div>
@@ -7445,6 +7732,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Bind dialog-specific keys, including escape-to-close behavior.</p>
+
 
     </div>
 
@@ -7463,6 +7751,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Reset all dialog child elements to their default values.</p>
 
+
     </div>
 
 </div>
@@ -7479,6 +7768,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Close the dialog, restore caption, and return focus to the prior state.</p>
+
 
     </div>
 
@@ -7505,7 +7795,7 @@ transitions that would leave this element in an invalid state.</p>
 
     <div class="doc doc-contents ">
             <p class="doc doc-class-bases">
-              Bases: <code><a class="autorefs autorefs-internal" title="sonartk.ui.ui_component.UIComponent" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="sonartk.util.state.State" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
+              Bases: <code><a class="autorefs autorefs-internal" title="UIComponent (sonartk.ui.ui_component.UIComponent)" href="#sonartk.ui.ui_component.UIComponent">UIComponent</a></code>, <code><a class="autorefs autorefs-internal" title="State (sonartk.util.state.State)" href="../util/#sonartk.util.state.State">State</a></code>, <code><span title="pyglet.event.EventDispatcher">EventDispatcher</span></code></p>
 
 
 
@@ -7516,7 +7806,10 @@ transitions that would leave this element in an invalid state.</p>
 
 
 
-  <div class="doc doc-children">
+
+
+
+<div class="doc doc-children">
 
 
 
@@ -7542,6 +7835,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Get or set the caption through the parent window.</p>
+
     </div>
 
 </div>
@@ -7563,9 +7857,11 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Return the currently active child state.</p>
+
     </div>
 
 </div>
+
 
 
 
@@ -7581,6 +7877,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Emit the close event for this screen.</p>
+
 
     </div>
 
@@ -7599,6 +7896,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Register an element or nested screen in this screen state machine.</p>
 
+
     </div>
 
 </div>
@@ -7615,6 +7913,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Remove and return an element state by key when present.</p>
+
 
     </div>
 
@@ -7633,6 +7932,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move focus to the next element and activate it.</p>
 
+
     </div>
 
 </div>
@@ -7650,6 +7950,7 @@ transitions that would leave this element in an invalid state.</p>
 
         <p>Move focus to the previous element and activate it.</p>
 
+
     </div>
 
 </div>
@@ -7666,6 +7967,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Activate the element state at the current position.</p>
+
 
     </div>
 
@@ -7687,6 +7989,7 @@ transitions that would leave this element in an invalid state.</p>
     <div class="doc doc-contents ">
 
         <p>Bind keyboard controls for screen-level navigation actions.</p>
+
 
     </div>
 

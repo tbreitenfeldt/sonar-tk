@@ -3,8 +3,11 @@ from typing import TYPE_CHECKING, Any
 
 __all__ = [
     "AmbientTileSoundConfig",
+    "InputGate",
     "IntroGameAudioLifecycle",
     "TerrainAudioProfile",
+    "ProximityAudioController",
+    "ProximityAudioEmitter",
     "bind_volume_hotkeys",
     "BuiltMapGridGame",
     "MapObjectCollectionSession",
@@ -31,6 +34,11 @@ if TYPE_CHECKING:
     from sonartk.orchestration.message_action_state import MessageActionState
     from sonartk.orchestration.scene_audio_state import SceneAudioState
     from sonartk.orchestration.audio_controls import bind_volume_hotkeys
+    from sonartk.orchestration.input_gate import InputGate
+    from sonartk.orchestration.proximity_audio import (
+        ProximityAudioController,
+        ProximityAudioEmitter,
+    )
 
 
 def __getattr__(name: str) -> Any:
@@ -58,5 +66,11 @@ def __getattr__(name: str) -> Any:
         return getattr(module, name)
     if name == "SceneAudioState":
         module = import_module("sonartk.orchestration.scene_audio_state")
+        return getattr(module, name)
+    if name == "InputGate":
+        module = import_module("sonartk.orchestration.input_gate")
+        return getattr(module, name)
+    if name in {"ProximityAudioController", "ProximityAudioEmitter"}:
+        module = import_module("sonartk.orchestration.proximity_audio")
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

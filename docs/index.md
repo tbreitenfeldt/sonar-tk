@@ -6,6 +6,7 @@ sonartk is a Python library for building accessible audio-first games.
 
 - Audio scene flow and runtime volume controls: see the "Audio Scene And Volume Controls" guide.
 - Terrain audio profiles, ambient tile sounds, and intro/game audio lifecycle: also covered in "Audio Scene And Volume Controls".
+- Input locking during transitions, reusable proximity emitters, and directional targeting helpers: also covered in "Audio Scene And Volume Controls".
 - Generic object spawn and collection loops: see the "Map Object Collection Sessions" guide.
 
 ## Quick Start

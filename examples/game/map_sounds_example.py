@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 from pyglet.window import key
 
 EXAMPLE_DIR = Path(__file__).resolve().parent
@@ -36,14 +36,20 @@ from sonartk.orchestration.message_action_state import (  # noqa: E402
 from sonartk.orchestration.audio_controls import (  # noqa: E402
     bind_volume_hotkeys,
 )
+from sonartk.orchestration.input_gate import InputGate  # noqa: E402
 from sonartk.orchestration.map_object_collection import (  # noqa: E402
     MapObjectCollectionSession,
+)
+from sonartk.orchestration.proximity_audio import (  # noqa: E402
+    ProximityAudioController,
+    ProximityAudioEmitter,
 )
 from sonartk.ui.element.grid import Grid  # noqa: E402
 from sonartk.ui.window import Window  # noqa: E402
 from sonartk.util import Direction, speech_manager  # noqa: E402
 from sonartk.sound import sound_manager  # noqa: E402
 from sonartk.sound.openal_lite.openal import Player  # noqa: E402
+from sonartk.map_builder.map_2d import step_coordinates  # noqa: E402
 
 INTRO_SOUND = str(SFX_DIR / "intro.wav")
 MUSIC_SOUND = str(MUSIC_DIR / "music.wav")
@@ -51,6 +57,10 @@ COIN_SOUND = str(SFX_DIR / "coin.wav")
 PICKUP_SOUND = str(SFX_DIR / "pickup.wav")
 REWARD_SOUND = str(SFX_DIR / "reward.wav")
 RIVER_AMBIENT_SOUND = str(SFX_DIR / "river.wav")
+MONSTER_SOUND = str(SFX_DIR / "monster.wav")
+MONSTER_BLOCK_SOUND = str(SFX_DIR / "monster_block.wav")
+SWORD_SOUND = str(SFX_DIR / "sword.wav")
+MONSTER_SCREAM_SOUND = str(SFX_DIR / "monster_scream.wav")
 MAP_SFX_VOLUME = 1.0
 MUSIC_TO_SFX_VOLUME_RATIO = 0.14
 MUSIC_FADE_DURATION_SECONDS = 1.5
@@ -63,6 +73,14 @@ RIVER_AMBIENT_VOLUME = 0.7
 RIVER_AMBIENT_ROLLOFF = 1.5
 RIVER_MIN_VOLUME_AT_MAX_DISTANCE = 0.18
 RIVER_DISTANCE_CURVE_EXPONENT = 2.2
+MONSTER_HEARING_DISTANCE_TILES = 6
+MONSTER_AMBIENT_VOLUME = 0.85
+MONSTER_AMBIENT_ROLLOFF = 1.5
+MONSTER_MIN_VOLUME_AT_MAX_DISTANCE = 0.18
+MONSTER_DISTANCE_CURVE_EXPONENT = 2.2
+
+MONSTER_GATE_TILE_COORDINATES: tuple[tuple[int, int], ...] = ((3, 12),)
+MONSTER_TILE_COORDINATES: tuple[int, int] = (4, 12)
 
 TERRAIN_AUDIO_PROFILES: dict[str, TerrainAudioProfile] = {
     "path": TerrainAudioProfile(
@@ -89,6 +107,10 @@ TERRAIN_AUDIO_PROFILES: dict[str, TerrainAudioProfile] = {
             min_volume_at_max_distance=RIVER_MIN_VOLUME_AT_MAX_DISTANCE,
             distance_curve_exponent=RIVER_DISTANCE_CURVE_EXPONENT,
         ),
+    ),
+    "monster": TerrainAudioProfile(
+        is_passable=False,
+        movement_sound_file=str(SFX_DIR / "wall.wav"),
     ),
 }
 
@@ -125,11 +147,15 @@ def preload_audio_assets() -> None:
         PICKUP_SOUND,
         REWARD_SOUND,
         RIVER_AMBIENT_SOUND,
+        MONSTER_SOUND,
+        MONSTER_BLOCK_SOUND,
+        SWORD_SOUND,
+        MONSTER_SCREAM_SOUND,
     }
     sound_manager.preload_sounds(required_sound_paths)
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901
     preload_audio_assets()
 
     start_coordinates = (1, 2)
@@ -140,26 +166,40 @@ def main() -> None:
         [
             "map_navigation",
             "ambient_river",
+            "ambient_monster",
             "coin",
             "pickup",
             "reward",
             "intro",
+            "monster_announce",
+            "monster_block",
+            "sword",
+            "monster_scream",
         ]
     )
     map_navigation_player = players["map_navigation"]
     ambient_river_player = players["ambient_river"]
+    ambient_monster_player = players["ambient_monster"]
     coin_player = players["coin"]
     pickup_player = players["pickup"]
     reward_player = players["reward"]
     intro_player = players["intro"]
+    monster_announce_player = players["monster_announce"]
+    monster_block_player = players["monster_block"]
+    sword_player = players["sword"]
+    monster_scream_player = players["monster_scream"]
     sound_manager.set_sfx_volume(
         MAP_SFX_VOLUME,
         players=[
             map_navigation_player,
             ambient_river_player,
+            ambient_monster_player,
             coin_player,
             pickup_player,
             reward_player,
+            monster_block_player,
+            sword_player,
+            monster_scream_player,
         ],
     )
     builder = MapGridGameBuilder[str](caption="Test 2D Game").with_map(
@@ -178,21 +218,74 @@ def main() -> None:
         object_count=COIN_COUNT,
         object_type=Coin,
         object_factory=coin_factory,
-        excluded_coordinates={start_coordinates},
         object_label="coins",
+        excluded_coordinates={start_coordinates},
     )
     map_navigation = MapSoundNavigationController.from_terrain_audio_profiles(
         map2d=builder.map2d,
         terrain_audio_profiles=TERRAIN_AUDIO_PROFILES,
         player=map_navigation_player,
+        position_resolver=as_listener_position,
         ambient_player=ambient_river_player,
         validate_sound_map=True,
     )
+    monster_section_open = False
+    input_gate = InputGate()
+    monster_emitter = ProximityAudioEmitter(
+        sound_path=MONSTER_SOUND,
+        source_coordinates=MONSTER_TILE_COORDINATES,
+        max_distance_tiles=MONSTER_HEARING_DISTANCE_TILES,
+        base_volume=MONSTER_AMBIENT_VOLUME,
+        min_volume_at_max_distance=MONSTER_MIN_VOLUME_AT_MAX_DISTANCE,
+        distance_curve_exponent=MONSTER_DISTANCE_CURVE_EXPONENT,
+        rolloff=MONSTER_AMBIENT_ROLLOFF,
+        loop=True,
+    )
+    proximity_audio = ProximityAudioController(
+        emitters={"monster": monster_emitter},
+        players={"monster": ambient_monster_player},
+        position_resolver=as_listener_position,
+    )
+
+    def update_monster_ambient_sound(
+        coordinates: Optional[tuple[int, int]] = None,
+    ) -> bool:
+        return proximity_audio.update(
+            "monster",
+            listener_coordinates=coordinates
+            or builder.map2d.character.coordinates,
+            is_active=monster_section_open,
+        )
+
+    def update_dynamic_emitters(
+        coordinates: Optional[tuple[int, int]] = None,
+    ) -> None:
+        origin = coordinates or builder.map2d.character.coordinates
+        update_monster_ambient_sound(origin)
 
     def on_navigation_with_coins(
         grid: Grid[MapTile], direction: Direction
     ) -> bool:
+        if input_gate.is_locked:
+            return True
+
+        builder.map2d.character.directional_orientation = direction
+        next_coordinates, next_tile = grid.get_next_cell(direction)
+        if (
+            next_tile is not None
+            and not next_tile.is_passable
+            and next_tile.name == "monster"
+        ):
+            play_spatial_sound(
+                MONSTER_BLOCK_SOUND,
+                next_coordinates,
+                monster_block_player,
+            )
+            update_dynamic_emitters()
+            return True
+
         is_handled = map_navigation.on_navigation(grid, direction)
+        update_dynamic_emitters()
         if not is_handled:
             current_coordinates = builder.map2d.character.coordinates
             if coin_session.has_object_at(current_coordinates):
@@ -215,11 +308,55 @@ def main() -> None:
         .build()
     )
 
-    grid: Grid = game.grid
+    grid = game.grid
     window = game.window
+
+    def create_tile(terrain_name: str) -> MapTile:
+        profile = TERRAIN_AUDIO_PROFILES[terrain_name]
+        return MapTile(
+            terrain_name,
+            is_passable=profile.is_passable,
+        )
+
+    def close_monster_section() -> None:
+        nonlocal monster_section_open
+        monster_section_open = False
+        builder.map2d.set_tiles(
+            {
+                **{
+                    gate_coordinates: create_tile("wall")
+                    for gate_coordinates in MONSTER_GATE_TILE_COORDINATES
+                },
+                MONSTER_TILE_COORDINATES: create_tile("wall"),
+            }
+        )
+
+        map_navigation.sound_map.pop("monster", None)
+        ambient_monster_player.stop()
+        ambient_monster_player.remove()
+
+    def open_monster_section() -> None:
+        nonlocal monster_section_open
+        monster_section_open = True
+        input_gate.unlock()
+        builder.map2d.set_tiles(
+            {
+                **{
+                    gate_coordinates: create_tile("path")
+                    for gate_coordinates in MONSTER_GATE_TILE_COORDINATES
+                },
+                MONSTER_TILE_COORDINATES: create_tile("monster"),
+            }
+        )
+
+        map_navigation.sound_map["monster"] = str(SFX_DIR / "wall.wav")
+        update_monster_ambient_sound(builder.map2d.character.coordinates)
 
     def reset_game() -> None:
         coin_session.reset()
+        close_monster_section()
+        input_gate.reset()
+        builder.map2d.character.directional_orientation = Direction.DOWN
 
         # Keep map indices consistent by moving through Map2d; do not assign
         # character.coordinates directly during reset.
@@ -234,7 +371,39 @@ def main() -> None:
 
     reset_game()
 
+    def swing_sword() -> bool:
+        if input_gate.is_locked:
+            return True
+
+        current_coordinates = builder.map2d.character.coordinates
+        play_spatial_sound(
+            SWORD_SOUND,
+            current_coordinates,
+            sword_player,
+        )
+
+        target_coordinates = step_coordinates(
+            builder.map2d.character.coordinates,
+            builder.map2d.character.directional_orientation,
+            distance=1,
+        )
+        target_tile = grid.get_cell(target_coordinates)
+        if (
+            target_tile is not None
+            and target_tile.name == "monster"
+            and monster_section_open
+        ):
+            input_gate.lock()
+            speech_manager.output("Monster hit.")
+            close_monster_section()
+            window.change("monster_defeated")
+
+        return True
+
     def pick_up_coin() -> bool:
+        if input_gate.is_locked:
+            return True
+
         current_coordinates = builder.map2d.character.coordinates
         if coin_session.collect_at(current_coordinates) is not None:
             coins_collected = coin_session.collected_count
@@ -255,11 +424,16 @@ def main() -> None:
                     current_coordinates,
                     reward_player,
                 )
-                window.change("won")
+                window.change("monster_unlocked")
 
         return True
 
     grid.key_handler.add_key_press(pick_up_coin, key.SPACE)
+    grid.key_handler.add_key_press(
+        swing_sword,
+        key.SPACE,
+        [key.MOD_CTRL],
+    )
 
     bind_volume_hotkeys(
         window,
@@ -284,25 +458,31 @@ def main() -> None:
     def stop_intro_audio() -> None:
         ambient_river_player.stop()
         ambient_river_player.remove()
+        ambient_monster_player.stop()
+        ambient_monster_player.remove()
 
     def start_game_ambience() -> None:
         map_navigation.update_ambient_sound(
             builder.map2d.character.coordinates
         )
+        update_dynamic_emitters(builder.map2d.character.coordinates)
 
     def reset_for_intro() -> None:
         audio_lifecycle.prepare_intro()
         reset_game()
 
     audio_lifecycle = IntroGameAudioLifecycle(
-        stop_intro_audio=stop_intro_audio,
-        start_game_music=start_music_after_intro,
-        start_game_ambience=start_game_ambience,
+        stop_intro_audio,
+        start_music_after_intro,
+        start_game_ambience,
     )
 
     register_game_states(
         window,
         intro_player,
+        monster_announce_player,
+        monster_scream_player,
+        open_monster_section,
         reset_for_intro,
         audio_lifecycle,
     )
@@ -314,7 +494,8 @@ def main() -> None:
 
 
 def as_listener_position(coordinates: tuple[int, int]) -> tuple[int, int, int]:
-    return (coordinates[0], coordinates[1], 0)
+    # Map top-down grid y to OpenAL z so north/south behaves as depth.
+    return (coordinates[0], 0, coordinates[1])
 
 
 def play_spatial_sound(
@@ -336,6 +517,9 @@ def tile_mapper(map_value: str) -> MapTile:
 def register_game_states(
     window: Window,
     intro_player: Player,
+    monster_announce_player: Player,
+    monster_scream_player: Player,
+    open_monster_section: Callable[[], None],
     reset_for_intro: Callable[[], None],
     audio_lifecycle: IntroGameAudioLifecycle,
 ) -> None:
@@ -349,12 +533,29 @@ def register_game_states(
     )
     won_state = MessageActionState(
         window=window,
-        message="You collected all the coins and won the game. Press Enter to restart.",
+        message="You destroyed the monster and won the game. Press Enter to restart.",
         continue_keys=[key.ENTER],
         next_state_key="intro",
         on_continue=reset_for_intro,
     )
+    monster_unlocked_state = MessageActionState(
+        window=window,
+        message="You collected all 3 coins. The monster area is now open. Press Enter to continue.",
+        entry_sound=MONSTER_SOUND,
+        entry_sound_player=monster_announce_player,
+        continue_keys=[key.ENTER],
+        next_state_key="main",
+        on_continue=open_monster_section,
+    )
+    monster_defeated_state = SceneAudioState(
+        window=window,
+        scene_sound=MONSTER_SCREAM_SOUND,
+        scene_player=monster_scream_player,
+        next_state_key="won",
+    )
     window.add("intro", intro_state)
+    window.add("monster_unlocked", monster_unlocked_state)
+    window.add("monster_defeated", monster_defeated_state)
     window.add("won", won_state)
     window.set_start_state("intro")
 

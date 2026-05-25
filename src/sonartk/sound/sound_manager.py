@@ -131,6 +131,7 @@ class SoundManager:
         poll_interval_seconds: float = 0.01,
         on_complete: Optional[Callable[[Player], None]] = None,
         completion_poll_interval_seconds: float = 0.01,
+        retrigger_if_same: bool = True,
     ) -> Player:
         """Play a sound effect.
 
@@ -158,10 +159,12 @@ class SoundManager:
         if position is None:
             position = self.listener.position
 
+        queue_was_replaced = False
         if sound not in player.queue:
             player.stop()
             player.remove()
             player.add(sound)
+            queue_was_replaced = True
 
         if effects:
             for effect in effects:
@@ -174,7 +177,8 @@ class SoundManager:
         player.rolloff = rolloff
         player.position = position
         player.volume = self._effective_volume(volume, channel)
-        player.play()
+        if queue_was_replaced or retrigger_if_same or not player.playing():
+            player.play()
 
         if wait_until_finished:
             while player.playing():
@@ -383,6 +387,7 @@ def play_sound(
     poll_interval_seconds: float = 0.01,
     on_complete: Optional[Callable[[Player], None]] = None,
     completion_poll_interval_seconds: float = 0.01,
+    retrigger_if_same: bool = True,
 ) -> Player:
     """Play a sound effect."""
     _sync_default_manager_from_module()
@@ -400,6 +405,7 @@ def play_sound(
         poll_interval_seconds=poll_interval_seconds,
         on_complete=on_complete,
         completion_poll_interval_seconds=completion_poll_interval_seconds,
+        retrigger_if_same=retrigger_if_same,
     )
 
 

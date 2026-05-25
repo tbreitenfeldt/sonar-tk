@@ -9,6 +9,8 @@ from sonartk.map_builder.map_2d import (
     MapQueryResult,
     PathfindingResult,
     PathfindingState,
+    direction_offset,
+    step_coordinates,
 )
 from sonartk.map_builder.map_2d.map_object import Character, MapObject
 from sonartk.map_builder.map_2d.parser import CSVParser, JSONParser, MapParser
@@ -29,6 +31,8 @@ def test_map_2d_package_exports() -> None:
         "PathfindingResult",
         "PathfindingState",
         "MapTile",
+        "direction_offset",
+        "step_coordinates",
         "load_2d_map",
     ]
     assert Map2d is not None
@@ -37,6 +41,8 @@ def test_map_2d_package_exports() -> None:
     assert PathfindingResult is not None
     assert PathfindingState is not None
     assert MapTile is not None
+    assert direction_offset is not None
+    assert step_coordinates is not None
     assert load_2d_map is not None
 
 

@@ -179,6 +179,95 @@ Default bindings:
 
 If `couple_music_to_sfx_ratio` is set, SFX changes also update music volume using `sfx * ratio`.
 
+## Lock Input During Non-Interactive Transitions
+
+Use `InputGate` to suppress gameplay handlers while a transition state is active
+(for example, while a defeat or victory sting plays).
+
+```python
+from sonartk.orchestration import InputGate
+
+input_gate = InputGate()
+
+def on_navigation(grid, direction):
+    if input_gate.is_locked:
+        return True
+    return map_navigation.on_navigation(grid, direction)
+
+def enter_transition() -> None:
+    input_gate.lock()
+
+def leave_transition() -> None:
+    input_gate.unlock()
+```
+
+This pattern prevents race conditions where movement handlers can fire while
+you are switching states.
+
+## Reuse Distance-Based Ambience With ProximityAudioController
+
+`ProximityAudioController` manages a set of named emitters and applies distance
+based volume updates with one call per frame or event.
+
+```python
+from sonartk.orchestration import (
+    ProximityAudioController,
+    ProximityAudioEmitter,
+)
+
+monster_emitter = ProximityAudioEmitter(
+    coordinates=(4, 12),
+    sound_file="audio/sfx/monster.wav",
+    max_distance_tiles=6,
+    base_volume=0.85,
+    min_volume_at_max_distance=0.18,
+    distance_curve_exponent=2.2,
+    rolloff=1.5,
+    loop=True,
+)
+
+proximity_audio = ProximityAudioController(
+    emitters={"monster": monster_emitter},
+    players={"monster": ambient_player},
+)
+
+proximity_audio.update(
+    "monster",
+    listener_coordinates=map2d.character.coordinates,
+    is_active=True,
+)
+```
+
+Use `update_many(...)` when multiple emitters should be refreshed together.
+
+## Directional Targeting And Tile Mutation Helpers
+
+For one-step directional interactions (for example, melee attacks), use
+`step_coordinates(...)` with the character's facing direction.
+
+```python
+from sonartk.map_builder.map_2d import step_coordinates
+
+target = step_coordinates(
+    map2d.character.coordinates,
+    map2d.character.directional_orientation,
+)
+```
+
+For dynamic world changes, use `set_tile(...)` or `set_tiles(...)`.
+
+```python
+from sonartk.map_builder.map_2d import MapTile
+
+map2d.set_tile((4, 12), MapTile(name="path", is_passable=True))
+map2d.set_tiles(
+    {
+        (3, 12): MapTile(name="path", is_passable=True),
+        (4, 12): MapTile(name="path", is_passable=True),
+    }
+)
+```
+
 ## Allocate Players By Role
 
 Avoid positional tuples when multiple players are needed. Allocate named roles

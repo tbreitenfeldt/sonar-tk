@@ -7,7 +7,7 @@ from pyglet.window import key
 from sonartk.ui import Window
 from sonartk.ui.element import Button
 from sonartk.ui.screen import ContainerScreen
-from sonartk.util import State, KeyHandler
+from sonartk.util import State, KeyHandler, Key, Callback
 from sonartk.util.state_machine import EmptyState
 from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
@@ -162,6 +162,26 @@ def test_push_handlers(mocker: MockerFixture, default_window: Window) -> None:
     key_handler: KeyHandler = KeyHandler()
     default_window.push_window_handlers(key_handler)
     pyglet_push_handlers_mock.assert_called_with(key_handler)
+
+
+def test_push_handlers_resets_key_handler_transient_state(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
+    key_handler: KeyHandler = KeyHandler(update_repeat_interval=0.2)
+    key_press = Key(key.RIGHT)
+    key_handler.registered_key_presses[key_press] = (
+        Callback(lambda: True),
+        0.1,
+    )
+    # Ensure a held key exists before state transition push.
+    assert key_handler.on_key_press(symbol=key.RIGHT, modifiers=0)
+    assert key_handler.is_key_held_down
+
+    default_window.push_window_handlers(key_handler)
+
+    assert not key_handler.is_key_held_down
+    assert key_handler.pressed_key is None
 
 
 def test_pop_handlers(mocker: MockerFixture, default_window: Window) -> None:

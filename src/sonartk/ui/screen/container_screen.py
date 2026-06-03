@@ -28,6 +28,7 @@ class ContainerScreen(Screen):
         **kwargs: Any,
     ) -> bool:
         """Attach key handlers and activate the initial focused element."""
+        self.key_handler.activate(reset_state=True)
         self.get_window().push_window_handlers(self.key_handler)
         self.set_state(interrupt_speech=False)
         return True
@@ -50,6 +51,7 @@ class ContainerScreen(Screen):
         if not self.state_machine.is_empty():
             self.state_machine.exit()
 
+        self.key_handler.deactivate(reset_state=True)
         self.get_window().pop_window_handlers()
         return True
 

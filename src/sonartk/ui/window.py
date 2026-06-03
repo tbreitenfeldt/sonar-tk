@@ -183,6 +183,14 @@ class Window(UIComponent, EventDispatcher):
 
     def push_window_handlers(self, *args: Any, **kwargs: Any) -> None:
         """Push one or more event handlers onto the pyglet handler stack."""
+        for handler in args:
+            if isinstance(handler, KeyHandler):
+                handler.reset_transient_state()
+
+        for handler in kwargs.values():
+            if isinstance(handler, KeyHandler):
+                handler.reset_transient_state()
+
         self.pyglet_window.push_handlers(*args, **kwargs)
 
     def pop_window_handlers(self) -> None:

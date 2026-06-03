@@ -1,6 +1,16 @@
 import functools
 import operator
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    cast,
+)
 
 import pyglet
 from pyglet.window import key
@@ -92,11 +102,13 @@ class KeyHandler:
         self.is_key_held_down: bool = False
         self.active_key_combination: Optional[frozenset[Key]] = None
         self.held_repeat_keys: list[Key] = []
+        self.active_repeat_key: Optional[Key] = None
         self.currently_pressed_keys: set[Key] = set()
         self.key_interval_counter: float = 0.0
         self.other_keys_pressed: bool = (
             False  # Track if other keys were pressed
         )
+        self.is_active: bool = True
         pyglet.clock.schedule_interval(self.update, update_repeat_interval)
 
     def set_update_check(self, update_repeat_interval: float = 0.01) -> None:
@@ -107,24 +119,74 @@ class KeyHandler:
             self.update, self.update_repeat_interval
         )
 
+    def reset_transient_state(self) -> None:
+        """Clear runtime press/hold state so detached handlers do not stick keys."""
+        self.pressed_key = None
+        self.is_key_held_down = False
+        self.active_key_combination = None
+        self.held_repeat_keys.clear()
+        self.active_repeat_key = None
+        self.currently_pressed_keys.clear()
+        self.key_interval_counter = 0.0
+        self.other_keys_pressed = False
+
+    def activate(self, reset_state: bool = True) -> None:
+        """Mark this handler active so key updates and events are processed."""
+        self.is_active = True
+        if reset_state:
+            self.reset_transient_state()
+
+    def deactivate(self, reset_state: bool = True) -> None:
+        """Mark this handler inactive so scheduled repeats cannot run."""
+        self.is_active = False
+        if reset_state:
+            self.reset_transient_state()
+
     def update(self, dt: float) -> None:
         """Trigger repeat callbacks while a registered key is held down."""
+        if not self.is_active:
+            return
+
         if self.active_key_combination is not None:
             callback, key_repeat_interval = self.registered_key_combinations[
                 self.active_key_combination
             ]
+            if key_repeat_interval <= 0:
+                return
             callback.call()
             pyglet.clock.Clock.sleep(
                 key_repeat_interval * 1000 * 1000
             )  # convert to seconds
-        elif self.is_key_held_down and self.pressed_key is not None:
+        elif self.is_key_held_down:
+            repeat_key = self.active_repeat_key or self.pressed_key
+            if repeat_key is None:
+                return
+
             callback, key_repeat_interval = self.registered_key_presses[
-                cast(Key, self.pressed_key)
+                cast(Key, repeat_key)
             ]
+            if key_repeat_interval <= 0:
+                return
             callback.call()
             pyglet.clock.Clock.sleep(
                 key_repeat_interval * 1000 * 1000
             )  # convert to seconds
+
+    @staticmethod
+    def _find_exact_or_symbol_match(
+        key: Key,
+        keys: Iterable[Key],
+    ) -> Optional[Key]:
+        """Resolve a tracked key by exact match first, then by symbol."""
+        key_list = list(keys)
+        if key in key_list:
+            return key
+
+        for candidate in reversed(key_list):
+            if candidate.symbol == key.symbol:
+                return candidate
+
+        return None
 
     def _get_active_combination(self) -> Optional[frozenset[Key]]:
         """Return the longest registered combo whose keys are all currently held."""
@@ -141,6 +203,9 @@ class KeyHandler:
 
     def on_key_press(self, symbol: int, modifiers: int) -> bool:
         """Handle key-press events and dispatch matching registered callbacks."""
+        if not self.is_active:
+            return False
+
         pressed_key: Key = Key(symbol, [modifiers])
         self.currently_pressed_keys.add(pressed_key)
 
@@ -172,6 +237,7 @@ class KeyHandler:
                 if pressed_key in self.held_repeat_keys:
                     self.held_repeat_keys.remove(pressed_key)
                 self.held_repeat_keys.append(pressed_key)
+                self.active_repeat_key = pressed_key
                 self.is_key_held_down = True
                 return True
             else:
@@ -182,15 +248,35 @@ class KeyHandler:
                 self.other_keys_pressed = True
             return False
 
-    def on_key_release(self, symbol: int, modifiers: int) -> bool:
+    def on_key_release(  # noqa: C901
+        self, symbol: int, modifiers: int
+    ) -> bool:
         """Handle key-release events and dispatch release callbacks when valid."""
-        released_key: Key = Key(symbol, [modifiers])
-        self.currently_pressed_keys.discard(released_key)
+        if not self.is_active:
+            return False
+
+        raw_released_key: Key = Key(symbol, [modifiers])
+        released_key = self._find_exact_or_symbol_match(
+            raw_released_key,
+            self.currently_pressed_keys,
+        )
+        if released_key is not None:
+            self.currently_pressed_keys.discard(released_key)
+        else:
+            released_key = raw_released_key
+
         handled_release = False
+
+        combo_release_key: Optional[Key] = None
+        if self.active_key_combination is not None:
+            combo_release_key = self._find_exact_or_symbol_match(
+                released_key,
+                self.active_key_combination,
+            )
 
         if (
             self.active_key_combination is not None
-            and released_key in self.active_key_combination
+            and combo_release_key is not None
         ):
             old_combo = self.active_key_combination
             self.active_key_combination = self._get_active_combination()
@@ -211,13 +297,29 @@ class KeyHandler:
 
             if self.held_repeat_keys:
                 self.pressed_key = self.held_repeat_keys[-1]
+                self.active_repeat_key = self.held_repeat_keys[-1]
                 self.is_key_held_down = True
             else:
+                self.active_repeat_key = None
                 self.is_key_held_down = False
             handled_release = True
 
+        release_repeat_key = self._find_exact_or_symbol_match(
+            released_key,
+            self.held_repeat_keys,
+        )
+        if release_repeat_key is not None:
+            released_key = release_repeat_key
+
         if released_key in self.held_repeat_keys:
             self.held_repeat_keys.remove(released_key)
+            if self.active_repeat_key == released_key:
+                self.active_repeat_key = None
+            if self.held_repeat_keys:
+                self.active_repeat_key = self.held_repeat_keys[-1]
+                self.is_key_held_down = True
+            else:
+                self.is_key_held_down = False
             handled_release = True
 
         if self.pressed_key == released_key:
@@ -225,16 +327,18 @@ class KeyHandler:
 
             if self.held_repeat_keys:
                 self.pressed_key = self.held_repeat_keys[-1]
+                self.active_repeat_key = self.held_repeat_keys[-1]
                 self.is_key_held_down = True
             else:
+                self.active_repeat_key = None
                 self.is_key_held_down = False
 
             return True
 
-        if released_key in self.registered_key_releases:
+        if raw_released_key in self.registered_key_releases:
             # Only trigger if no other keys were pressed during the key hold
             if not self.other_keys_pressed:
-                callback = self.registered_key_releases[released_key]
+                callback = self.registered_key_releases[raw_released_key]
                 self.other_keys_pressed = False  # Reset flag
                 return callback.call()
             else:

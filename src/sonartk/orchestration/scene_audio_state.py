@@ -64,6 +64,7 @@ class SceneAudioState(State):
         self._change_state = change_state
         self._is_active = True
         self._has_continued = False
+        self.key_handler.activate(reset_state=True)
         self.window.push_window_handlers(self.key_handler)
         self.sound_service.play_sound(
             self.scene_sound,
@@ -77,6 +78,7 @@ class SceneAudioState(State):
 
     def exit(self) -> bool:
         self._is_active = False
+        self.key_handler.deactivate(reset_state=True)
         self.window.pop_window_handlers()
         return True
 

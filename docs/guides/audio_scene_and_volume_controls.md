@@ -164,10 +164,27 @@ sound_manager.set_sfx_volume(1.0, players=[map_sfx_player])
 
 bind_volume_hotkeys(
     window,
+    # Optional static player, or use a resolver for dynamic/recovered players.
     sfx_player=map_sfx_player,
     music_step=0.05,
     sfx_step=0.05,
     couple_music_to_sfx_ratio=0.18,
+)
+
+# Dynamic player mode for games that can swap players after audio recovery.
+bind_volume_hotkeys(
+    window,
+    sfx_player_resolver=lambda: players["map_navigation"],
+    # Or provide the full set of SFX players to update in one step:
+    # sfx_players_resolver=lambda: [
+    #     players["map_navigation"],
+    #     players["ambient_river"],
+    #     players["coin"],
+    # ],
+    music_step=0.05,
+    sfx_step=0.05,
+    couple_music_to_sfx_ratio=None,
+    on_sfx_volume_changed=lambda _: refresh_sfx_scaled_audio(),
 )
 ```
 
@@ -178,6 +195,8 @@ Default bindings:
 - `Shift+F6`: sfx down
 
 If `couple_music_to_sfx_ratio` is set, SFX changes also update music volume using `sfx * ratio`.
+
+`on_sfx_volume_changed` is useful for recomputing emitter/base-volume math after runtime SFX changes.
 
 ## Lock Input During Non-Interactive Transitions
 
@@ -306,6 +325,19 @@ sound_manager.play_sound(
     on_complete=lambda _: print("done"),
     completion_poll_interval_seconds=0.05,
 )
+
+# Register post-recovery callback and follow default output device.
+sound_manager.register_audio_recovery_callback(on_audio_recovered)
+sound_manager.start_output_device_watch(
+    poll_interval_seconds=0.5,
+    follow_default_output=True,
+    recovery_retry_count=1,
+    status_callback=lambda message: speech_manager.output(message),
+    status_delay_seconds=5.0,
+)
+
+# Map old players to recovered replacements inside your callback.
+recovered = sound_manager.take_recovered_player(previous_player)
 ```
 
 Prefer `on_complete` for scene flow in active UI/game loops. Blocking waits are available but can freeze input if used on the main thread.

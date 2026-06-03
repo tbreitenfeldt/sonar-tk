@@ -1,6 +1,7 @@
 from typing import Generic, TypeVar
 
 import pytest
+from pyglet.window import key
 
 from sonartk.map_builder.map_2d import Map2d, MapTile
 from sonartk.map_builder.map_2d.map_object.character import Character
@@ -141,3 +142,77 @@ def test_navigation_and_border_handlers_are_attached() -> None:
 
     assert calls["navigation"] == 1
     assert calls["border"] == 1
+
+
+def test_grid_input_choreography_does_not_stick_navigation() -> None:
+    """Held-arrow + Ctrl+Space should not leave grid navigation repeating."""
+    navigation_calls = 0
+    sword_calls = 0
+
+    def on_navigation(grid: Grid[MapTile], direction: Direction) -> bool:
+        nonlocal navigation_calls
+        navigation_calls += 1
+        return False
+
+    built = (
+        MapGridGameBuilder[str](caption="Test")
+        .with_map(
+            map_name="test-map",
+            file_name="test.csv",
+            parser=FakeParser(
+                [
+                    [
+                        "0",
+                        "0",
+                        "0",
+                    ],
+                    [
+                        "0",
+                        "0",
+                        "0",
+                    ],
+                ]
+            ),
+            tile_mapper=tile_mapper,
+            character=Character("Hero", (0, 0), Direction.UP),
+        )
+        .on_navigation(on_navigation)
+        .build()
+    )
+
+    def swing_sword() -> bool:
+        nonlocal sword_calls
+        sword_calls += 1
+        return True
+
+    built.grid.key_handler.add_key_press(
+        swing_sword, key.SPACE, [key.MOD_CTRL]
+    )
+
+    # Begin held RIGHT movement.
+    assert built.grid.key_handler.on_key_press(key.RIGHT, 0)
+    built.grid.key_handler.update(0.01)
+    assert navigation_calls == 1
+
+    # Trigger Ctrl+Space while movement is still held.
+    assert built.grid.key_handler.on_key_press(key.SPACE, key.MOD_CTRL)
+    assert sword_calls == 1
+
+    # Right movement should continue; sword must not repeat from update loop.
+    built.grid.key_handler.update(0.01)
+    assert navigation_calls == 2
+    assert sword_calls == 1
+
+    # Release RIGHT while CTRL remains pressed.
+    assert built.grid.key_handler.on_key_release(key.RIGHT, key.MOD_CTRL)
+
+    # Navigation must stop after release.
+    before = navigation_calls
+    built.grid.key_handler.update(0.01)
+    built.grid.key_handler.update(0.01)
+    assert navigation_calls == before
+
+    # New arrow input should work normally after the release.
+    assert built.grid.key_handler.on_key_press(key.UP, 0)
+    built.grid.key_handler.update(0.01)
+    assert navigation_calls == before + 1

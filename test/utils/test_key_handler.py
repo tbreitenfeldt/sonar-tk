@@ -334,6 +334,54 @@ def test_key_handler_on_key_release_after_key_held_down(
     assert key_handler_with_repete.pressed_key == key_press
 
 
+def test_reset_transient_state_clears_held_runtime_keys(
+    key_handler_with_repete: KeyHandler,
+) -> None:
+    key_press: Key = Key(symbol=key.RIGHT)
+    callback: Callback = Callback(lambda: True)
+    key_handler_with_repete.registered_key_presses[key_press] = (
+        callback,
+        0.1,
+    )
+
+    assert key_handler_with_repete.on_key_press(symbol=key.RIGHT, modifiers=0)
+    assert key_handler_with_repete.is_key_held_down
+    assert key_handler_with_repete.pressed_key == key_press
+
+    key_handler_with_repete.reset_transient_state()
+
+    assert not key_handler_with_repete.is_key_held_down
+    assert key_handler_with_repete.pressed_key is None
+    assert key_handler_with_repete.active_key_combination is None
+    assert key_handler_with_repete.active_repeat_key is None
+    assert key_handler_with_repete.held_repeat_keys == []
+    assert key_handler_with_repete.currently_pressed_keys == set()
+
+
+def test_deactivated_key_handler_does_not_repeat_held_input(
+    key_handler_with_repete: KeyHandler,
+) -> None:
+    callback_calls = 0
+
+    def callback() -> bool:
+        nonlocal callback_calls
+        callback_calls += 1
+        return True
+
+    tracked_key = Key(symbol=key.RIGHT)
+    key_handler_with_repete.registered_key_presses[tracked_key] = (
+        Callback(callback),
+        0.1,
+    )
+    assert key_handler_with_repete.on_key_press(symbol=key.RIGHT, modifiers=0)
+    assert key_handler_with_repete.is_key_held_down
+
+    key_handler_with_repete.deactivate(reset_state=True)
+    key_handler_with_repete.update(0.01)
+
+    assert callback_calls == 0
+
+
 def test_key_handler_on_text(default_key_handler: KeyHandler) -> None:
     test_value: str = ""
 
@@ -1062,3 +1110,118 @@ def test_key_handler_update_when_not_held_down() -> None:
 
     handler.update(0.01)
     assert callback_count == 1
+
+
+def test_key_handler_release_matches_symbol_when_modifiers_change() -> None:
+    """Releasing a held repeat key with different modifiers still stops repeat."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    right_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    handler.add_key_press(move_right, key.RIGHT, key_repeat_interval=0.001)
+
+    assert handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    # Simulate releasing RIGHT while CTRL is still held.
+    assert handler.on_key_release(key.RIGHT, key.MOD_CTRL)
+    before = right_count
+    handler.update(0.01)
+
+    assert right_count == before
+    assert not handler.is_key_held_down
+
+
+def test_non_repeating_key_does_not_hijack_active_repeat_key() -> None:
+    """Non-repeat key presses must not be repeated while movement key is held."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    right_count = 0
+    sword_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def swing_sword() -> bool:
+        nonlocal sword_count
+        sword_count += 1
+        return True
+
+    handler.add_key_press(move_right, key.RIGHT, key_repeat_interval=0.001)
+    handler.add_key_press(swing_sword, key.SPACE, [key.MOD_CTRL])
+
+    # Start repeating movement.
+    assert handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    # Trigger non-repeating action while movement repeat is active.
+    assert handler.on_key_press(key.SPACE, key.MOD_CTRL)
+    assert sword_count == 1
+
+    # Repeat loop should continue movement only, without spamming sword.
+    handler.update(0.01)
+    handler.update(0.01)
+
+    assert right_count == 3
+    assert sword_count == 1
+
+
+def test_game_like_ctrl_space_with_arrow_does_not_stick_navigation() -> None:
+    """Game-like input sequence should not leave arrow navigation repeating forever."""
+    handler = KeyHandler(update_repeat_interval=0.1)
+    right_count = 0
+    down_count = 0
+    sword_count = 0
+
+    def move_right() -> bool:
+        nonlocal right_count
+        right_count += 1
+        return True
+
+    def move_down() -> bool:
+        nonlocal down_count
+        down_count += 1
+        return True
+
+    def swing_sword() -> bool:
+        nonlocal sword_count
+        sword_count += 1
+        return True
+
+    handler.add_key_press(move_right, key.RIGHT, key_repeat_interval=0.001)
+    handler.add_key_press(move_down, key.DOWN, key_repeat_interval=0.001)
+    handler.add_key_press(swing_sword, key.SPACE, [key.MOD_CTRL])
+
+    # Hold RIGHT and start repeat movement.
+    assert handler.on_key_press(key.RIGHT, 0)
+    handler.update(0.01)
+    assert right_count == 1
+
+    # While still moving, trigger sword action with CTRL+SPACE.
+    assert handler.on_key_press(key.SPACE, key.MOD_CTRL)
+    assert sword_count == 1
+    handler.update(0.01)
+    assert right_count == 2
+    assert sword_count == 1
+
+    # Release RIGHT while CTRL remains pressed.
+    assert handler.on_key_release(key.RIGHT, key.MOD_CTRL)
+
+    # Navigation must stop after release; no indefinite movement.
+    right_before = right_count
+    handler.update(0.01)
+    handler.update(0.01)
+    assert right_count == right_before
+    assert not handler.is_key_held_down
+
+    # Pressing another arrow afterwards should work as a fresh input.
+    assert handler.on_key_press(key.DOWN, 0)
+    handler.update(0.01)
+    assert down_count == 1

@@ -78,6 +78,23 @@ MONSTER_AMBIENT_VOLUME = 0.85
 MONSTER_AMBIENT_ROLLOFF = 1.5
 MONSTER_MIN_VOLUME_AT_MAX_DISTANCE = 0.18
 MONSTER_DISTANCE_CURVE_EXPONENT = 2.2
+OUTPUT_DEVICE_WATCH_INTERVAL_SECONDS = 0.5
+RECOVERY_RETRY_COUNT = 1
+RECOVERY_STATUS_DELAY_SECONDS = 5.0
+
+PLAYER_ROLES: tuple[str, ...] = (
+    "map_navigation",
+    "ambient_river",
+    "ambient_monster",
+    "coin",
+    "pickup",
+    "reward",
+    "intro",
+    "monster_announce",
+    "monster_block",
+    "sword",
+    "monster_scream",
+)
 
 MONSTER_GATE_TILE_COORDINATES: tuple[tuple[int, int], ...] = ((3, 12),)
 MONSTER_TILE_COORDINATES: tuple[int, int] = (4, 12)
@@ -166,21 +183,7 @@ def main() -> None:  # noqa: C901
     character: Character = Character(
         "Test Character", start_coordinates, Direction.DOWN
     )
-    players = sound_manager.allocate_players_by_role(
-        [
-            "map_navigation",
-            "ambient_river",
-            "ambient_monster",
-            "coin",
-            "pickup",
-            "reward",
-            "intro",
-            "monster_announce",
-            "monster_block",
-            "sword",
-            "monster_scream",
-        ]
-    )
+    players = sound_manager.allocate_players_by_role(PLAYER_ROLES)
     map_navigation_player = players["map_navigation"]
     ambient_river_player = players["ambient_river"]
     ambient_monster_player = players["ambient_monster"]
@@ -192,20 +195,24 @@ def main() -> None:  # noqa: C901
     monster_block_player = players["monster_block"]
     sword_player = players["sword"]
     monster_scream_player = players["monster_scream"]
-    sound_manager.set_sfx_volume(
-        MAP_SFX_VOLUME,
-        players=[
-            map_navigation_player,
-            ambient_river_player,
-            ambient_monster_player,
-            coin_player,
-            pickup_player,
-            reward_player,
-            monster_block_player,
-            sword_player,
-            monster_scream_player,
-        ],
-    )
+
+    def apply_sfx_levels(active_players: dict[str, Player]) -> None:
+        sound_manager.set_sfx_volume(
+            MAP_SFX_VOLUME,
+            players=[
+                active_players["map_navigation"],
+                active_players["ambient_river"],
+                active_players["ambient_monster"],
+                active_players["coin"],
+                active_players["pickup"],
+                active_players["reward"],
+                active_players["monster_block"],
+                active_players["sword"],
+                active_players["monster_scream"],
+            ],
+        )
+
+    apply_sfx_levels(players)
     builder = MapGridGameBuilder[str](caption="Test 2D Game").with_map(
         map_name="Test Map",
         file_name=str(EXAMPLE_DIR / "test.csv"),
@@ -278,6 +285,11 @@ def main() -> None:  # noqa: C901
     ) -> None:
         origin = coordinates or builder.map2d.character.coordinates
         update_monster_ambient_sound(origin)
+
+    def refresh_sfx_scaled_audio(_: float) -> None:
+        current_coordinates = builder.map2d.character.coordinates
+        map_navigation.update_ambient_sound(current_coordinates)
+        update_dynamic_emitters(current_coordinates)
 
     def on_navigation_with_coins(
         grid: Grid[MapTile], direction: Direction
@@ -459,10 +471,10 @@ def main() -> None:  # noqa: C901
 
     bind_volume_hotkeys(
         window,
-        sfx_player=map_navigation_player,
         music_step=MUSIC_VOLUME_STEP,
         sfx_step=SFX_VOLUME_STEP,
-        couple_music_to_sfx_ratio=MUSIC_TO_SFX_VOLUME_RATIO,
+        couple_music_to_sfx_ratio=None,
+        on_sfx_volume_changed=refresh_sfx_scaled_audio,
     )
 
     def start_music_after_intro() -> None:
@@ -499,7 +511,12 @@ def main() -> None:  # noqa: C901
         start_game_ambience,
     )
 
-    register_game_states(
+    (
+        intro_state,
+        monster_unlocked_state,
+        monster_defeated_state,
+        won_state,
+    ) = register_game_states(
         window,
         intro_player,
         monster_announce_player,
@@ -507,6 +524,88 @@ def main() -> None:  # noqa: C901
         open_monster_section,
         reset_for_intro,
         audio_lifecycle,
+    )
+
+    def on_audio_recovered() -> None:
+        nonlocal players
+        nonlocal map_navigation_player
+        nonlocal ambient_river_player
+        nonlocal ambient_monster_player
+        nonlocal coin_player
+        nonlocal pickup_player
+        nonlocal reward_player
+        nonlocal intro_player
+        nonlocal monster_announce_player
+        nonlocal monster_block_player
+        nonlocal sword_player
+        nonlocal monster_scream_player
+
+        previous_players: dict[str, Player] = {
+            "map_navigation": map_navigation_player,
+            "ambient_river": ambient_river_player,
+            "ambient_monster": ambient_monster_player,
+            "coin": coin_player,
+            "pickup": pickup_player,
+            "reward": reward_player,
+            "intro": intro_player,
+            "monster_announce": monster_announce_player,
+            "monster_block": monster_block_player,
+            "sword": sword_player,
+            "monster_scream": monster_scream_player,
+        }
+        recovered_players: dict[str, Player] = {}
+        missing_roles: list[str] = []
+
+        for role_name, previous_player in previous_players.items():
+            recovered = sound_manager.take_recovered_player(previous_player)
+            if recovered is None:
+                missing_roles.append(role_name)
+                continue
+            recovered_players[role_name] = recovered
+
+        if missing_roles:
+            recovered_players.update(
+                sound_manager.allocate_players_by_role(missing_roles)
+            )
+
+        players = recovered_players
+        map_navigation_player = players["map_navigation"]
+        ambient_river_player = players["ambient_river"]
+        ambient_monster_player = players["ambient_monster"]
+        coin_player = players["coin"]
+        pickup_player = players["pickup"]
+        reward_player = players["reward"]
+        intro_player = players["intro"]
+        monster_announce_player = players["monster_announce"]
+        monster_block_player = players["monster_block"]
+        sword_player = players["sword"]
+        monster_scream_player = players["monster_scream"]
+
+        apply_sfx_levels(players)
+
+        map_navigation.player = map_navigation_player
+        map_navigation.ambient_player = ambient_river_player
+        proximity_audio.players["monster"] = ambient_monster_player
+
+        intro_state.scene_player = intro_player
+        monster_unlocked_state.entry_sound_player = monster_announce_player
+        monster_defeated_state.scene_player = monster_scream_player
+
+        map_navigation.update_ambient_sound(
+            builder.map2d.character.coordinates
+        )
+        update_dynamic_emitters(builder.map2d.character.coordinates)
+
+    sound_manager.register_audio_recovery_callback(on_audio_recovered)
+    sound_manager.start_output_device_watch(
+        poll_interval_seconds=OUTPUT_DEVICE_WATCH_INTERVAL_SECONDS,
+        follow_default_output=True,
+        recovery_retry_count=RECOVERY_RETRY_COUNT,
+        status_callback=lambda message: speech_manager.output(
+            message,
+            interrupt=False,
+        ),
+        status_delay_seconds=RECOVERY_STATUS_DELAY_SECONDS,
     )
 
     sound_manager.listener.position = as_listener_position(
@@ -544,7 +643,12 @@ def register_game_states(
     open_monster_section: Callable[[], None],
     reset_for_intro: Callable[[], None],
     audio_lifecycle: IntroGameAudioLifecycle,
-) -> None:
+) -> tuple[
+    SceneAudioState,
+    MessageActionState,
+    SceneAudioState,
+    MessageActionState,
+]:
     intro_state = SceneAudioState(
         window=window,
         scene_sound=INTRO_SOUND,
@@ -580,6 +684,12 @@ def register_game_states(
     window.add("monster_defeated", monster_defeated_state)
     window.add("won", won_state)
     window.set_start_state("intro")
+    return (
+        intro_state,
+        monster_unlocked_state,
+        monster_defeated_state,
+        won_state,
+    )
 
 
 if __name__ == "__main__":

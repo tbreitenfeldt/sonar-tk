@@ -60,6 +60,7 @@ class MessageActionState(State):
     ) -> bool:
         self._change_state = change_state
         self._has_continued = False
+        self.key_handler.activate(reset_state=True)
         self.window.push_window_handlers(self.key_handler)
         speech_manager.output(self.message)
         if self.entry_sound is not None:
@@ -73,6 +74,7 @@ class MessageActionState(State):
         return True
 
     def exit(self) -> bool:
+        self.key_handler.deactivate(reset_state=True)
         self.window.pop_window_handlers()
         return True
 

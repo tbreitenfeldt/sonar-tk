@@ -156,6 +156,57 @@ def test_play_music_with_fade_schedules_and_reaches_target(
     unschedule_mock.assert_called_with(fade_callback)
 
 
+def test_play_music_schedules_seek_restore_when_resuming_position(
+    mocker: MockerFixture,
+) -> None:
+    """Resumed music should schedule seek restoration retries after play starts."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    sound_pool.load.return_value = object()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = True
+    music_player.seek = 0.25
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    schedule_seek_restore = mocker.patch.object(
+        manager, "_schedule_music_seek_restore"
+    )
+
+    manager.play_music("music/theme.ogg", resume_seek_ratio=0.25)
+
+    schedule_seek_restore.assert_called_once_with(0.25)
+
+
+def test_stop_music_cancels_pending_seek_restore(
+    mocker: MockerFixture,
+) -> None:
+    """Stopping music should cancel any pending seek-restore callback."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    cancel_seek_restore = mocker.patch.object(
+        manager, "_cancel_music_seek_restore"
+    )
+
+    manager.stop_music()
+
+    cancel_seek_restore.assert_called_once()
+
+
 # play_sound Tests
 
 
@@ -866,3 +917,1366 @@ def test_module_allocate_players_by_role_delegates_to_default_manager(
 
     assert result is expected
     manager.allocate_players_by_role.assert_called_once_with(["nav"])
+
+
+def test_start_output_device_watch_recovers_on_device_change(
+    mocker: MockerFixture,
+) -> None:
+    """Device watch should trigger recovery when current/default outputs diverge."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    mocker.patch("sonartk.sound.sound_manager.pyglet.clock.schedule_once")
+    unschedule = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.unschedule"
+    )
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=True
+    )
+
+    names = iter(["Speakers", "Speakers", "Headphones", "Speakers"])
+    mocker.patch.object(
+        manager,
+        "_safe_default_output_name",
+        side_effect=lambda: next(names),
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_current_output_name",
+        side_effect=lambda: next(names),
+    )
+
+    manager.start_output_device_watch(poll_interval_seconds=0.25)
+    poll_callback = schedule_interval.call_args.args[0]
+
+    poll_callback(0.01)
+    recover.assert_called_once_with(1)
+
+    manager.stop_output_device_watch()
+    assert unschedule.call_count >= 1
+
+
+def test_recovery_status_callback_emits_after_threshold(
+    mocker: MockerFixture,
+) -> None:
+    """Recovery status cue should be emitted only when recovery exceeds delay."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    status_callback = mocker.MagicMock()
+    schedule_once = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_once"
+    )
+    mocker.patch("sonartk.sound.sound_manager.pyglet.clock.schedule_interval")
+    mocker.patch("sonartk.sound.sound_manager.pyglet.clock.unschedule")
+    mocker.patch.object(manager, "_safe_default_output_name", return_value="D")
+    mocker.patch.object(manager, "_safe_current_output_name", return_value="C")
+    mocker.patch.object(manager, "_rebuild_audio_graph", return_value=True)
+
+    manager.start_output_device_watch(
+        poll_interval_seconds=0.25,
+        status_callback=status_callback,
+        status_delay_seconds=5.0,
+    )
+
+    # Simulate slow recovery currently in progress, then fire delay timer.
+    manager._recovery_in_progress = True
+    manager._start_recovery_status_timer()
+    notify = schedule_once.call_args.args[0]
+    notify(5.0)
+
+    status_callback.assert_any_call("Audio device changed. Recovering audio.")
+
+
+def test_begin_recovery_cancels_status_timer_on_failed_recovery(
+    mocker: MockerFixture,
+) -> None:
+    """Failed recovery attempts should clear pending status timers."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._status_callback = mocker.MagicMock()
+    manager._status_delay_seconds = 5.0
+    manager._status_timer_callback = lambda _: None
+
+    cancel_timer = mocker.patch.object(
+        manager, "_cancel_recovery_status_timer"
+    )
+    mocker.patch.object(
+        manager, "_soft_reset_output_device", return_value=False
+    )
+    mocker.patch.object(manager, "_rebuild_audio_graph", return_value=False)
+
+    assert not manager._begin_recovery(0)
+    cancel_timer.assert_called_once()
+    assert manager._status_announced_for_cycle is False
+    assert manager._recovery_in_progress is False
+
+
+def test_output_device_watch_recovers_on_backend_health_failure(
+    mocker: MockerFixture,
+) -> None:
+    """Recovery should trigger after consecutive backend health failures."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    mocker.patch("sonartk.sound.sound_manager.pyglet.clock.schedule_once")
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=True
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(manager, "_has_backend_errors", return_value=True)
+    mocker.patch.object(manager, "_is_device_disconnected", return_value=False)
+
+    manager.start_output_device_watch(poll_interval_seconds=0.25)
+    poll_callback = schedule_interval.call_args.args[0]
+
+    poll_callback(0.01)
+    recover.assert_not_called()
+
+    poll_callback(0.01)
+
+    recover.assert_called_once_with(1)
+
+
+def test_output_device_watch_applies_recovery_cooldown_for_non_immediate_triggers(
+    mocker: MockerFixture,
+) -> None:
+    """Non-immediate recovery paths should not re-trigger repeatedly within cooldown."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._min_recovery_interval_seconds = 10.0
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_output_device_inventory_signature",
+        return_value="Speakers",
+    )
+    mocker.patch.object(manager, "_has_backend_errors", return_value=True)
+    mocker.patch.object(manager, "_is_device_disconnected", return_value=False)
+    mocker.patch.object(
+        manager, "_is_music_playback_stalled", return_value=False
+    )
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=False
+    )
+    monotonic = mocker.patch(
+        "sonartk.sound.sound_manager.time.monotonic",
+        side_effect=[100.0, 100.1],
+    )
+
+    manager.start_output_device_watch(poll_interval_seconds=0.25)
+    poll_callback = schedule_interval.call_args.args[0]
+
+    poll_callback(0.01)
+    poll_callback(0.01)
+    poll_callback(0.01)
+
+    recover.assert_called_once_with(1)
+    assert monotonic.call_count == 2
+
+
+def test_start_output_device_watch_emits_enabled_status(
+    mocker: MockerFixture,
+) -> None:
+    """Watcher should emit a startup status message when callback is provided."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    status_callback = mocker.MagicMock()
+    mocker.patch("sonartk.sound.sound_manager.pyglet.clock.schedule_interval")
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+
+    manager.start_output_device_watch(
+        status_callback=status_callback,
+    )
+
+    status_callback.assert_called_once_with("Audio device monitoring enabled.")
+
+
+def test_output_device_watch_recovers_on_device_transition_change(
+    mocker: MockerFixture,
+) -> None:
+    """Watcher should recover when default/current device transitions are observed."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    defaults = iter(["Speakers", "Headphones"])
+    currents = iter(["Speakers", "Speakers"])
+    mocker.patch.object(
+        manager,
+        "_safe_default_output_name",
+        side_effect=lambda: next(defaults),
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_current_output_name",
+        side_effect=lambda: next(currents),
+    )
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(manager, "_is_device_disconnected", return_value=False)
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=True
+    )
+
+    manager.start_output_device_watch(
+        poll_interval_seconds=0.25,
+    )
+    poll_callback = schedule_interval.call_args.args[0]
+    poll_callback(0.01)
+
+    recover.assert_called_once_with(1)
+
+
+def test_output_device_watch_recovers_on_inventory_change(
+    mocker: MockerFixture,
+) -> None:
+    """Watcher should recover when playback device inventory changes."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    signatures = iter(["Speakers", "Speakers|Headphones"])
+    mocker.patch.object(
+        manager,
+        "_safe_output_device_inventory_signature",
+        side_effect=lambda: next(signatures),
+    )
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(manager, "_is_device_disconnected", return_value=False)
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=True
+    )
+
+    manager.start_output_device_watch(poll_interval_seconds=0.25)
+    poll_callback = schedule_interval.call_args.args[0]
+    poll_callback(0.01)
+
+    recover.assert_called_once_with(1, skip_soft_reset=True)
+
+
+def test_output_watch_recovers_on_music_stall(
+    mocker: MockerFixture,
+) -> None:
+    """Watcher should trigger recovery when playing music offset stalls."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = True
+    music_player.source = 1
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._music_stall_threshold_seconds = 1.0
+
+    schedule_interval = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(manager, "_is_device_disconnected", return_value=False)
+    mocker.patch.object(manager, "_get_player_byte_offset", return_value=1024)
+    recover = mocker.patch.object(
+        manager, "_begin_recovery", return_value=True
+    )
+
+    manager.start_output_device_watch(poll_interval_seconds=0.25)
+    poll_callback = schedule_interval.call_args.args[0]
+
+    poll_callback(0.6)
+    recover.assert_not_called()
+
+    poll_callback(0.6)
+    recover.assert_not_called()
+
+    poll_callback(0.6)
+    recover.assert_called_once_with(1)
+
+
+def test_music_stall_poll_updates_last_seek_ratio_from_offset(
+    mocker: MockerFixture,
+) -> None:
+    """Stall polling should continuously persist seek ratio from byte offsets."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = True
+    music_player.source = 1
+    music_player.queue = [mocker.MagicMock(length=4000)]
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._last_music_seek_ratio = 0.0
+
+    mocker.patch.object(manager, "_get_player_byte_offset", return_value=1000)
+
+    assert not manager._is_music_playback_stalled(0.1)
+    assert manager._last_music_seek_ratio == pytest.approx(0.25)
+
+
+def test_update_seek_ratio_from_offset_ignores_missing_queue(
+    mocker: MockerFixture,
+) -> None:
+    """Seek ratio update should be a no-op when the player queue is empty."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.queue = []
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_seek_ratio = 0.42
+
+    manager._update_last_music_seek_ratio_from_offset(1000)
+
+    assert manager._last_music_seek_ratio == pytest.approx(0.42)
+
+
+def test_capture_music_seek_ratio_preserves_previous_on_dropout_zero_seek(
+    mocker: MockerFixture,
+) -> None:
+    """Dropout zero-seek reads should not erase a valid saved music position."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.queue = []
+    music_player.seek = 0.0
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._music_target_playing = True
+    manager._last_music_seek_ratio = 0.63
+
+    assert manager._capture_music_seek_ratio() == pytest.approx(0.63)
+    assert manager._last_music_seek_ratio == pytest.approx(0.63)
+
+
+def test_soft_reset_returns_false_when_default_mismatch_persists(
+    mocker: MockerFixture,
+) -> None:
+    """Soft reset must fail when follow-default mode still mismatches route."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    listener.device = object()
+    listener.context = object()
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._follow_default_output = True
+
+    mocker.patch.object(manager, "_is_device_pointer", return_value=True)
+    mocker.patch("sonartk.sound.sound_manager.alc.alcResetDeviceSOFT")
+    mocker.patch("sonartk.sound.sound_manager.alc.alcProcessContext")
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Headphones"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+
+    assert not manager._soft_reset_output_device()
+
+
+def test_soft_reset_returns_false_when_routing_names_unavailable(
+    mocker: MockerFixture,
+) -> None:
+    """Soft reset should force rebuild when route names cannot be read."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    listener.device = object()
+    listener.context = object()
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._follow_default_output = True
+
+    mocker.patch.object(manager, "_is_device_pointer", return_value=True)
+    mocker.patch("sonartk.sound.sound_manager.alc.alcResetDeviceSOFT")
+    mocker.patch("sonartk.sound.sound_manager.alc.alcProcessContext")
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(manager, "_safe_default_output_name", return_value="")
+    mocker.patch.object(manager, "_safe_current_output_name", return_value="")
+
+    assert not manager._soft_reset_output_device()
+
+
+def test_soft_reset_restarts_music_with_saved_seek_ratio(
+    mocker: MockerFixture,
+) -> None:
+    """Soft reset should resume music from captured seek position."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    listener.device = object()
+    listener.context = object()
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._last_music_loop = True
+    manager._last_music_volume = 0.7
+    manager._music_target_playing = True
+    manager._last_music_seek_ratio = 0.42
+
+    mocker.patch.object(manager, "_is_device_pointer", return_value=True)
+    mocker.patch("sonartk.sound.sound_manager.alc.alcResetDeviceSOFT")
+    mocker.patch("sonartk.sound.sound_manager.alc.alcProcessContext")
+    mocker.patch.object(manager, "_has_backend_errors", return_value=False)
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_capture_music_seek_ratio", return_value=0.42
+    )
+    play_music = mocker.patch.object(manager, "play_music")
+
+    assert manager._soft_reset_output_device()
+    play_music.assert_called_once_with(
+        "music/theme.ogg",
+        loop=True,
+        volume=0.7,
+        fade_in_seconds=0.0,
+        resume_seek_ratio=0.42,
+    )
+
+
+def test_rebuild_audio_graph_resumes_music_with_saved_seek_ratio(
+    mocker: MockerFixture,
+) -> None:
+    """Rebuild should preserve seek position when resuming interrupted music."""
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._last_music_loop = True
+    manager._last_music_volume = 0.8
+    manager._music_target_playing = True
+
+    new_listener = mocker.MagicMock()
+    new_listener.position = (0, 0, 0)
+    new_sound_pool = mocker.MagicMock()
+    new_sound_pool.cached_paths.return_value = []
+    new_player_pool = mocker.MagicMock()
+    new_music_player = mocker.MagicMock()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=new_listener
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.SoundPool", return_value=new_sound_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool", return_value=new_player_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.Player", return_value=new_music_player
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_capture_music_seek_ratio", return_value=0.37
+    )
+    play_music = mocker.patch.object(manager, "play_music")
+
+    assert manager._rebuild_audio_graph()
+    play_music.assert_called_once_with(
+        "music/theme.ogg",
+        loop=True,
+        volume=0.8,
+        fade_in_seconds=0.0,
+        resume_seek_ratio=0.37,
+    )
+
+
+def test_rebuild_audio_graph_updates_module_globals(
+    mocker: MockerFixture,
+) -> None:
+    """Recovery should update module globals used by wrapper sync."""
+    from sonartk.sound import sound_manager as module
+
+    old_listener = module.listener
+    old_sound_pool = module.sound_pool
+    old_player_pool = module.player_pool
+    old_music_player = module.music_player
+
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    new_listener = mocker.MagicMock()
+    new_listener.position = (0, 0, 0)
+    new_sound_pool = mocker.MagicMock()
+    new_sound_pool.cached_paths.return_value = []
+    new_player_pool = mocker.MagicMock()
+    new_music_player = mocker.MagicMock()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=new_listener
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.SoundPool", return_value=new_sound_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool", return_value=new_player_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.Player", return_value=new_music_player
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+
+    assert manager._rebuild_audio_graph()
+    assert module.listener is new_listener
+    assert module.sound_pool is new_sound_pool
+    assert module.player_pool is new_player_pool
+    assert module.music_player is new_music_player
+
+    module.listener = old_listener
+    module.sound_pool = old_sound_pool
+    module.player_pool = old_player_pool
+    module.music_player = old_music_player
+
+
+def test_take_recovered_player_returns_and_consumes_mapping(
+    mocker: MockerFixture,
+) -> None:
+    """Recovered player mapping should be one-time consumable by previous player."""
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    previous_player = mocker.MagicMock()
+    recovered_player = mocker.MagicMock()
+    manager._last_recovered_player_map[id(previous_player)] = recovered_player
+
+    assert manager.take_recovered_player(previous_player) is recovered_player
+    assert manager.take_recovered_player(previous_player) is None
+
+
+def test_rebuild_audio_graph_restores_currently_playing_players(
+    mocker: MockerFixture,
+) -> None:
+    """Active playing players should be restored and mapped during rebuild."""
+    old_player = mocker.MagicMock()
+    old_player.playing.return_value = True
+    old_player.queue = [object()]
+    old_player.position = (1, 0, 2)
+    old_player.volume = 0.42
+    old_player.rolloff = 1.1
+    old_player.loop = True
+
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.pool = {"music/river.wav": old_player.queue[0]}
+    sound_pool.cached_paths.return_value = ["music/river.wav"]
+    player_pool = mocker.MagicMock()
+    player_pool._active_players = [old_player]
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._player_channels_by_id[id(old_player)] = "sfx"
+
+    new_listener = mocker.MagicMock()
+    new_listener.position = (0, 0, 0)
+    new_sound_pool = mocker.MagicMock()
+    new_sound_pool.cached_paths.return_value = []
+    new_player_pool = mocker.MagicMock()
+    recovered_player = mocker.MagicMock()
+    new_player_pool.get_player.return_value = recovered_player
+    new_music_player = mocker.MagicMock()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=new_listener
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.SoundPool", return_value=new_sound_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool", return_value=new_player_pool
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.Player", return_value=new_music_player
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    play_sound = mocker.patch.object(manager, "play_sound")
+
+    assert manager._rebuild_audio_graph()
+    assert play_sound.call_count >= 1
+    assert play_sound.call_args_list[0].args[0] == "music/river.wav"
+    assert play_sound.call_args_list[0].kwargs["player"] is recovered_player
+    assert manager.take_recovered_player(old_player) is recovered_player
+
+
+def test_music_seek_ratio_helpers_get_and_set(mocker: MockerFixture) -> None:
+    """Internal seek helpers should read/write the player seek attribute."""
+    player = mocker.MagicMock()
+    player.seek = 0.35
+
+    assert SoundManager._get_player_seek_ratio(player) == pytest.approx(0.35)
+    SoundManager._set_player_seek_ratio(player, 0.6)
+    assert player.seek == pytest.approx(0.6)
+
+
+def test_trigger_play_with_device_retry_retries_once_when_watch_enabled(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._device_watch_callback = lambda _: None
+
+    trigger = mocker.MagicMock()
+    playing = mocker.MagicMock(side_effect=[False, False])
+
+    manager._trigger_play_with_device_retry(trigger, playing)
+
+    assert trigger.call_count == 2
+
+
+def test_should_retry_after_recovery_attempt_guard_paths(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    is_playing = mocker.MagicMock(return_value=False)
+    assert not manager._should_retry_after_recovery_attempt(
+        attempt=1,
+        is_playing=is_playing,
+        allow_recovery=True,
+    )
+
+    assert not manager._should_retry_after_recovery_attempt(
+        attempt=0,
+        is_playing=is_playing,
+        allow_recovery=False,
+    )
+
+
+def test_should_retry_after_recovery_attempt_logs_failed_recovery(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._device_watch_callback = lambda _: None
+    debug_sink = mocker.MagicMock()
+    manager.set_debug_callback(debug_sink)
+    mocker.patch.object(manager, "_begin_recovery", return_value=False)
+
+    result = manager._should_retry_after_recovery_attempt(
+        attempt=0,
+        is_playing=mocker.MagicMock(return_value=False),
+        allow_recovery=True,
+    )
+
+    assert not result
+    debug_sink.assert_called()
+
+
+def test_module_set_debug_callback_delegates_to_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    callback = mocker.MagicMock()
+    call_default = mocker.patch(
+        "sonartk.sound.sound_manager._call_default_manager"
+    )
+
+    sound_manager.set_debug_callback(callback)
+
+    call_default.assert_called_once_with("set_debug_callback", callback)
+
+
+def test_module_recovery_wrappers_delegate_to_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    manager = mocker.MagicMock()
+    callback = mocker.MagicMock()
+    previous_player = mocker.MagicMock()
+    recovered_player = mocker.MagicMock()
+    manager.take_recovered_player.return_value = recovered_player
+    mocker.patch.object(sound_manager, "_default_manager", manager)
+
+    sound_manager.register_audio_recovery_callback(callback)
+    sound_manager.unregister_audio_recovery_callback(callback)
+    sound_manager.start_output_device_watch(
+        poll_interval_seconds=0.2,
+        follow_default_output=False,
+        recovery_retry_count=2,
+        status_callback=callback,
+        status_delay_seconds=1.5,
+    )
+    sound_manager.stop_output_device_watch()
+    result = sound_manager.take_recovered_player(previous_player)
+
+    assert result is recovered_player
+    manager.register_recovery_callback.assert_called_once_with(callback)
+    manager.unregister_recovery_callback.assert_called_once_with(callback)
+    manager.start_output_device_watch.assert_called_once_with(
+        poll_interval_seconds=0.2,
+        follow_default_output=False,
+        recovery_retry_count=2,
+        status_callback=callback,
+        status_delay_seconds=1.5,
+    )
+    manager.stop_output_device_watch.assert_called_once_with()
+    manager.take_recovered_player.assert_called_once_with(previous_player)
+
+
+def test_schedule_music_seek_restore_handles_zero_target_and_max_attempts(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    schedule = mocker.patch(
+        "sonartk.sound.sound_manager.pyglet.clock.schedule_interval"
+    )
+    cancel = mocker.patch.object(manager, "_cancel_music_seek_restore")
+
+    manager._schedule_music_seek_restore(0.0)
+    schedule.assert_not_called()
+
+    schedule.reset_mock()
+    manager._schedule_music_seek_restore(0.5, max_attempts=2)
+    schedule.assert_called_once()
+    restore = schedule.call_args.args[0]
+
+    mocker.patch.object(manager, "_get_player_seek_ratio", return_value=0.0)
+    restore(0.01)
+    restore(0.01)
+    assert cancel.call_count >= 2
+
+
+def test_is_music_playback_stalled_reset_branches(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+    manager._music_stall_elapsed_seconds = 2.0
+    manager._last_music_byte_offset = 99
+
+    assert not manager._is_music_playback_stalled(0.1)
+    assert manager._music_stall_elapsed_seconds == 0.0
+    assert manager._last_music_byte_offset is None
+
+
+def test_is_music_playback_stalled_handles_offset_errors_and_negative_offsets(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = True
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._last_music_path = "music/theme.ogg"
+
+    mocker.patch.object(
+        manager,
+        "_get_player_byte_offset",
+        side_effect=RuntimeError("offset failure"),
+    )
+    assert not manager._is_music_playback_stalled(0.1)
+
+    mocker.patch.object(manager, "_get_player_byte_offset", return_value=-1)
+    assert not manager._is_music_playback_stalled(0.1)
+
+
+def test_backend_error_and_disconnect_branches(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.device = object()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    mocker.patch.object(manager, "_is_device_pointer", return_value=True)
+    mocker.patch("sonartk.sound.sound_manager.al.alGetError", return_value=1)
+    assert manager._has_backend_errors()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.al.alGetError",
+        side_effect=RuntimeError("al failed"),
+    )
+    assert not manager._has_backend_errors()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.alc.alcIsExtensionPresent",
+        return_value=False,
+    )
+    assert not manager._is_device_disconnected()
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.alc.alcIsExtensionPresent",
+        return_value=True,
+    )
+
+    def _set_disconnected(
+        _device: object,
+        _token: int,
+        _size: int,
+        out_value: Any,
+    ) -> None:
+        out_value.value = 0
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.alc.alcGetIntegerv",
+        side_effect=_set_disconnected,
+    )
+    assert manager._is_device_disconnected()
+
+
+def test_soft_reset_returns_false_when_backend_reset_raises(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.device = object()
+    listener.context = object()
+    sound_pool = mocker.MagicMock()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    debug = mocker.MagicMock()
+    manager.set_debug_callback(debug)
+
+    mocker.patch.object(manager, "_is_device_pointer", return_value=True)
+    mocker.patch(
+        "sonartk.sound.sound_manager.alc.alcResetDeviceSOFT",
+        side_effect=RuntimeError("reset failed"),
+    )
+
+    assert not manager._soft_reset_output_device()
+    debug.assert_called()
+
+
+def test_rebuild_audio_graph_handles_teardown_failures_and_listener_fallback(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.position = (1, 2, 3)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    sound_pool.destroy.side_effect = RuntimeError("sound destroy failed")
+    player_pool = mocker.MagicMock()
+    player_pool.destroy.side_effect = RuntimeError("player destroy failed")
+    music_player = mocker.MagicMock()
+    music_player.delete.side_effect = RuntimeError("delete failed")
+    listener.delete.side_effect = RuntimeError("listener delete failed")
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._follow_default_output = False
+    debug = mocker.MagicMock()
+    manager.set_debug_callback(debug)
+
+    new_listener = mocker.MagicMock()
+    new_listener.position = (0, 0, 0)
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=new_listener
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.SoundPool",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.Player", return_value=mocker.MagicMock()
+    )
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_output_device_inventory_signature",
+        return_value="Speakers|Headphones",
+    )
+
+    assert manager._rebuild_audio_graph()
+    assert debug.call_count >= 4
+
+
+def test_rebuild_audio_graph_follow_default_post_checks(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    manager._follow_default_output = True
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=mocker.MagicMock()
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.SoundPool",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool",
+        return_value=mocker.MagicMock(),
+    )
+    mocker.patch(
+        "sonartk.sound.sound_manager.Player", return_value=mocker.MagicMock()
+    )
+
+    names = iter(
+        ["Speakers", "", "Speakers", "Speakers", "Headphones", "Speakers"]
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_default_output_name",
+        side_effect=lambda: next(names),
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_current_output_name",
+        side_effect=lambda: next(names),
+    )
+
+    assert not manager._rebuild_audio_graph()
+    assert not manager._rebuild_audio_graph()
+
+
+def test_rebuild_audio_graph_returns_false_on_constructor_failure(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+    debug = mocker.MagicMock()
+    manager.set_debug_callback(debug)
+
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener",
+        side_effect=RuntimeError("listener ctor failed"),
+    )
+
+    assert not manager._rebuild_audio_graph()
+    debug.assert_called()
+
+
+def test_play_music_suppresses_seek_set_errors_and_retries_once(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    sound_pool.load.return_value = object()
+    player_pool = mocker.MagicMock()
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=music_player,
+    )
+
+    mocker.patch.object(
+        manager,
+        "_set_player_seek_ratio",
+        side_effect=RuntimeError("seek failed"),
+    )
+    mocker.patch.object(
+        manager,
+        "_should_retry_after_recovery_attempt",
+        side_effect=[True, False],
+    )
+
+    manager.play_music("music/theme.ogg", resume_seek_ratio=0.3)
+
+    assert sound_pool.load.call_count == 2
+
+
+def test_allocate_players_by_role_rejects_empty_role_name(
+    mocker: MockerFixture,
+) -> None:
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+
+    with pytest.raises(ValueError, match="cannot include empty names"):
+        manager.allocate_players_by_role(["  "])
+
+
+def test_play_sound_continue_recovery_and_exhaustion_paths(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.position = (0, 0, 0)
+    sound_pool = mocker.MagicMock()
+    sound_pool.load.return_value = object()
+    player_pool = mocker.MagicMock()
+    player_a = mocker.MagicMock()
+    player_a.queue = []
+    player_b = mocker.MagicMock()
+    player_b.queue = []
+    player_pool.get_player.side_effect = [player_a, player_b]
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=mocker.MagicMock(),
+    )
+
+    mocker.patch.object(
+        manager,
+        "_should_retry_after_recovery_attempt",
+        side_effect=[True, True],
+    )
+
+    result = manager.play_sound("sfx/step.wav")
+
+    assert result is player_b
+    assert player_pool.get_player.call_count == 2
+
+
+def test_play_sound_skips_trigger_when_same_sound_already_playing(
+    mocker: MockerFixture,
+) -> None:
+    sound: Any = object()
+    player = mocker.MagicMock()
+    player.queue = [sound]
+    player.playing.return_value = True
+
+    manager = SoundManager(
+        listener=mocker.MagicMock(position=(0, 0, 0)),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+    trigger = mocker.patch.object(manager, "_trigger_play_with_device_retry")
+
+    manager.play_sound(sound, player=player, retrigger_if_same=False)
+
+    trigger.assert_not_called()

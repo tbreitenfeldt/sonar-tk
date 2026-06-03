@@ -3081,9 +3081,16 @@ class EFXslot(object):
 # 3D positional audio + EFX + HRTF + Recording
 # load a listener to load and play sounds.
 class Listener(object):
-    def __init__(self):
+    def __init__(self, device_name=None):
         # load device/context/listener
-        self.device = alc.alcOpenDevice(None)
+        open_name = None
+        if isinstance(device_name, str) and device_name != "":
+            open_name = ctypes.c_char_p(device_name.encode("utf-8"))
+        elif isinstance(device_name, bytes) and device_name != b"":
+            open_name = ctypes.c_char_p(device_name)
+        self.device = alc.alcOpenDevice(open_name)
+        if not self.device:
+            self.device = alc.alcOpenDevice(None)
         self.context = alc.alcCreateContext(self.device, None)
         alc.alcMakeContextCurrent(self.context)
         alc.alcProcessContext(self.context)

@@ -124,3 +124,117 @@ def test_bind_volume_hotkeys_decrease_sfx_without_coupling(
     get_channel_mock.assert_called_once_with("sfx")
     set_sfx_mock.assert_called_once_with(0.6, players=None)
     set_music_mock.assert_not_called()
+
+
+def test_bind_volume_hotkeys_uses_dynamic_sfx_player_resolver(
+    mocker: MockerFixture,
+) -> None:
+    window = _FakeWindow()
+    first_player = object()
+    second_player = object()
+    active_player = first_player
+
+    get_channel_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.get_channel_volume",
+        return_value=0.5,
+    )
+    set_sfx_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.set_sfx_volume",
+        return_value=0.5,
+    )
+
+    def resolve_player() -> object:
+        return active_player
+
+    bind_volume_hotkeys(
+        window=window,  # type: ignore[arg-type]
+        sfx_player_resolver=resolve_player,  # type: ignore[arg-type]
+        sfx_step=0.1,
+    )
+
+    increase_sfx = _get_callback(window, key.F7, (key.MOD_SHIFT,))
+    assert increase_sfx() is True
+
+    active_player = second_player
+    assert increase_sfx() is True
+
+    assert get_channel_mock.call_count == 2
+    assert set_sfx_mock.call_count == 2
+    first_call_kwargs = set_sfx_mock.call_args_list[0].kwargs
+    second_call_kwargs = set_sfx_mock.call_args_list[1].kwargs
+    assert first_call_kwargs == {"players": [first_player]}
+    assert second_call_kwargs == {"players": [second_player]}
+
+
+def test_bind_volume_hotkeys_uses_dynamic_sfx_players_resolver(
+    mocker: MockerFixture,
+) -> None:
+    window = _FakeWindow()
+    first_players = [object(), object()]
+    second_players = [object(), object(), object()]
+    active_players = first_players
+
+    get_channel_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.get_channel_volume",
+        return_value=0.6,
+    )
+    set_sfx_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.set_sfx_volume",
+        return_value=0.55,
+    )
+    set_music_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.set_music_volume"
+    )
+
+    def resolve_players() -> list[object]:
+        return active_players
+
+    bind_volume_hotkeys(
+        window=window,  # type: ignore[arg-type]
+        sfx_players_resolver=resolve_players,  # type: ignore[arg-type]
+        sfx_step=0.1,
+        couple_music_to_sfx_ratio=None,
+    )
+
+    increase_sfx = _get_callback(window, key.F7, (key.MOD_SHIFT,))
+    assert increase_sfx() is True
+
+    active_players = second_players
+    assert increase_sfx() is True
+
+    assert get_channel_mock.call_count == 2
+    assert set_sfx_mock.call_count == 2
+    first_call_kwargs = set_sfx_mock.call_args_list[0].kwargs
+    second_call_kwargs = set_sfx_mock.call_args_list[1].kwargs
+    assert first_call_kwargs == {"players": first_players}
+    assert second_call_kwargs == {"players": second_players}
+    set_music_mock.assert_not_called()
+
+
+def test_bind_volume_hotkeys_notifies_on_sfx_volume_changed(
+    mocker: MockerFixture,
+) -> None:
+    window = _FakeWindow()
+    get_channel_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.get_channel_volume",
+        return_value=0.5,
+    )
+    set_sfx_mock = mocker.patch(
+        "sonartk.orchestration.audio_controls.sound_manager.set_sfx_volume",
+        return_value=0.4,
+    )
+    on_changed = mocker.MagicMock()
+
+    bind_volume_hotkeys(
+        window=window,  # type: ignore[arg-type]
+        sfx_step=0.1,
+        couple_music_to_sfx_ratio=None,
+        on_sfx_volume_changed=on_changed,
+    )
+
+    decrease_sfx = _get_callback(window, key.F6, (key.MOD_SHIFT,))
+    assert decrease_sfx() is True
+
+    get_channel_mock.assert_called_once_with("sfx")
+    set_sfx_mock.assert_called_once_with(0.4, players=None)
+    on_changed.assert_called_once_with(0.4)

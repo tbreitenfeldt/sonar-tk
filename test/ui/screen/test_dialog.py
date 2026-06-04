@@ -357,7 +357,7 @@ def test_reset_states_removes_from_parent(
     dialog.state_key = "dialog_key"
     mock_remove = mocker.patch.object(parent_screen, "remove")
     mocker.patch.object(dialog, "exit")
-    mocker.patch.object(parent_screen.state_machine, "change")
+    mocker.patch.object(parent_screen.state_machine, "transition_to")
 
     dialog._reset_states()
 
@@ -371,7 +371,7 @@ def test_reset_states_sets_empty_state(
     dialog.state_key = "dialog_key"
     mocker.patch.object(parent_screen, "remove")
     mocker.patch.object(dialog, "exit")
-    mocker.patch.object(parent_screen.state_machine, "change")
+    mocker.patch.object(parent_screen.state_machine, "transition_to")
 
     dialog._reset_states()
 
@@ -385,7 +385,7 @@ def test_reset_states_calls_exit(
     dialog.state_key = "dialog_key"
     mocker.patch.object(parent_screen, "remove")
     mock_exit = mocker.patch.object(dialog, "exit")
-    mocker.patch.object(parent_screen.state_machine, "change")
+    mocker.patch.object(parent_screen.state_machine, "transition_to")
 
     dialog._reset_states()
 
@@ -400,11 +400,13 @@ def test_reset_states_changes_parent_state(
     dialog.original_state_key = "original_state"
     mocker.patch.object(parent_screen, "remove")
     mocker.patch.object(dialog, "exit")
-    mock_change = mocker.patch.object(parent_screen.state_machine, "change")
+    mock_transition_to = mocker.patch.object(
+        parent_screen.state_machine, "transition_to"
+    )
 
     dialog._reset_states()
 
-    mock_change.assert_called_once_with("original_state", False)
+    mock_transition_to.assert_called_once_with("original_state", False)
 
 
 def test_reset_states_changes_with_interrupt_false(
@@ -415,12 +417,14 @@ def test_reset_states_changes_with_interrupt_false(
     dialog.original_state_key = "original_state"
     mocker.patch.object(parent_screen, "remove")
     mocker.patch.object(dialog, "exit")
-    mock_change = mocker.patch.object(parent_screen.state_machine, "change")
+    mock_transition_to = mocker.patch.object(
+        parent_screen.state_machine, "transition_to"
+    )
 
     dialog._reset_states()
 
     # Second argument should be False
-    assert mock_change.call_args[0][1] is False
+    assert mock_transition_to.call_args[0][1] is False
 
 
 # Integration Tests

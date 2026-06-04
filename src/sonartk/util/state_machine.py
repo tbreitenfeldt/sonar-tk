@@ -32,6 +32,8 @@ class StateMachine:
         self.states: Dict[str, State] = {}
         self.current_state: State = EmptyState()
         self.keys: list[str] = []
+        self.current_index: int = 0
+        self._start_state_key: Optional[str] = None
         self._pending_state: Optional[State] = None
         self._transition_callback: Optional[TransitionCallback] = None
 
@@ -61,6 +63,10 @@ class StateMachine:
             self.keys.remove(key)
             item: State = self.states[key]
             del self.states[key]
+            if self._start_state_key == key:
+                self._start_state_key = None
+            if self.current_index >= len(self.keys):
+                self.current_index = max(0, len(self.keys) - 1)
             return item
 
         return None
@@ -76,6 +82,8 @@ class StateMachine:
         self.states.clear()
         self.keys.clear()
         self.current_state = EmptyState()
+        self.current_index = 0
+        self._start_state_key = None
         self._pending_state = None
 
     def size(self) -> int:
@@ -90,6 +98,49 @@ class StateMachine:
         """Check if a state with the given key exists in the machine."""
         return key in self.states
 
+    def set_current_index(self, index: int) -> None:
+        """Set the selection index used by activate_current_state."""
+        self.current_index = index
+
+    def set_start_state_key(self, key: str) -> None:
+        """Set a preferred state key used by activate_current_state."""
+        if key == "":
+            raise ValueError("Start state key cannot be empty")
+
+        if not self.is_empty() and not self.contains(key):
+            raise KeyError(
+                f"State '{key}' not in state machine. "
+                f"Available states: {list(self.states.keys())}"
+            )
+
+        self._start_state_key = key
+
+    def clear_start_state_key(self) -> None:
+        """Clear any preferred start state key."""
+        self._start_state_key = None
+
+    def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
+        """Activate selected state using start key first, then current index."""
+        if self.is_empty():
+            return
+
+        if self._start_state_key is not None:
+            if not self.contains(self._start_state_key):
+                raise KeyError(
+                    f"State '{self._start_state_key}' not in state machine. "
+                    f"Available states: {list(self.states.keys())}"
+                )
+            key = self._start_state_key
+        else:
+            if self.current_index < 0 or self.current_index >= len(self.keys):
+                raise IndexError(
+                    "Current index is out of range for the current "
+                    "state machine keys"
+                )
+            key = self.keys[self.current_index]
+
+        self.transition_to(key, *args, **kwargs)
+
     def set_transition_callback(
         self, callback: Optional[TransitionCallback]
     ) -> None:
@@ -102,7 +153,7 @@ class StateMachine:
             return self._pending_state
         return self.current_state
 
-    def change(self, key: str, *args: Any, **kwargs: Any) -> None:
+    def transition_to(self, key: str, *args: Any, **kwargs: Any) -> None:
         """
         Transition to a new state. Both exit() and setup() can conditionally prevent transitions.
 
@@ -119,7 +170,7 @@ class StateMachine:
         if self.current_state.exit():
             self._pending_state = next_state
             try:
-                if next_state.setup(self.change, *args, **kwargs):
+                if next_state.setup(self.transition_to, *args, **kwargs):
                     self.current_state = next_state
                     if self._transition_callback:
                         self._transition_callback(key)
@@ -128,7 +179,7 @@ class StateMachine:
 
     def setup(self, *args: Any, **kwargs: Any) -> bool:
         """Run setup on the current active state."""
-        return self.current_state.setup(self.change, *args, **kwargs)
+        return self.current_state.setup(self.transition_to, *args, **kwargs)
 
     def update(self, delta_time: float) -> bool:
         """Run one update tick on the current active state."""

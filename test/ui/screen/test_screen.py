@@ -253,8 +253,8 @@ def test_next_element_with_multiple_elements(
     screen.add("el2", element2)  # type: ignore[arg-type]
     screen.add("el3", element3)  # type: ignore[arg-type]
 
-    # Mock set_state to avoid side effects
-    mocker.patch.object(screen, "set_state")
+    # Mock activate_current_state to avoid side effects
+    mocker.patch.object(screen, "activate_current_state")
 
     assert screen.position == 0
     screen.next_element()
@@ -317,8 +317,8 @@ def test_previous_element_with_multiple_elements(
     screen.add("el2", element2)  # type: ignore[arg-type]
     screen.add("el3", element3)  # type: ignore[arg-type]
 
-    # Mock set_state to avoid side effects
-    mocker.patch.object(screen, "set_state")
+    # Mock activate_current_state to avoid side effects
+    mocker.patch.object(screen, "activate_current_state")
 
     assert screen.position == 0
     # Should wrap around to last element (2)
@@ -347,17 +347,19 @@ def test_previous_element_dispatches_event(
     mock_handler.assert_called_once_with(screen)
 
 
-def test_set_state_with_empty_state_machine(screen: ConcreteScreen) -> None:
-    """Test set_state when state_machine is empty (should do nothing)."""
-    # Should not raise any errors
-    screen.set_state()
-    screen.set_state(interrupt_speech=False)
-
-
-def test_set_state_changes_to_current_position(
+def test_activate_current_state_with_empty_state_machine(
     screen: ConcreteScreen,
 ) -> None:
-    """Test that set_state changes to the state at current position."""
+    """Test activate_current_state when state_machine is empty (should do nothing)."""
+    # Should not raise any errors
+    screen.activate_current_state()
+    screen.activate_current_state(interrupt_speech=False)
+
+
+def test_activate_current_state_changes_to_current_position(
+    screen: ConcreteScreen,
+) -> None:
+    """Test that activate_current_state changes to the state at current position."""
     element1 = MockState()
     element2 = MockState()
     element3 = MockState()
@@ -367,31 +369,31 @@ def test_set_state_changes_to_current_position(
     screen.add("el3", element3)  # type: ignore[arg-type]
 
     screen.position = 1
-    screen.set_state()
+    screen.activate_current_state()
 
     assert screen.state_machine.current_state is element2
 
 
-def test_set_state_with_interrupt_speech_true(
+def test_activate_current_state_with_interrupt_speech_true(
     screen: ConcreteScreen,
 ) -> None:
-    """Test set_state with interrupt_speech=True (default)."""
+    """Test activate_current_state with interrupt_speech=True (default)."""
     element = MockState()
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    screen.set_state(interrupt_speech=True)
+    screen.activate_current_state(interrupt_speech=True)
 
     assert screen.state_machine.current_state is element
 
 
-def test_set_state_with_interrupt_speech_false(
+def test_activate_current_state_with_interrupt_speech_false(
     screen: ConcreteScreen,
 ) -> None:
-    """Test set_state with interrupt_speech=False."""
+    """Test activate_current_state with interrupt_speech=False."""
     element = MockState()
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    screen.set_state(interrupt_speech=False)
+    screen.activate_current_state(interrupt_speech=False)
 
     assert screen.state_machine.current_state is element
 
@@ -472,11 +474,11 @@ def test_active_element_property_returns_current_state(
     # Initially should be EmptyState
     assert isinstance(screen.active_element, EmptyState)
 
-    screen.set_state()
+    screen.activate_current_state()
     assert screen.active_element is element1
 
     screen.position = 1
-    screen.set_state()
+    screen.activate_current_state()
     assert screen.active_element is element2
 
 
@@ -485,32 +487,36 @@ def test_active_element_when_empty(screen: ConcreteScreen) -> None:
     assert isinstance(screen.active_element, EmptyState)
 
 
-def test_next_element_calls_set_state(
+def test_next_element_calls_activate_current_state(
     mocker: MockerFixture, screen: ConcreteScreen
 ) -> None:
-    """Test that next_element calls set_state."""
+    """Test that next_element calls activate_current_state."""
     element = MockElement(parent=screen)
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    mock_set_state = mocker.patch.object(screen, "set_state")
+    mock_activate_current_state = mocker.patch.object(
+        screen, "activate_current_state"
+    )
 
     screen.next_element()
 
-    mock_set_state.assert_called_once()
+    mock_activate_current_state.assert_called_once()
 
 
-def test_previous_element_calls_set_state(
+def test_previous_element_calls_activate_current_state(
     mocker: MockerFixture, screen: ConcreteScreen
 ) -> None:
-    """Test that previous_element calls set_state."""
+    """Test that previous_element calls activate_current_state."""
     element = MockElement(parent=screen)
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    mock_set_state = mocker.patch.object(screen, "set_state")
+    mock_activate_current_state = mocker.patch.object(
+        screen, "activate_current_state"
+    )
 
     screen.previous_element()
 
-    mock_set_state.assert_called_once()
+    mock_activate_current_state.assert_called_once()
 
 
 def test_screen_inherits_from_event_dispatcher(
@@ -600,7 +606,7 @@ def test_next_element_with_two_elements(
     screen.add("el1", element1)  # type: ignore[arg-type]
     screen.add("el2", element2)  # type: ignore[arg-type]
 
-    mocker.patch.object(screen, "set_state")
+    mocker.patch.object(screen, "activate_current_state")
 
     assert screen.position == 0
     screen.next_element()
@@ -620,7 +626,7 @@ def test_previous_element_with_two_elements(
     screen.add("el1", element1)  # type: ignore[arg-type]
     screen.add("el2", element2)  # type: ignore[arg-type]
 
-    mocker.patch.object(screen, "set_state")
+    mocker.patch.object(screen, "activate_current_state")
 
     assert screen.position == 0
     screen.previous_element()
@@ -637,7 +643,7 @@ def test_modulo_wrapping_next_element(
     for i in range(5):
         screen.add(f"el{i}", MockElement(parent=screen))  # type: ignore[arg-type]
 
-    mocker.patch.object(screen, "set_state")
+    mocker.patch.object(screen, "activate_current_state")
 
     screen.position = 4
     screen.next_element()
@@ -652,7 +658,7 @@ def test_modulo_wrapping_previous_element(
     for i in range(5):
         screen.add(f"el{i}", MockElement(parent=screen))  # type: ignore[arg-type]
 
-    mocker.patch.object(screen, "set_state")
+    mocker.patch.object(screen, "activate_current_state")
 
     screen.position = 0
     screen.previous_element()
@@ -660,32 +666,40 @@ def test_modulo_wrapping_previous_element(
     assert screen.position == 4
 
 
-def test_set_state_calls_state_machine_change(
+def test_activate_current_state_calls_state_machine_transition_to(
     mocker: MockerFixture, screen: ConcreteScreen
 ) -> None:
-    """Test that set_state calls state_machine.change with correct arguments."""
+    """Test that activate_current_state calls state_machine.transition_to with correct arguments."""
     element = MockElement(parent=screen)
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    mock_change = mocker.patch.object(screen.state_machine, "change")
+    mock_transition_to = mocker.patch.object(
+        screen.state_machine, "transition_to"
+    )
 
-    screen.set_state(interrupt_speech=True)
+    screen.activate_current_state(interrupt_speech=True)
 
-    mock_change.assert_called_once_with("element1", True)
+    mock_transition_to.assert_called_once_with(
+        "element1", interrupt_speech=True
+    )
 
 
-def test_set_state_passes_interrupt_speech_to_change(
+def test_activate_current_state_passes_interrupt_speech_to_transition_to(
     mocker: MockerFixture, screen: ConcreteScreen
 ) -> None:
-    """Test that set_state passes interrupt_speech parameter correctly."""
+    """Test that activate_current_state passes interrupt_speech parameter correctly."""
     element = MockElement(parent=screen)
     screen.add("element1", element)  # type: ignore[arg-type]
 
-    mock_change = mocker.patch.object(screen.state_machine, "change")
+    mock_transition_to = mocker.patch.object(
+        screen.state_machine, "transition_to"
+    )
 
-    screen.set_state(interrupt_speech=False)
+    screen.activate_current_state(interrupt_speech=False)
 
-    mock_change.assert_called_once_with("element1", False)
+    mock_transition_to.assert_called_once_with(
+        "element1", interrupt_speech=False
+    )
 
 
 def test_parent_attribute_type(screen: ConcreteScreen) -> None:

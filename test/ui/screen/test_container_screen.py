@@ -130,16 +130,18 @@ def test_setup_pushes_key_handler(
     mock_push.assert_called_once_with(container_screen.key_handler)
 
 
-def test_setup_calls_set_state(
+def test_setup_calls_activate_current_state(
     mocker: MockerFixture, container_screen: ContainerScreen
 ) -> None:
-    """Test that setup calls set_state with interrupt_speech=False."""
-    mock_set_state = mocker.patch.object(container_screen, "set_state")
+    """Test setup calls activate_current_state with interrupt_speech=False."""
+    mock_activate_current_state = mocker.patch.object(
+        container_screen, "activate_current_state"
+    )
     mock_change_state = mocker.MagicMock()
 
     container_screen.setup(mock_change_state)
 
-    mock_set_state.assert_called_once_with(interrupt_speech=False)
+    mock_activate_current_state.assert_called_once_with(interrupt_speech=False)
 
 
 def test_setup_returns_true(container_screen: ContainerScreen) -> None:
@@ -166,19 +168,19 @@ def test_setup_with_args_and_kwargs(
     assert result is True
 
 
-def test_set_state_with_empty_state_machine(
+def test_activate_current_state_with_empty_state_machine(
     container_screen: ContainerScreen,
 ) -> None:
-    """Test set_state when state_machine is empty (should do nothing)."""
+    """Test activate_current_state when state_machine is empty (should do nothing)."""
     # Should not raise any errors
-    container_screen.set_state()
-    container_screen.set_state(interrupt_speech=False)
+    container_screen.activate_current_state()
+    container_screen.activate_current_state(interrupt_speech=False)
 
 
-def test_set_state_changes_to_current_position(
+def test_activate_current_state_changes_to_current_position(
     container_screen: ContainerScreen,
 ) -> None:
-    """Test that set_state changes to the state at current position."""
+    """Test that activate_current_state changes to the state at current position."""
     element1 = MockState()
     element2 = MockState()
     element3 = MockState()
@@ -188,47 +190,51 @@ def test_set_state_changes_to_current_position(
     container_screen.add("el3", element3)  # type: ignore[arg-type]
 
     container_screen.position = 1
-    container_screen.set_state()
+    container_screen.activate_current_state()
 
     assert container_screen.state_machine.current_state is element2
 
 
-def test_set_state_with_interrupt_speech_true(
+def test_activate_current_state_with_interrupt_speech_true(
     container_screen: ContainerScreen,
 ) -> None:
-    """Test set_state with interrupt_speech=True."""
+    """Test activate_current_state with interrupt_speech=True."""
     element = MockState()
     container_screen.add("element1", element)  # type: ignore[arg-type]
 
-    container_screen.set_state(interrupt_speech=True)
+    container_screen.activate_current_state(interrupt_speech=True)
 
     assert container_screen.state_machine.current_state is element
 
 
-def test_set_state_with_interrupt_speech_false(
+def test_activate_current_state_with_interrupt_speech_false(
     container_screen: ContainerScreen,
 ) -> None:
-    """Test set_state with interrupt_speech=False."""
+    """Test activate_current_state with interrupt_speech=False."""
     element = MockState()
     container_screen.add("element1", element)  # type: ignore[arg-type]
 
-    container_screen.set_state(interrupt_speech=False)
+    container_screen.activate_current_state(interrupt_speech=False)
 
     assert container_screen.state_machine.current_state is element
 
 
-def test_set_state_calls_state_machine_change(
+def test_activate_current_state_calls_state_machine_transition_to(
     mocker: MockerFixture, container_screen: ContainerScreen
 ) -> None:
-    """Test that set_state calls state_machine.change with correct arguments."""
+    """Test that activate_current_state calls state_machine.transition_to with correct arguments."""
     element = MockState()
     container_screen.add("element1", element)  # type: ignore[arg-type]
 
-    mock_change = mocker.patch.object(container_screen.state_machine, "change")
+    mock_transition_to = mocker.patch.object(
+        container_screen.state_machine, "transition_to"
+    )
 
-    container_screen.set_state(interrupt_speech=True)
+    container_screen.activate_current_state(interrupt_speech=True)
 
-    mock_change.assert_called_once_with("element1", True)
+    mock_transition_to.assert_called_once_with(
+        "element1", interrupt_speech=True
+    )
 
 
 def test_update_delegates_to_state_machine(
@@ -250,7 +256,7 @@ def test_update_returns_state_machine_result(
     """Test that update returns the result from state_machine.update."""
     element = MockState(update_value=False)
     container_screen.add("element1", element)  # type: ignore[arg-type]
-    container_screen.set_state()
+    container_screen.activate_current_state()
 
     result = container_screen.update(0.016)
 
@@ -427,7 +433,7 @@ def test_setup_integration_with_state_machine(
     result = container_screen.setup(mock_change_state)
 
     assert result is True
-    # set_state should have been called, making el1 active
+    # activate_current_state should have been called, making el1 active
     assert container_screen.state_machine.current_state is element1
 
 
@@ -438,7 +444,7 @@ def test_exit_integration_with_state_machine(
     """Test exit integration with elements in state_machine."""
     element = MockState()
     container_screen.add("element1", element)  # type: ignore[arg-type]
-    container_screen.set_state()
+    container_screen.activate_current_state()
 
     mocker.patch.object(container_screen.get_window(), "pop_window_handlers")
     result = container_screen.exit()
@@ -456,12 +462,12 @@ def test_update_with_multiple_elements(
     container_screen.add("el1", element1)  # type: ignore[arg-type]
     container_screen.add("el2", element2)  # type: ignore[arg-type]
 
-    container_screen.set_state()  # Activates el1
+    container_screen.activate_current_state()  # Activates el1
     result = container_screen.update(0.016)
     assert result is True
 
     container_screen.position = 1
-    container_screen.set_state()  # Activates el2
+    container_screen.activate_current_state()  # Activates el2
     result = container_screen.update(0.016)
     assert result is False
 

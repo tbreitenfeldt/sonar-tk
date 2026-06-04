@@ -1,3 +1,5 @@
+from typing import Any, Callable
+
 import pytest
 
 from sonartk.util.state_machine import StateMachine, EmptyState
@@ -82,13 +84,13 @@ def test_is_empty(state_machine: StateMachine) -> None:
 def test_valid_change(state_machine: StateMachine) -> None:
     test_state1: MockState = MockState()
     state_machine.states["test1"] = test_state1
-    state_machine.change("test1")
+    state_machine.transition_to("test1")
     assert state_machine.current_state == test_state1
 
 
 def test_invalid_change(state_machine: StateMachine) -> None:
     with pytest.raises(KeyError):
-        state_machine.change("abcdefg")
+        state_machine.transition_to("abcdefg")
 
 
 def test_exit_block_change(state_machine: StateMachine) -> None:
@@ -97,7 +99,7 @@ def test_exit_block_change(state_machine: StateMachine) -> None:
     state_machine.states["test1"] = test_state1
     state_machine.states["test2"] = test_state2
     state_machine.current_state = test_state1
-    state_machine.change("test2")
+    state_machine.transition_to("test2")
     assert state_machine.current_state == test_state1
 
 
@@ -107,7 +109,7 @@ def test_setup_block_change(state_machine: StateMachine) -> None:
     state_machine.states["test1"] = test_state1
     state_machine.states["test2"] = test_state2
     state_machine.current_state = test_state1
-    state_machine.change("test2")
+    state_machine.transition_to("test2")
     assert state_machine.current_state == test_state1
 
 
@@ -115,7 +117,39 @@ def test_successful_setup(state_machine: StateMachine) -> None:
     mock_state: MockState = MockState(setup_value=True)
     state_machine.states["test"] = mock_state
     state_machine.current_state = mock_state
-    assert state_machine.setup(state_machine.change) is True
+    assert state_machine.setup(state_machine.transition_to) is True
+
+
+def test_activate_current_state_forwards_args_and_kwargs(
+    state_machine: StateMachine,
+) -> None:
+    captured: dict[str, object] = {}
+
+    class RecordingState(MockState):
+        def setup(  # type: ignore[override]
+            self,
+            change_state: Callable[[str, Any], None],
+            *args: Any,
+            **kwargs: Any,
+        ) -> bool:
+            captured["args"] = args
+            captured["kwargs"] = kwargs
+            return super().setup(change_state, *args, **kwargs)
+
+    state_machine.add("test", RecordingState())
+
+    state_machine.activate_current_state(
+        "alpha",
+        "beta",
+        interrupt_speech=False,
+        completion_poll_interval_seconds=0.25,
+    )
+
+    assert captured["args"] == ("alpha", "beta")
+    assert captured["kwargs"] == {
+        "interrupt_speech": False,
+        "completion_poll_interval_seconds": 0.25,
+    }
 
 
 def test_block_setup(state_machine: StateMachine) -> None:
@@ -155,7 +189,7 @@ def test_block_update(state_machine: StateMachine) -> None:
 
 def test_empty_state_setup(state_machine: StateMachine) -> None:
     empty_state: EmptyState = EmptyState()
-    assert empty_state.setup(state_machine.change) is True
+    assert empty_state.setup(state_machine.transition_to) is True
 
 
 def test_empty_state_update() -> None:
@@ -203,7 +237,7 @@ def test_change_to_nonexistent_state() -> None:
     machine.add("test", test_state)
 
     with pytest.raises(KeyError, match="not in state machine"):
-        machine.change("nonexistent")
+        machine.transition_to("nonexistent")
 
 
 def test_change_to_nonexistent_state_error_message() -> None:
@@ -213,7 +247,7 @@ def test_change_to_nonexistent_state_error_message() -> None:
     machine.add("state2", MockState())
 
     try:
-        machine.change("invalid")
+        machine.transition_to("invalid")
         assert False, "Should have raised KeyError"
     except KeyError as e:
         error_msg = str(e)

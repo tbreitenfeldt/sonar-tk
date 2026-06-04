@@ -28,7 +28,8 @@ class Dialog(ContainerScreen):
         # Delay focus shift so dialog-caption speech is less likely to interrupt
         # the first focused element label inside the dialog.
         pyglet.clock.schedule_once(
-            lambda dt: parent.state_machine.change(self.state_key), 0.3
+            lambda dt: parent.state_machine.transition_to(self.state_key),
+            0.3,
         )
 
     # override
@@ -65,4 +66,4 @@ class Dialog(ContainerScreen):
         parent.remove(self.state_key)
         self.state_machine.current_state = EmptyState()
         self.exit()
-        parent.state_machine.change(self.original_state_key, False)
+        parent.state_machine.transition_to(self.original_state_key, False)

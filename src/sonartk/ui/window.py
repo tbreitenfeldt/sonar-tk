@@ -135,7 +135,9 @@ class Window(UIComponent, EventDispatcher):
         """Schedule initial state activation after the window opens."""
         # Delay initial state setup to reduce title speech interrupting first
         # focused-element speech when the window opens.
-        pyglet.clock.schedule_once(lambda dt: self.set_state(), 0.25)
+        pyglet.clock.schedule_once(
+            lambda dt: self.activate_current_state(), 0.25
+        )
 
     def update(self, delta_time: float) -> None:
         """Dispatch update events and advance the active state each frame."""
@@ -154,28 +156,17 @@ class Window(UIComponent, EventDispatcher):
         return removed_state
 
     def set_start_state(self, key: str) -> None:
-        """Set the state key that should be activated first by setup/set_state.
+        """Set the state key that should be activated first by setup.
 
         This avoids callers depending on internal state order or key index math.
         If states already exist, the key is validated immediately.
         """
-        if key == "":
-            raise ValueError("Start state key cannot be empty")
-
-        if (
-            not self.state_machine.is_empty()
-            and not self.state_machine.contains(key)
-        ):
-            raise KeyError(
-                f"State '{key}' not in state machine. "
-                f"Available states: {list(self.state_machine.states.keys())}"
-            )
-
+        self.state_machine.set_start_state_key(key)
         self._start_state_key = key
 
-    def change(self, key: str, *args: Any, **kwargs: Any) -> None:
+    def transition_to(self, key: str, *args: Any, **kwargs: Any) -> None:
         """Switch to another registered state, forwarding optional arguments."""
-        self.state_machine.change(key, *args, **kwargs)
+        self.state_machine.transition_to(key, *args, **kwargs)
 
     def get_window(self) -> "Window":
         """Return this window (base case for parent chain traversal)."""
@@ -280,7 +271,7 @@ class Window(UIComponent, EventDispatcher):
     def _on_state_transition(self, state_key: str) -> None:
         """Callback invoked after each state transition when debug mode is enabled."""
         _, message = self._validate_handler_stack()
-        self._debug_log(f"after change('{state_key}'): {message}")
+        self._debug_log(f"after transition_to('{state_key}'): {message}")
 
     def _validate_handler_stack(self) -> tuple[bool, str]:
         """
@@ -373,27 +364,10 @@ class Window(UIComponent, EventDispatcher):
 
         return True
 
-    def set_state(self, interrupt_speech: bool = True) -> None:
-        """Activate the state at the current window position when available."""
-        if not self.state_machine.is_empty():
-            if self._start_state_key is not None:
-                if not self.state_machine.contains(self._start_state_key):
-                    raise KeyError(
-                        f"State '{self._start_state_key}' not in state machine. "
-                        f"Available states: {list(self.state_machine.states.keys())}"
-                    )
-                state_key = self._start_state_key
-            else:
-                if self.position < 0 or self.position >= len(
-                    self.state_machine.keys
-                ):
-                    raise IndexError(
-                        "Window position is out of range for the current "
-                        "state machine keys"
-                    )
-                state_key = self.state_machine.keys[self.position]
-
-            self.state_machine.change(state_key, interrupt_speech)
+    def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
+        """Activate the current state and forward args to the active state."""
+        self.state_machine.set_current_index(self.position)
+        self.state_machine.activate_current_state(*args, **kwargs)
 
     @property
     def caption(self) -> str:

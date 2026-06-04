@@ -81,7 +81,7 @@ def test_setup(mocker: MockerFixture, default_window: Window) -> None:
     mocker.patch("pyglet.clock.schedule_once")
     default_window.state_machine.add("test", MockState())
     default_window.setup()
-    # Setup schedules set_state but doesn't call it immediately
+    # Setup schedules activate_current_state but doesn't call it immediately
     assert len(default_window.state_machine.states) == 1
 
 
@@ -133,24 +133,24 @@ def test_remove_return(mocker: MockerFixture, default_window: Window) -> None:
     assert result == state
 
 
-def test_that_state_machine_change_is_called(
+def test_that_state_machine_transition_to_is_called(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    state_machine_change_mock = mocker.patch(
-        "sonartk.util.state_machine.StateMachine.change"
+    state_machine_transition_to_mock = mocker.patch(
+        "sonartk.util.state_machine.StateMachine.transition_to"
     )
     key: str = "test"
     state: MockState = MockState()
     default_window.state_machine.states[key] = state
-    default_window.change(key)
-    state_machine_change_mock.assert_called_with(key)
+    default_window.transition_to(key)
+    state_machine_transition_to_mock.assert_called_with(key)
 
 
-def test_change(mocker: MockerFixture, default_window: Window) -> None:
+def test_transition_to(mocker: MockerFixture, default_window: Window) -> None:
     key: str = "test"
     state: MockState = MockState()
     default_window.state_machine.states[key] = state
-    default_window.change(key)
+    default_window.transition_to(key)
     assert default_window.state_machine.current_state == state
 
 
@@ -284,32 +284,32 @@ def test_get_window(default_window: Window) -> None:
     assert default_window.get_window() == default_window
 
 
-def test_set_state_with_states(
+def test_activate_current_state_with_states(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    """Test set_state calls change when states exist"""
-    mocker.patch("sonartk.util.state_machine.StateMachine.change")
+    """Test activate_current_state calls transition_to when states exist."""
+    mocker.patch("sonartk.util.state_machine.StateMachine.transition_to")
     default_window.state_machine.add("test1", MockState())
     default_window.state_machine.add("test2", MockState())
-    default_window.set_state()
-    # Should call change with first state key
-    assert default_window.state_machine.change.called  # type: ignore[attr-defined]
+    default_window.activate_current_state()
+    # Should call transition_to with first state key
+    assert default_window.state_machine.transition_to.called  # type: ignore[attr-defined]
 
 
-def test_set_start_state_by_key_is_used_by_set_state(
+def test_set_start_state_by_key_is_used_by_activate_current_state(
     mocker: MockerFixture, default_window: Window
 ) -> None:
     """Test set_start_state chooses initial state by key without key-index access."""
-    change_mock = mocker.patch(
-        "sonartk.util.state_machine.StateMachine.change"
+    transition_to_mock = mocker.patch(
+        "sonartk.util.state_machine.StateMachine.transition_to"
     )
     default_window.state_machine.add("main", MockState())
     default_window.state_machine.add("intro", MockState())
 
     default_window.set_start_state("intro")
-    default_window.set_state(interrupt_speech=False)
+    default_window.activate_current_state(interrupt_speech=False)
 
-    change_mock.assert_called_once_with("intro", False)
+    transition_to_mock.assert_called_once_with("intro", interrupt_speech=False)
 
 
 def test_set_start_state_raises_for_missing_key_when_states_exist(
@@ -337,41 +337,43 @@ def test_remove_clears_matching_start_state(default_window: Window) -> None:
     assert default_window._start_state_key is None
 
 
-def test_set_state_with_no_interrupt(
+def test_activate_current_state_with_no_interrupt(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    """Test set_state with interrupt_speech=False"""
-    change_mock = mocker.patch(
-        "sonartk.util.state_machine.StateMachine.change"
+    """Test activate_current_state with interrupt_speech=False."""
+    transition_to_mock = mocker.patch(
+        "sonartk.util.state_machine.StateMachine.transition_to"
     )
     default_window.state_machine.add("test", MockState())
-    default_window.set_state(interrupt_speech=False)
-    change_mock.assert_called_once_with("test", False)
+    default_window.activate_current_state(interrupt_speech=False)
+    transition_to_mock.assert_called_once_with("test", interrupt_speech=False)
 
 
-def test_set_state_raises_when_configured_start_key_is_missing(
+def test_activate_current_state_raises_when_configured_start_key_is_missing(
     default_window: Window,
 ) -> None:
     default_window.set_start_state("intro")
     default_window.state_machine.add("main", MockState())
 
     with pytest.raises(KeyError, match="State 'intro' not in state machine"):
-        default_window.set_state()
+        default_window.activate_current_state()
 
 
-def test_set_state_raises_when_position_is_out_of_range(
+def test_activate_current_state_raises_when_position_is_out_of_range(
     default_window: Window,
 ) -> None:
     default_window.state_machine.add("main", MockState())
     default_window.position = 10
 
-    with pytest.raises(IndexError, match="position is out of range"):
-        default_window.set_state()
+    with pytest.raises(IndexError, match="Current index is out of range"):
+        default_window.activate_current_state()
 
 
-def test_set_state_empty_state_machine(default_window: Window) -> None:
-    """Test set_state does nothing when state machine is empty"""
-    default_window.set_state()
+def test_activate_current_state_empty_state_machine(
+    default_window: Window,
+) -> None:
+    """Test activate_current_state does nothing when state machine is empty."""
+    default_window.activate_current_state()
     # Should not raise any errors
 
 
@@ -568,42 +570,42 @@ def test_debug_mode_logs_on_construction(
     assert log_mock.call_count >= 1
 
 
-def test_change_runs_debug_validation_when_enabled(
+def test_transition_to_runs_debug_validation_when_enabled(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    """Test change triggers handler validation logging in debug mode."""
+    """Test transition_to triggers handler validation logging in debug mode."""
     default_window.set_debug_mode(True)
     default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
 
     default_window.state_machine.add("test", MockState())
     log_mock = mocker.patch.object(default_window, "_debug_log")
 
-    default_window.change("test")
+    default_window.transition_to("test")
 
     # Should log validation results
     assert log_mock.called
     # Check that one of the logs mentions validation result
     logged_messages = [call[0][0] for call in log_mock.call_args_list]
-    assert any("after change" in msg for msg in logged_messages)
+    assert any("after transition_to" in msg for msg in logged_messages)
 
 
-def test_set_state_runs_debug_validation_when_enabled(
+def test_activate_current_state_runs_debug_validation_when_enabled(
     mocker: MockerFixture, default_window: Window
 ) -> None:
-    """Test set_state triggers handler validation logging in debug mode."""
+    """Test activate_current_state triggers debug validation logging."""
     default_window.set_debug_mode(True)
     default_window.pyglet_window = MockPygletWindow()  # type: ignore[assignment]
 
     default_window.state_machine.add("test", MockState())
     log_mock = mocker.patch.object(default_window, "_debug_log")
 
-    default_window.set_state()
+    default_window.activate_current_state()
 
     # Should log validation results
     assert log_mock.called
-    # set_state transitions are logged via the shared state-machine callback
+    # activate_current_state transitions are logged via callback
     logged_messages = [call[0][0] for call in log_mock.call_args_list]
-    assert any("after change" in msg for msg in logged_messages)
+    assert any("after transition_to" in msg for msg in logged_messages)
 
 
 def test_close_with_children(mocker: MockerFixture) -> None:

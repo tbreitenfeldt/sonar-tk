@@ -1,3 +1,5 @@
+"""Audio-map gameplay example with terrain, collectibles, and scene states."""
+
 import sys
 from pathlib import Path
 from typing import Callable, Optional
@@ -177,6 +179,7 @@ def preload_audio_assets() -> None:
 
 
 def main() -> None:  # noqa: C901
+    """Run the map sounds game example."""
     preload_audio_assets()
 
     start_coordinates = (1, 2)
@@ -430,7 +433,7 @@ def main() -> None:  # noqa: C901
             input_gate.lock()
             speech_manager.output("Monster hit.")
             close_monster_section()
-            window.change("monster_defeated")
+            window.transition_to("monster_defeated")
 
         return True
 
@@ -458,7 +461,7 @@ def main() -> None:  # noqa: C901
                     current_coordinates,
                     reward_player,
                 )
-                window.change("monster_unlocked")
+                window.transition_to("monster_unlocked")
 
         return True
 
@@ -649,6 +652,7 @@ def register_game_states(
     SceneAudioState,
     MessageActionState,
 ]:
+    """Register game flow states and return created state instances."""
     intro_state = SceneAudioState(
         window=window,
         scene_sound=INTRO_SOUND,

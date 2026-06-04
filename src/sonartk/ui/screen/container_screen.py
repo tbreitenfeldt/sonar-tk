@@ -30,15 +30,14 @@ class ContainerScreen(Screen):
         """Attach key handlers and activate the initial focused element."""
         self.key_handler.activate(reset_state=True)
         self.get_window().push_window_handlers(self.key_handler)
-        self.set_state(interrupt_speech=False)
+        self.activate_current_state(interrupt_speech=False)
         return True
 
     # override
-    def set_state(self, interrupt_speech: bool = True) -> None:
+    def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
         """Activate the currently selected child element state."""
-        if not self.state_machine.is_empty():
-            state_key: str = self.state_machine.keys[self.position]
-            self.state_machine.change(state_key, interrupt_speech)
+        self.state_machine.set_current_index(self.position)
+        self.state_machine.activate_current_state(*args, **kwargs)
 
     # override
     def update(self, delta_time: float) -> bool:

@@ -12,7 +12,8 @@ class State(ABC):
     or any other discrete application state.
 
     State Transition Semantics:
-        When transitioning from state A to state B via StateMachine.change():
+        When transitioning from state A to state B via
+        StateMachine.transition_to():
 
         1. A.exit() is called first
            - If False is returned, the transition is aborted and A remains active
@@ -68,7 +69,8 @@ class State(ABC):
         announcing UI elements via speech, or loading resources.
 
         Args:
-            change_state: Callback to trigger state transitions (typically StateMachine.change)
+            change_state: Callback to trigger state transitions (typically
+                StateMachine.transition_to)
             *args: Additional positional arguments passed from the transition call
             **kwargs: Additional keyword arguments passed from the transition call
 

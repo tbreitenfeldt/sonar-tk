@@ -355,8 +355,8 @@ When debug mode is enabled, you'll see startup message and validation output on 
 
 ```
 [Window debug] Debug mode enabled - handler stack validation active
-[Window debug] after change('menu_screen'): Handler stack valid (expected=3, actual=3)
-[Window debug] after set_state('button_0'): Handler stack valid (expected=4, actual=4)
+[Window debug] after transition_to('menu_screen'): Handler stack valid (expected=3, actual=3)
+[Window debug] after transition_to('button_0'): Handler stack valid (expected=4, actual=4)
 ```
 
 Or toggle it at runtime:
@@ -369,8 +369,8 @@ window.set_debug_mode(False) # Logs: Debug mode disabled
 When debug mode is enabled, window automatically logs handler-stack validation
 after:
 
-- Window.change(...)
-- Window.set_state(...)
+- Window.transition_to(...)
+- Window.activate_current_state(...)
 
 This shows you the handler stack state (expected vs actual count) at each transition,
 making it easy to spot when a state's exit() or setup() is not managing handlers

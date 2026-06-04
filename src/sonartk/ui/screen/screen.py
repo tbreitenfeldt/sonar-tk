@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
 
 from pyglet.event import EventDispatcher
 
@@ -29,6 +29,7 @@ class Screen(UIComponent, State, EventDispatcher):
         super().__init__(parent)
         self.position: int = 0
         self.state_machine: StateMachine = StateMachine()
+        self.state_machine.set_current_index(self.position)
         self.key_handler: KeyHandler = KeyHandler()
         self.bind_keys()
 
@@ -68,7 +69,7 @@ class Screen(UIComponent, State, EventDispatcher):
         if self.state_machine.size() > 0:
             if self.state_machine.size() > 1:
                 self.position = (self.position + 1) % self.state_machine.size()
-            self.set_state()
+            self.activate_current_state()
             return True
         return False
 
@@ -78,15 +79,14 @@ class Screen(UIComponent, State, EventDispatcher):
         if self.state_machine.size() > 0:
             if self.state_machine.size() > 1:
                 self.position = (self.position - 1) % self.state_machine.size()
-            self.set_state()
+            self.activate_current_state()
             return True
         return False
 
-    def set_state(self, interrupt_speech: bool = True) -> None:
+    def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
         """Activate the element state at the current position."""
-        if not self.state_machine.is_empty():
-            state_key: str = self.state_machine.keys[self.position]
-            self.state_machine.change(state_key, interrupt_speech)
+        self.state_machine.set_current_index(self.position)
+        self.state_machine.activate_current_state(*args, **kwargs)
 
     @abstractmethod
     def bind_keys(self) -> None:

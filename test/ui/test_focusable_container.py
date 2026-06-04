@@ -134,7 +134,7 @@ def test_screen_active_element_returns_current_state(
     """Test that Screen's active_element returns the current state."""
     state = MockState()
     test_screen.state_machine.add("test_state", state)
-    test_screen.state_machine.change("test_state")
+    test_screen.state_machine.transition_to("test_state")
 
     assert test_screen.active_element == state
 
@@ -149,10 +149,10 @@ def test_screen_active_element_changes_with_state_change(
     test_screen.state_machine.add("state1", state1)
     test_screen.state_machine.add("state2", state2)
 
-    test_screen.state_machine.change("state1")
+    test_screen.state_machine.transition_to("state1")
     assert test_screen.active_element == state1
 
-    test_screen.state_machine.change("state2")
+    test_screen.state_machine.transition_to("state2")
     assert test_screen.active_element == state2
 
 
@@ -172,7 +172,7 @@ def test_container_screen_active_element_returns_current_state(
     """Test that ContainerScreen's active_element returns the current state."""
     state = MockState()
     container_screen.state_machine.add("test_state", state)
-    container_screen.state_machine.change("test_state")
+    container_screen.state_machine.transition_to("test_state")
 
     assert container_screen.active_element == state
 
@@ -248,7 +248,7 @@ def test_active_element_property_is_readable(
     """Test that active_element property can be read."""
     state = MockState()
     test_screen.state_machine.add("test_state", state)
-    test_screen.state_machine.change("test_state")
+    test_screen.state_machine.transition_to("test_state")
 
     # Should not raise
     _ = test_screen.active_element
@@ -298,10 +298,10 @@ def test_container_active_element_can_be_updated(
 
     test_screen.state_machine.add("state1", state1)
     test_screen.state_machine.add("state2", state2)
-    test_screen.state_machine.change("state1")
+    test_screen.state_machine.transition_to("state1")
 
     original_element = test_screen.active_element
-    test_screen.state_machine.change("state2")
+    test_screen.state_machine.transition_to("state2")
     new_element = test_screen.active_element
 
     assert original_element != new_element
@@ -316,7 +316,7 @@ def test_container_screen_is_focusable_container(
     """Test that ContainerScreen can be used as FocusableContainer."""
     state = MockState()
     container_screen.state_machine.add("test_state", state)
-    container_screen.state_machine.change("test_state")
+    container_screen.state_machine.transition_to("test_state")
 
     # Use as FocusableContainer
     def use_as_focusable(c: FocusableContainer) -> Optional[State]:
@@ -392,7 +392,7 @@ def test_focusable_container_protocol_in_dict(
     """Test that FocusableContainers can be used as dict values."""
     state = MockState()
     test_screen.state_machine.add("test_state", state)
-    test_screen.state_machine.change("test_state")
+    test_screen.state_machine.transition_to("test_state")
 
     containers: dict[str, FocusableContainer] = {
         "screen": test_screen,

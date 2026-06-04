@@ -769,22 +769,26 @@ def test_navigate_by_first_letter_returns_true(
     assert result is True
 
 
-# set_state Tests
+# activate_current_state Tests
 
 
-def test_set_state_changes_current_state(menu_with_items: Menu) -> None:
-    """Test that set_state changes current state."""
+def test_activate_current_state_changes_current_state(
+    menu_with_items: Menu,
+) -> None:
+    """Test that activate_current_state changes current state."""
     menu_with_items.position = 1
-    menu_with_items.set_state()
+    menu_with_items.activate_current_state()
     assert menu_with_items.state_machine.current_state is not None
     assert menu_with_items.state_machine.current_state.label == "Option 2"  # type: ignore[attr-defined]  # type: ignore[attr-defined]
 
 
-def test_set_state_with_different_positions(menu_with_items: Menu) -> None:
-    """Test that set_state works with different positions."""
+def test_activate_current_state_with_different_positions(
+    menu_with_items: Menu,
+) -> None:
+    """Test that activate_current_state works with different positions."""
     for i in range(3):
         menu_with_items.position = i
-        menu_with_items.set_state()
+        menu_with_items.activate_current_state()
         assert menu_with_items.state_machine.current_state is not None
         assert (
             menu_with_items.state_machine.current_state.label  # type: ignore[attr-defined]
@@ -853,17 +857,19 @@ def test_setup_does_not_reset_position_when_reset_position_on_focus_false(
     assert menu.position == 1  # Should not reset
 
 
-def test_setup_calls_set_state(
+def test_setup_calls_activate_current_state(
     mocker: MockerFixture, menu_with_items: Menu
 ) -> None:
-    """Test that setup calls set_state."""
-    mock_set_state = mocker.patch.object(menu_with_items, "set_state")
+    """Test that setup calls activate_current_state."""
+    mock_activate_current_state = mocker.patch.object(
+        menu_with_items, "activate_current_state"
+    )
 
     def mock_change_state(key: str, *args: Any) -> None:
         pass
 
     menu_with_items.setup(mock_change_state)
-    mock_set_state.assert_called_once_with(interrupt_speech=False)
+    mock_activate_current_state.assert_called_once_with(interrupt_speech=False)
 
 
 def test_setup_returns_true(menu_with_items: Menu) -> None:
@@ -960,7 +966,7 @@ def test_reset_resets_position_to_default(menu_with_items: Menu) -> None:
 def test_reset_resets_current_state(menu_with_items: Menu) -> None:
     """Test that reset resets current state."""
     menu_with_items.position = 2
-    menu_with_items.set_state()
+    menu_with_items.activate_current_state()
     menu_with_items.reset()
     assert menu_with_items.state_machine.current_state is not None
     assert menu_with_items.state_machine.current_state.label == "Option 1"  # type: ignore[attr-defined]  # type: ignore[attr-defined]
@@ -1008,11 +1014,11 @@ def test_active_element_returns_current_state(menu_with_items: Menu) -> None:
 def test_active_element_changes_with_position(menu_with_items: Menu) -> None:
     """Test that active_element changes with position."""
     menu_with_items.position = 0
-    menu_with_items.set_state()
+    menu_with_items.activate_current_state()
     first_active = menu_with_items.active_element
 
     menu_with_items.position = 1
-    menu_with_items.set_state()
+    menu_with_items.activate_current_state()
     second_active = menu_with_items.active_element
 
     assert first_active != second_active
@@ -1402,6 +1408,6 @@ def test_value_setter_loop_completes_without_match(screen: Screen) -> None:
     items: List[Dict[str, str]] = [{"a": "A"}, {"b": "B"}]
     menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
     # When value is not found, loop completes without break (index stays at len)
-    # state_machine.change() will raise since "c" is not a valid key
+    # state_machine.transition_to() will raise since "c" is not a valid key
     with pytest.raises(Exception):
         menu.value = "c"  # Not in menu

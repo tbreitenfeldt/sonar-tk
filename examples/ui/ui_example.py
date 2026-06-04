@@ -1,3 +1,5 @@
+"""Interactive UI example showcasing common SonarTK widgets."""
+
 import sys
 from pathlib import Path
 from typing import Optional
@@ -28,6 +30,8 @@ except Exception:
 
 
 class ExampleWindow:
+    """Build and run a demo window with menus, dialogs, and form controls."""
+
     def __init__(self) -> None:
         self.main_window: Window = Window()
         self.container: ContainerScreen = ContainerScreen(self.main_window)
@@ -164,6 +168,7 @@ class ExampleWindow:
 
 
 def main() -> None:
+    """Run the UI example application."""
     ExampleWindow()
 
 

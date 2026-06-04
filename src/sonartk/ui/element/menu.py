@@ -43,6 +43,7 @@ class Menu(Element[str]):
         self.default_position: int = position
         self.typing_buffer: str = ""
         self.state_machine: StateMachine = StateMachine()
+        self.state_machine.set_current_index(position)
 
         super().__init__(parent=parent, label=label, value="", role="menu")  # type: ignore
 
@@ -89,7 +90,8 @@ class Menu(Element[str]):
             index += 1
 
         self.position = index
-        self.state_machine.change(value)
+        self.state_machine.set_current_index(index)
+        self.state_machine.transition_to(value)
 
     # override
     def setup(  # type: ignore[override]
@@ -102,8 +104,9 @@ class Menu(Element[str]):
 
         if self.reset_position_on_focus:
             self.position = self.default_position
+            self.state_machine.set_current_index(self.position)
 
-        self.set_state(interrupt_speech=False)
+        self.activate_current_state(interrupt_speech=False)
         return True
 
     # override
@@ -127,16 +130,16 @@ class Menu(Element[str]):
         if not self.has_border:
             self.dispatch_event("on_change", self)
             self.position = (self.position + delta) % self.state_machine.size()
-            self.set_state()
+            self.activate_current_state()
         else:
             new_position = self.position + delta
             if self.state_machine.size() == 1:
                 self.dispatch_event("on_border", self)
-                self.set_state()
+                self.activate_current_state()
             elif 0 <= new_position < self.state_machine.size():
                 self.dispatch_event("on_change", self)
                 self.position = new_position
-                self.set_state()
+                self.activate_current_state()
             else:
                 self.dispatch_event("on_border", self)
 
@@ -155,7 +158,7 @@ class Menu(Element[str]):
         if self.position != 0:
             self.dispatch_event("on_change", self)
             self.position = 0
-            self.set_state()
+            self.activate_current_state()
 
         return True
 
@@ -164,7 +167,7 @@ class Menu(Element[str]):
         if self.position != self.state_machine.size() - 1:
             self.dispatch_event("on_change", self)
             self.position = self.state_machine.size() - 1
-            self.set_state()
+            self.activate_current_state()
 
         return True
 
@@ -187,16 +190,16 @@ class Menu(Element[str]):
                 for i, s in enumerate(self.state_machine.states.values())
                 if cast(Element, s).label.startswith(self.typing_buffer)
             )
-            self.set_state()
+            self.activate_current_state()
             self.typing_buffer = ""
             self.dispatch_event("on_change", self)
         except StopIteration:
             self.dispatch_event("on_letter_navigation_fail", self)
 
-    def set_state(self, interrupt_speech: bool = True) -> None:
+    def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
         """Activate the state associated with the current menu position."""
-        state_key: str = self.state_machine.keys[self.position]
-        self.state_machine.change(state_key, interrupt_speech)
+        self.state_machine.set_current_index(self.position)
+        self.state_machine.activate_current_state(*args, **kwargs)
 
     def add(self, key: str, item: Element | str) -> None:
         """Add a menu item state from text or an Element instance."""
@@ -218,6 +221,7 @@ class Menu(Element[str]):
     def reset(self) -> None:
         """Restore default position and reset all menu item elements."""
         self.position = self.default_position
+        self.state_machine.set_current_index(self.position)
         state_key: str = list(self.state_machine.states)[self.position]
         self.state_machine.current_state = self.state_machine.states[state_key]
 

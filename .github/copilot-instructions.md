@@ -19,4 +19,4 @@ This project uses pytest for unit testing. Ensure that all new features and bug 
 
 ### Pre-commit Hooks
 
-The project uses pre-commit hooks to enforce code quality and style guidelines. Ensure that all commits pass the pre-commit checks before pushing changes to the repository. The hooks used are mypy for type checking, black for code formatting, and flake8 for linting. Always run black to format code, then check mypy and flake8 after making changes to the codebase.
+The project uses pre-commit hooks to enforce code quality and style guidelines. Ensure that all commits pass the pre-commit checks before pushing changes to the repository. The hooks used are mypy for type checking, black for code formatting, and flake8 for linting. Always run the pre-commit hooks after making changes to the codebase against all unstaged changes.

@@ -25,6 +25,12 @@ from sonartk.orchestration.proximity_audio import (
     ProximityAudioController,
     ProximityAudioEmitter,
 )
+from sonartk.orchestration.player_roles import recover_players_by_role
+from sonartk.orchestration.state_flow import WindowStateFlow
+from sonartk.orchestration.map_section_gate import (
+    MapSectionGate,
+    MapSectionTiles,
+)
 from sonartk.ui.focusable_container import FocusableContainer
 from sonartk.ui.ui_component import UIComponent
 from sonartk.ui.window import Window
@@ -48,9 +54,13 @@ def test_orchestration_exports_are_explicit() -> None:
         "AmbientTileSoundConfig",
         "InputGate",
         "IntroGameAudioLifecycle",
+        "MapSectionGate",
+        "MapSectionTiles",
         "TerrainAudioProfile",
         "ProximityAudioController",
         "ProximityAudioEmitter",
+        "recover_players_by_role",
+        "WindowStateFlow",
         "bind_volume_hotkeys",
         "BuiltMapGridGame",
         "MapObjectCollectionSession",
@@ -73,6 +83,13 @@ def test_orchestration_exports_are_explicit() -> None:
         is ProximityAudioController
     )
     assert sonartk.orchestration.ProximityAudioEmitter is ProximityAudioEmitter
+    assert sonartk.orchestration.MapSectionGate is MapSectionGate
+    assert sonartk.orchestration.MapSectionTiles is MapSectionTiles
+    assert (
+        sonartk.orchestration.recover_players_by_role
+        is recover_players_by_role
+    )
+    assert sonartk.orchestration.WindowStateFlow is WindowStateFlow
     assert sonartk.orchestration.bind_volume_hotkeys is bind_volume_hotkeys
     assert sonartk.orchestration.BuiltMapGridGame is BuiltMapGridGame
     assert (

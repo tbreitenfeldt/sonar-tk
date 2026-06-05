@@ -10,7 +10,7 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_MODULE_PATHS = [
     REPO_ROOT / "examples" / "ui" / "ui_example.py",
-    REPO_ROOT / "examples" / "game" / "map_sounds_example.py",
+    REPO_ROOT / "examples" / "game" / "main.py",
 ]
 
 

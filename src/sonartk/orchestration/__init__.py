@@ -5,9 +5,13 @@ __all__ = [
     "AmbientTileSoundConfig",
     "InputGate",
     "IntroGameAudioLifecycle",
+    "MapSectionGate",
+    "MapSectionTiles",
     "TerrainAudioProfile",
     "ProximityAudioController",
     "ProximityAudioEmitter",
+    "recover_players_by_role",
+    "WindowStateFlow",
     "bind_volume_hotkeys",
     "BuiltMapGridGame",
     "MapObjectCollectionSession",
@@ -38,6 +42,12 @@ if TYPE_CHECKING:
     from sonartk.orchestration.proximity_audio import (
         ProximityAudioController,
         ProximityAudioEmitter,
+    )
+    from sonartk.orchestration.player_roles import recover_players_by_role
+    from sonartk.orchestration.state_flow import WindowStateFlow
+    from sonartk.orchestration.map_section_gate import (
+        MapSectionGate,
+        MapSectionTiles,
     )
 
 
@@ -72,5 +82,14 @@ def __getattr__(name: str) -> Any:
         return getattr(module, name)
     if name in {"ProximityAudioController", "ProximityAudioEmitter"}:
         module = import_module("sonartk.orchestration.proximity_audio")
+        return getattr(module, name)
+    if name == "recover_players_by_role":
+        module = import_module("sonartk.orchestration.player_roles")
+        return getattr(module, name)
+    if name == "WindowStateFlow":
+        module = import_module("sonartk.orchestration.state_flow")
+        return getattr(module, name)
+    if name in {"MapSectionGate", "MapSectionTiles"}:
+        module = import_module("sonartk.orchestration.map_section_gate")
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

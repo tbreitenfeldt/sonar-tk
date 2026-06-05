@@ -20,3 +20,10 @@ Audio management is now more resilient when output devices change or recover mid
 * Sound recovery: added output-device watch controls, recovery callback registration, debug callback support, and recovered-player handoff APIs.
 * Recovery behavior: improved detection and fallback flow for device changes, backend errors, disconnect/stall conditions, and rebuild/restore continuity.
 * Volume orchestration: `bind_volume_hotkeys` now supports dynamic player resolvers and SFX-change callbacks.
+
+State machine and UI-state APIs were also cleaned up to remove deprecated compatibility aliases and standardize transition/activation behavior across the library.
+
+* State machine transition API: removed deprecated `change` alias and standardized on `transition_to` as the single transition primitive.
+* UI activation API: removed deprecated `set_state` aliases from window/screen/menu layers and standardized on `activate_current_state`.
+* Activation forwarding: `activate_current_state` now accepts and forwards arbitrary `*args` and `**kwargs` to state setup/activation paths.
+* Internal consistency: updated call sites, examples, tests, and docs to use the canonical state machine naming and behavior.

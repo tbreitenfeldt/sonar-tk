@@ -8,7 +8,7 @@ authors = [
     {name = "Timothy Breitenfeldt", email = "timothyjb310@gmail.com"},
 ]
 readme = "readme.md"
-version = "0.1"
+version = "0.1.1"
 description = "A library used to create audio games built on top of Pyglet."
 requires-python = ">=3.13"
 keywords = ["development", "accessibility", "screen reader", "sonartk", "sonar tk"]

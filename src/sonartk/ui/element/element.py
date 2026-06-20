@@ -86,7 +86,7 @@ class Element(Generic[V], UIComponent, State, EventDispatcher):
         self.dispatch_event("on_lose_focus", self)
         if self.use_key_handler:
             self.key_handler.deactivate(reset_state=True)
-            self.get_window().pop_window_handlers()
+            self.get_window().pop_window_handlers(self.key_handler)
 
         return True
 

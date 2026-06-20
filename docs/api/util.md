@@ -17,3 +17,7 @@
 ## speech_manager
 
 ::: sonartk.util.speech_manager
+
+## text_history
+
+::: sonartk.util.text_history

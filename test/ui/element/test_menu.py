@@ -178,6 +178,18 @@ def test_init_sets_is_side_menu_true(screen: Screen) -> None:
     assert menu.is_side_menu is True
 
 
+def test_add_text_label_disables_item_shortcuts(screen: Screen) -> None:
+    """Test that TextLabel shortcuts are disabled when used as menu items."""
+    menu = Menu(screen, "Menu")
+    label_item = TextLabel(screen, "Item", enable_shortcuts=True)
+
+    menu.add("item", label_item)
+
+    added_item = menu.state_machine.states["item"]
+    assert isinstance(added_item, TextLabel)
+    assert added_item.use_key_handler is False
+
+
 def test_init_sets_reset_position_on_focus_true_by_default(
     screen: Screen,
 ) -> None:
@@ -744,21 +756,93 @@ def test_submit_event_receives_menu_instance(menu_with_items: Menu) -> None:
 # navigate_by_first_letter Tests
 
 
-def test_navigate_by_first_letter_appends_to_typing_buffer(
-    menu_with_items: Menu,
+def test_navigate_by_first_letter_schedules_clear_timer(
+    mocker: MockerFixture, menu_with_items: Menu
 ) -> None:
-    """Test that navigate_by_first_letter appends to typing buffer."""
+    """Test that navigation resets and re-schedules the typing timeout."""
+    mock_unschedule = mocker.patch(
+        "sonartk.ui.element.menu.pyglet.clock.unschedule"
+    )
+    mock_schedule_once = mocker.patch(
+        "sonartk.ui.element.menu.pyglet.clock.schedule_once"
+    )
+
     menu_with_items.navigate_by_first_letter("O")
-    assert menu_with_items.typing_buffer == "O"
+
+    mock_unschedule.assert_called_once_with(
+        menu_with_items._clear_typing_buffer
+    )
+    mock_schedule_once.assert_called_once_with(
+        menu_with_items._clear_typing_buffer, 0.4
+    )
 
 
-def test_navigate_by_first_letter_appends_multiple_characters(
+def test_navigate_by_first_letter_repeated_char_cycles_matches(
+    screen: Screen,
+) -> None:
+    """Test repeated same-character input cycles through matching items."""
+    items: List[Dict[str, str]] = [
+        {"a": "Lands"},
+        {"b": "Library"},
+        {"c": "Life"},
+        {"d": "Battlefield"},
+    ]
+    menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
+
+    menu.position = 0
+    menu.navigate_by_first_letter("l")
+    assert menu.position == 1
+
+    menu.navigate_by_first_letter("l")
+    assert menu.position == 2
+
+    menu.navigate_by_first_letter("l")
+    assert menu.position == 0
+
+
+def test_navigate_by_first_letter_refines_with_additional_characters(
+    screen: Screen,
+) -> None:
+    """Test multi-character input refines by prefix from the top."""
+    items: List[Dict[str, str]] = [
+        {"a": "Lands"},
+        {"b": "Library"},
+        {"c": "Life"},
+        {"d": "Battlefield"},
+    ]
+    menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
+
+    menu.navigate_by_first_letter("l")
+    menu.navigate_by_first_letter("i")
+
+    assert menu.position == 1
+    assert menu.typing_buffer == "li"
+
+
+def test_navigate_by_first_letter_is_case_insensitive(screen: Screen) -> None:
+    """Test navigation matches labels case-insensitively."""
+    items: List[Dict[str, str]] = [
+        {"a": "lands"},
+        {"b": "LIBRARY"},
+        {"c": "Life"},
+    ]
+    menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
+
+    menu.navigate_by_first_letter("l")
+    assert menu.position == 1
+
+    menu._clear_typing_buffer(0.0)
+    menu.navigate_by_first_letter("L")
+    assert menu.position == 2
+
+
+def test_navigate_by_first_letter_timeout_clears_buffer(
     menu_with_items: Menu,
 ) -> None:
-    """Test that navigate_by_first_letter appends multiple characters."""
-    menu_with_items.navigate_by_first_letter("O")
-    menu_with_items.navigate_by_first_letter("p")
-    assert menu_with_items.typing_buffer == "Op"
+    """Test timeout callback clears typing buffer for a new sequence."""
+    menu_with_items.typing_buffer = "Op"
+    menu_with_items._clear_typing_buffer(0.0)
+    assert menu_with_items.typing_buffer == ""
 
 
 def test_navigate_by_first_letter_returns_true(
@@ -1362,11 +1446,11 @@ def test_navigate_item_border_menu_valid_previous(screen: Screen) -> None:
     assert menu.position == 1
 
 
-# _navigate_by_text Tests (lines 174-184)
+# _navigate_by_prefix Tests
 
 
-def test_navigate_by_text_success(menu_with_items: Menu) -> None:
-    """Test _navigate_by_text navigates to matching item."""
+def test_navigate_by_prefix_success(menu_with_items: Menu) -> None:
+    """Test _navigate_by_prefix navigates to matching item."""
     menu_with_items.position = 2  # Start at last item
     menu_with_items.typing_buffer = "Option 2"
 
@@ -1377,15 +1461,14 @@ def test_navigate_by_text_success(menu_with_items: Menu) -> None:
         nonlocal change_called
         change_called = True
 
-    menu_with_items._navigate_by_text(0.0)
+    menu_with_items._navigate_by_prefix(start=0, wrap=False)
 
     assert menu_with_items.position == 1  # "Option 2" is at index 1
-    assert menu_with_items.typing_buffer == ""
     assert change_called is True
 
 
-def test_navigate_by_text_failure(menu_with_items: Menu) -> None:
-    """Test _navigate_by_text dispatches on_letter_navigation_fail when no match."""
+def test_navigate_by_prefix_failure(menu_with_items: Menu) -> None:
+    """Test _navigate_by_prefix dispatches fail event when no match."""
     menu_with_items.typing_buffer = "XYZ"  # No item starts with "XYZ"
 
     fail_called = False
@@ -1395,9 +1478,25 @@ def test_navigate_by_text_failure(menu_with_items: Menu) -> None:
         nonlocal fail_called
         fail_called = True
 
-    menu_with_items._navigate_by_text(0.0)
+    menu_with_items._navigate_by_prefix(start=0, wrap=False)
 
     assert fail_called is True
+
+
+def test_navigate_by_prefix_wraps_when_enabled(screen: Screen) -> None:
+    """Test _navigate_by_prefix wraps to the beginning when configured."""
+    items: List[Dict[str, str]] = [
+        {"a": "Lands"},
+        {"b": "Library"},
+        {"c": "Battlefield"},
+    ]
+    menu = Menu(screen, "Menu", items=items)  # type: ignore[arg-type]
+    menu.position = 1
+    menu.typing_buffer = "La"
+
+    menu._navigate_by_prefix(start=menu.position + 1, wrap=True)
+
+    assert menu.position == 0
 
 
 # value.setter loop completion without break (branch 85->90)

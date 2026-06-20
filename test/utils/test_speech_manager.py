@@ -121,6 +121,32 @@ def test_output_without_log_and_interrupt(mocker: MockerFixture) -> None:
     )
 
 
+def test_output_with_none_is_noop(mocker: MockerFixture) -> None:
+    accessible_output2_output_mock = mocker.patch(
+        "accessible_output2.outputs.auto.Auto.output"
+    )
+
+    speech_manager.output(None)
+
+    assert len(speech_manager._speech_history) == 0
+    assert speech_manager._history_position == 0
+    accessible_output2_output_mock.assert_not_called()
+
+
+def test_output_with_none_and_log_message_true_does_not_log(
+    mocker: MockerFixture,
+) -> None:
+    accessible_output2_output_mock = mocker.patch(
+        "accessible_output2.outputs.auto.Auto.output"
+    )
+
+    speech_manager.output(None, log_message=True)
+
+    assert speech_manager._speech_history == []
+    assert speech_manager._history_position == 0
+    accessible_output2_output_mock.assert_not_called()
+
+
 def test_silence_with_nvda_active(mocker: MockerFixture) -> None:
     accessible_output2_output_mock = mocker.patch(
         "accessible_output2.outputs.auto.Auto.output"

@@ -1,6 +1,7 @@
 from typing import Any, Callable
 
 import pytest
+from pyglet.window import key
 from pytest_mock import MockerFixture
 
 from sonartk.ui.element.element import Element
@@ -8,6 +9,7 @@ from sonartk.ui.element.text_label import TextLabel
 from sonartk.ui.screen.screen import Screen
 from sonartk.ui.ui_component import UIComponent
 from sonartk.ui.window import Window
+from sonartk.util.key_handler import Key
 from sonartk.util import speech_manager
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
@@ -84,16 +86,16 @@ def test_init_sets_role_to_empty_string(parent: _FakeScreen) -> None:
     assert label.role == ""
 
 
-def test_init_sets_use_key_handler_false(parent: _FakeScreen) -> None:
-    """Test that __init__ sets use_key_handler to False."""
+def test_init_sets_use_key_handler_true(parent: _FakeScreen) -> None:
+    """Test that __init__ sets use_key_handler to True."""
     label = TextLabel(parent, "Label")
-    assert label.use_key_handler is False
+    assert label.use_key_handler is True
 
 
-def test_init_does_not_create_key_handler(parent: _FakeScreen) -> None:
-    """Test that __init__ does not create a KeyHandler."""
+def test_init_creates_key_handler(parent: _FakeScreen) -> None:
+    """Test that __init__ creates a KeyHandler."""
     label = TextLabel(parent, "Label")
-    assert not hasattr(label, "key_handler")
+    assert hasattr(label, "key_handler")
 
 
 def test_init_empty_label(parent: _FakeScreen) -> None:
@@ -112,12 +114,13 @@ def test_init_long_label(parent: _FakeScreen) -> None:
 # bind_keys Tests
 
 
-def test_bind_keys_is_no_op(parent: _FakeScreen) -> None:
-    """Test that bind_keys does nothing (no key bindings for TextLabel)."""
+def test_bind_keys_registers_up_down_and_ctrl_c(parent: _FakeScreen) -> None:
+    """Test that bind_keys registers reread and copy key bindings."""
     label = TextLabel(parent, "Label")
-    # Should not raise and should not have a key_handler
-    label.bind_keys()
-    assert not hasattr(label, "key_handler")
+    handler = label.key_handler
+    assert Key(key.UP) in handler.registered_key_presses
+    assert Key(key.DOWN) in handler.registered_key_presses
+    assert Key(key.C, [key.MOD_CTRL]) in handler.registered_key_presses
 
 
 def test_bind_keys_returns_none(parent: _FakeScreen) -> None:
@@ -125,6 +128,53 @@ def test_bind_keys_returns_none(parent: _FakeScreen) -> None:
     label = TextLabel(parent, "Label")
     result = label.bind_keys()
     assert result is None
+
+
+def test_reread_label_outputs_label(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that reread_label speaks label text."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    label = TextLabel(parent, "Section Header")
+
+    result = label.reread_label()
+
+    assert result is True
+    mock_output.assert_called_once_with(
+        "Section Header", interrupt=True, log_message=False
+    )
+
+
+def test_reread_label_outputs_blank_for_empty_label(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that reread_label speaks Blank for empty labels."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    label = TextLabel(parent, "")
+
+    result = label.reread_label()
+
+    assert result is True
+    mock_output.assert_called_once_with(
+        "Blank", interrupt=True, log_message=False
+    )
+
+
+def test_copy_label_copies_label_to_clipboard(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that copy_label copies label text."""
+    mock_copy = mocker.patch("sonartk.ui.element.text_label.pyperclip.copy")
+    mock_output = mocker.patch.object(speech_manager, "output")
+    label = TextLabel(parent, "Section Header")
+
+    result = label.copy_label()
+
+    assert result is True
+    mock_copy.assert_called_once_with("Section Header")
+    mock_output.assert_called_once_with(
+        "Copied label to clipboard", interrupt=True, log_message=False
+    )
 
 
 # reset Tests
@@ -234,14 +284,14 @@ def test_setup_does_not_output_speech_for_empty_label(
 def test_setup_does_not_push_window_handlers(
     mocker: MockerFixture, window: Window, parent: _FakeScreen
 ) -> None:
-    """Test that setup does not push window handlers (use_key_handler=False)."""
+    """Test that setup pushes window handlers (use_key_handler=True)."""
     mocker.patch.object(speech_manager, "output")
     mock_push = mocker.patch.object(window, "push_window_handlers")
     label = TextLabel(parent, "Label")
 
     label.setup(lambda key, *a, **kw: None)
 
-    mock_push.assert_not_called()
+    mock_push.assert_called_once_with(label.key_handler)
 
 
 def test_setup_dispatches_on_focus_event(
@@ -313,13 +363,13 @@ def test_exit_dispatches_on_lose_focus_event(
 def test_exit_does_not_pop_window_handlers(
     mocker: MockerFixture, window: Window, parent: _FakeScreen
 ) -> None:
-    """Test that exit does not pop window handlers (use_key_handler=False)."""
+    """Test that exit pops window handlers (use_key_handler=True)."""
     mock_pop = mocker.patch.object(window, "pop_window_handlers")
     label = TextLabel(parent, "Label")
 
     label.exit()
 
-    mock_pop.assert_not_called()
+    mock_pop.assert_called_once_with(label.key_handler)
 
 
 def test_exit_returns_true(parent: _FakeScreen) -> None:

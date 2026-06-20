@@ -23,6 +23,7 @@ class TextBox(Element):
         echo_characters: bool = True,
         echo_words: bool = True,
         disable_up_down_keys: bool = False,
+        enable_input_history: bool = False,
         read_only: bool = False,
         text_box_size: int = 80,
     ) -> None:
@@ -34,6 +35,10 @@ class TextBox(Element):
         self.echo_characters: bool = echo_characters
         self.echo_words: bool = echo_words
         self.disable_up_down_keys: bool = disable_up_down_keys
+        self.enable_input_history: bool = enable_input_history
+        self.input_history: List[str] = []
+        self.input_history_position: int = -1
+        self._history_editing_value: str = ""
         self.read_only: bool = read_only
         self.text_box_size: int = text_box_size
         self.position: int = 0
@@ -69,8 +74,8 @@ class TextBox(Element):
         self.key_handler.add_key_press(self.submit, key.RETURN)
 
         if not self.disable_up_down_keys:
-            self.key_handler.add_key_press(self.output_value, key.UP)
-            self.key_handler.add_key_press(self.output_value, key.DOWN)
+            self.key_handler.add_key_press(self.previous_history_value, key.UP)
+            self.key_handler.add_key_press(self.next_history_value, key.DOWN)
 
         self.key_handler.add_text_motion(self.next_word, key.MOTION_NEXT_WORD)
         self.key_handler.add_text_motion(
@@ -110,7 +115,20 @@ class TextBox(Element):
     @value.setter
     def value(self, value: str) -> None:
         """Return the current textbox content as a string."""
+        self.replace_value(value)
+
+    def replace_value(self, value: str, announce: bool = False) -> None:
+        """Replace the textbox content and optionally speak the new value."""
+        self._value = value
         self.input = list(value)
+        self.position = len(self.input)
+        self.left_selection_index = -1
+        self.right_selection_index = -1
+        self.selecting_left = False
+        self.selecting_right = False
+
+        if announce:
+            self.output_value()
 
     # override
     def setup(  # type: ignore[override]
@@ -217,14 +235,14 @@ class TextBox(Element):
 
     def output_value(self) -> bool:
         """Speak the full textbox value, masking characters when hidden."""
-        if not self.hidden:
-            speech_manager.output(
-                self.get_value(), interrupt=True, log_message=False
-            )
-        else:
-            speech_manager.output(
-                "star" * len(self.input), interrupt=True, log_message=False
-            )
+        output_value: str = self.get_value()
+
+        if output_value == "":
+            output_value = "Blank"
+        elif self.hidden:
+            output_value = "star" * len(self.input)
+
+        speech_manager.output(output_value, interrupt=True, log_message=False)
 
         return True
 
@@ -540,8 +558,59 @@ class TextBox(Element):
 
     def submit(self) -> bool:
         """Emit the submit event for the textbox value."""
+        self._record_history_value()
         self.dispatch_event("on_submit", self)
         return True
+
+    def previous_history_value(self) -> bool:
+        """Recall the previous history value, or read current value when unavailable."""
+        if not self.enable_input_history or not self.input_history:
+            return self.output_value()
+
+        if self.input_history_position == -1:
+            self._history_editing_value = self.get_value()
+            self.input_history_position = len(self.input_history) - 1
+        elif self.input_history_position > 0:
+            self.input_history_position -= 1
+
+        recalled = self.input_history[self.input_history_position]
+        self.replace_value(recalled, announce=True)
+        return True
+
+    def next_history_value(self) -> bool:
+        """Recall the next history value, or read current value at the history bottom."""
+        if not self.enable_input_history or not self.input_history:
+            return self.output_value()
+
+        if self.input_history_position == -1:
+            return self.output_value()
+
+        if self.input_history_position < len(self.input_history) - 1:
+            self.input_history_position += 1
+            recalled = self.input_history[self.input_history_position]
+            self.replace_value(recalled, announce=True)
+            return True
+
+        self.input_history_position = -1
+        self.replace_value(self._history_editing_value, announce=True)
+        return True
+
+    def _record_history_value(self) -> None:
+        """Store submitted input in history when enabled."""
+        if not self.enable_input_history:
+            return
+
+        current = self.get_value()
+        if current == "":
+            self.input_history_position = -1
+            self._history_editing_value = ""
+            return
+
+        if not self.input_history or self.input_history[-1] != current:
+            self.input_history.append(current)
+
+        self.input_history_position = -1
+        self._history_editing_value = ""
 
     def copy_to_clipboard(self) -> bool:
         """Copy current selection to the clipboard when a selection exists."""

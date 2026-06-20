@@ -164,6 +164,20 @@ def test_init_sets_disable_up_down_keys_true(parent: _FakeScreen) -> None:
     assert text_box.disable_up_down_keys is True
 
 
+def test_init_sets_enable_input_history_false_by_default(
+    parent: _FakeScreen,
+) -> None:
+    """Test that __init__ sets enable_input_history to False by default."""
+    text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
+    assert text_box.enable_input_history is False
+
+
+def test_init_sets_enable_input_history_true(parent: _FakeScreen) -> None:
+    """Test that __init__ can set enable_input_history to True."""
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    assert text_box.enable_input_history is True
+
+
 def test_init_sets_read_only_false_by_default(parent: _FakeScreen) -> None:
     """Test that __init__ sets read_only to False by default."""
     text_box = TextBox(parent, "Label")  # type: ignore[arg-type]
@@ -353,6 +367,41 @@ def test_value_setter_updates_value(parent: _FakeScreen) -> None:
     assert text_box.value == "updated"
 
 
+def test_replace_value_updates_position_and_clears_selection(
+    parent: _FakeScreen,
+) -> None:
+    """Test that replace_value updates the caret and clears selection state."""
+    text_box = TextBox(parent, "Label", "old")  # type: ignore[arg-type]
+    text_box.position = 1
+    text_box.left_selection_index = 0
+    text_box.right_selection_index = 2
+    text_box.selecting_left = True
+    text_box.selecting_right = True
+
+    text_box.replace_value("updated")
+
+    assert text_box.value == "updated"
+    assert text_box.position == len("updated")
+    assert text_box.left_selection_index == -1
+    assert text_box.right_selection_index == -1
+    assert text_box.selecting_left is False
+    assert text_box.selecting_right is False
+
+
+def test_replace_value_can_announce_current_value(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that replace_value can speak the new text."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", "old")  # type: ignore[arg-type]
+
+    text_box.replace_value("updated", announce=True)
+
+    mock_output.assert_called_once_with(
+        "updated", interrupt=True, log_message=False
+    )
+
+
 # setup Tests
 
 
@@ -403,6 +452,35 @@ def test_setup_outputs_read_only_when_read_only(
     assert mock_output.call_count == 2
     calls = [call[0][0] for call in mock_output.call_args_list]
     assert any("Read Only" in call for call in calls)
+
+
+# output_value Tests
+
+
+def test_output_value_outputs_current_text(
+    mocker: MockerFixture, parent: Screen
+) -> None:
+    """Test that output_value speaks the current textbox value."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", "hello")  # type: ignore[arg-type]
+
+    result = text_box.output_value()
+
+    assert result is True
+    mock_output.assert_called_with("hello", interrupt=True, log_message=False)
+
+
+def test_output_value_outputs_blank_for_empty_text(
+    mocker: MockerFixture, parent: Screen
+) -> None:
+    """Test that output_value speaks Blank when the textbox is empty."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", "")  # type: ignore[arg-type]
+
+    result = text_box.output_value()
+
+    assert result is True
+    mock_output.assert_called_with("Blank", interrupt=True, log_message=False)
 
 
 # get_value Tests
@@ -1136,6 +1214,238 @@ def test_submit_event_listener_receives_event(parent: _FakeScreen) -> None:
 
     text_box.submit()
     assert received_element == text_box
+
+
+def test_submit_records_input_history_when_enabled(
+    parent: _FakeScreen,
+) -> None:
+    """Test that submit records the current value when history is enabled."""
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+
+    text_box.submit()
+
+    assert text_box.input_history == ["first"]
+    assert text_box.input_history_position == -1
+
+
+def test_submit_does_not_mutate_input_history_when_disabled(
+    parent: _FakeScreen,
+) -> None:
+    """Test that submit does not mutate input history state when disabled."""
+    text_box = TextBox(parent, "Label", enable_input_history=False)  # type: ignore[arg-type]
+    text_box.value = "first"
+
+    text_box.submit()
+
+    assert text_box.input_history == []
+
+
+def test_submit_skips_blank_value_when_history_enabled(
+    parent: _FakeScreen,
+) -> None:
+    """Test that submit does not append blank values to input history."""
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = ""
+
+    text_box.submit()
+
+    assert text_box.input_history == []
+    assert text_box.input_history_position == -1
+    assert text_box._history_editing_value == ""
+
+
+def test_submit_does_not_duplicate_consecutive_history_values(
+    parent: _FakeScreen,
+) -> None:
+    """Test that repeated consecutive submit values are stored once."""
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "repeat"
+
+    text_box.submit()
+    text_box.submit()
+
+    assert text_box.input_history == ["repeat"]
+
+
+def test_submit_resets_history_navigation_state_when_enabled(
+    parent: _FakeScreen,
+) -> None:
+    """Test that submit resets history cursor and editing fallback after recording."""
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.previous_history_value()
+    text_box.value = "second"
+
+    text_box.submit()
+
+    assert text_box.input_history == ["first", "second"]
+    assert text_box.input_history_position == -1
+    assert text_box._history_editing_value == ""
+
+
+def test_previous_history_value_outputs_current_value_when_history_disabled(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that UP re-reads current value when history mode is disabled."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", "current")  # type: ignore[arg-type]
+
+    result = text_box.previous_history_value()
+
+    assert result is True
+    mock_output.assert_called_with(
+        "current", interrupt=True, log_message=False
+    )
+
+
+def test_previous_history_value_outputs_current_value_when_history_empty(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that UP re-reads current value when history mode has no entries."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(
+        parent, "Label", "current", enable_input_history=True
+    )  # type: ignore[arg-type]
+
+    result = text_box.previous_history_value()
+
+    assert result is True
+    mock_output.assert_called_with(
+        "current", interrupt=True, log_message=False
+    )
+
+
+def test_previous_history_value_recalls_most_recent_entry(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that UP recalls the latest submitted history value."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "second"
+    text_box.submit()
+
+    result = text_box.previous_history_value()
+
+    assert result is True
+    assert text_box.value == "second"
+    mock_output.assert_called_with("second", interrupt=True, log_message=False)
+
+
+def test_previous_history_value_moves_to_older_entry_when_navigating(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that repeated UP presses move to older history entries."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "second"
+    text_box.submit()
+
+    text_box.previous_history_value()
+    result = text_box.previous_history_value()
+
+    assert result is True
+    assert text_box.value == "first"
+    mock_output.assert_called_with("first", interrupt=True, log_message=False)
+
+
+def test_previous_history_value_stays_on_oldest_entry(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that UP on the oldest entry keeps focus on that oldest value."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "second"
+    text_box.submit()
+
+    text_box.previous_history_value()
+    text_box.previous_history_value()
+    result = text_box.previous_history_value()
+
+    assert result is True
+    assert text_box.value == "first"
+    assert text_box.input_history_position == 0
+    mock_output.assert_called_with("first", interrupt=True, log_message=False)
+
+
+def test_next_history_value_outputs_current_value_when_history_disabled(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that DOWN re-reads current value when history mode is disabled."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", "current")  # type: ignore[arg-type]
+
+    result = text_box.next_history_value()
+
+    assert result is True
+    mock_output.assert_called_with(
+        "current", interrupt=True, log_message=False
+    )
+
+
+def test_next_history_value_outputs_current_when_not_in_history_navigation(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that DOWN at navigation start reads current value without changing state."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "draft"
+
+    result = text_box.next_history_value()
+
+    assert result is True
+    assert text_box.value == "draft"
+    assert text_box.input_history_position == -1
+    mock_output.assert_called_with("draft", interrupt=True, log_message=False)
+
+
+def test_next_history_value_moves_to_newer_entry_when_navigating(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that DOWN moves from older recalled entries toward newer ones."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "second"
+    text_box.submit()
+
+    text_box.previous_history_value()
+    text_box.previous_history_value()
+    result = text_box.next_history_value()
+
+    assert result is True
+    assert text_box.value == "second"
+    assert text_box.input_history_position == 1
+    mock_output.assert_called_with("second", interrupt=True, log_message=False)
+
+
+def test_next_history_value_at_bottom_restores_editing_value(
+    mocker: MockerFixture, parent: _FakeScreen
+) -> None:
+    """Test that DOWN at the bottom returns to the current editing value."""
+    mock_output = mocker.patch.object(speech_manager, "output")
+    text_box = TextBox(parent, "Label", enable_input_history=True)  # type: ignore[arg-type]
+    text_box.value = "first"
+    text_box.submit()
+    text_box.value = "draft"
+    text_box.previous_history_value()
+
+    result = text_box.next_history_value()
+
+    assert result is True
+    assert text_box.value == "draft"
+    assert text_box.input_history_position == -1
+    mock_output.assert_called_with("draft", interrupt=True, log_message=False)
 
 
 # copy_to_clipboard Tests

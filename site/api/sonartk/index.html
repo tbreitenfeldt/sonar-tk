@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../guides/map_object_collection_sessions/">
+        <link rel="prev" href="../../guides/ui_elements/">
       
       
         <link rel="next" href="../map_builder/">
@@ -300,6 +300,27 @@
   
   <span class="md-ellipsis">
     Map Object Collection Sessions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/ui_elements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    UI Elements
   </span>
   
 
@@ -663,9 +684,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sonartk.Window.change" class="md-nav__link">
+  <a href="#sonartk.Window.transition_to" class="md-nav__link">
     <span class="md-ellipsis">
-      change
+      transition_to
     </span>
   </a>
   
@@ -744,9 +765,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sonartk.Window.set_state" class="md-nav__link">
+  <a href="#sonartk.Window.activate_current_state" class="md-nav__link">
     <span class="md-ellipsis">
-      set_state
+      activate_current_state
     </span>
   </a>
   
@@ -1167,9 +1188,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sonartk.Window.change" class="md-nav__link">
+  <a href="#sonartk.Window.transition_to" class="md-nav__link">
     <span class="md-ellipsis">
-      change
+      transition_to
     </span>
   </a>
   
@@ -1248,9 +1269,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sonartk.Window.set_state" class="md-nav__link">
+  <a href="#sonartk.Window.activate_current_state" class="md-nav__link">
     <span class="md-ellipsis">
-      set_state
+      activate_current_state
     </span>
   </a>
   
@@ -2021,7 +2042,7 @@ False when grid navigation should continue.</p>
 
     <div class="doc doc-contents ">
 
-        <p>Set the state key that should be activated first by setup/set_state.</p>
+        <p>Set the state key that should be activated first by setup.</p>
 <p>This avoids callers depending on internal state order or key index math.
 If states already exist, the key is validated immediately.</p>
 
@@ -2033,8 +2054,8 @@ If states already exist, the key is validated immediately.</p>
 <div class="doc doc-object doc-function">
 
 
-<h4 id="sonartk.Window.change" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">change</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<h4 id="sonartk.Window.transition_to" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">transition_to</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h4>
 
@@ -2088,7 +2109,7 @@ If states already exist, the key is validated immediately.</p>
 
 
 <h4 id="sonartk.Window.pop_window_handlers" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">pop_window_handlers</span><span class="p">()</span></code>
+            <code class="highlight language-python"><span class="n">pop_window_handlers</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h4>
 
@@ -2287,15 +2308,15 @@ detect states that forgot to pop their handlers.</p>
 <div class="doc doc-object doc-function">
 
 
-<h4 id="sonartk.Window.set_state" class="doc doc-heading">
-            <code class="highlight language-python"><span class="n">set_state</span><span class="p">(</span><span class="n">interrupt_speech</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<h4 id="sonartk.Window.activate_current_state" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">activate_current_state</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 </h4>
 
 
     <div class="doc doc-contents ">
 
-        <p>Activate the state at the current window position when available.</p>
+        <p>Activate the current state and forward args to the active state.</p>
 
 
     </div>

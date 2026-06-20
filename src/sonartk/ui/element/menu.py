@@ -177,24 +177,79 @@ class Menu(Element[str]):
         return True
 
     def navigate_by_first_letter(self, character: str) -> bool:
-        """Queue incremental first-letter navigation from typed text."""
-        self.typing_buffer += character
-        pyglet.clock.unschedule(self._navigate_by_text)
-        pyglet.clock.schedule_once(self._navigate_by_text, 0.6)
+        """Navigate by typed text with immediate response and timed refinement.
+
+        First character:
+            Jump immediately to the next matching item after the current
+            position, wrapping to the top if needed.
+        Repeated same character:
+            Cycle through items that start with that character.
+        Additional characters before timeout:
+            Refine search from the beginning using the full prefix.
+        """
+        pyglet.clock.unschedule(self._clear_typing_buffer)
+
+        if (
+            self.typing_buffer
+            and character.lower() == self.typing_buffer[0].lower()
+            and all(
+                c.lower() == self.typing_buffer[0].lower()
+                for c in self.typing_buffer
+            )
+        ):
+            self.typing_buffer = character
+            self._navigate_by_prefix(start=self.position + 1, wrap=True)
+        else:
+            is_first_character = self.typing_buffer == ""
+            self.typing_buffer += character
+
+            if is_first_character:
+                self._navigate_by_prefix(start=self.position + 1, wrap=True)
+            else:
+                self._navigate_by_prefix(start=0, wrap=False)
+
+        pyglet.clock.schedule_once(self._clear_typing_buffer, 0.4)
         return True
 
-    def _navigate_by_text(self, dt: float) -> None:
-        try:
-            self.position = next(
-                i
-                for i, s in enumerate(self.state_machine.states.values())
-                if cast(Element, s).label.startswith(self.typing_buffer)
-            )
-            self.activate_current_state()
-            self.typing_buffer = ""
-            self.dispatch_event("on_change", self)
-        except StopIteration:
-            self.dispatch_event("on_letter_navigation_fail", self)
+    def _clear_typing_buffer(self, dt: float) -> None:
+        """Reset incremental typing state after idle timeout."""
+        self.typing_buffer = ""
+
+    def _navigate_by_prefix(self, start: int, wrap: bool) -> None:
+        """Move focus to the first label matching ``typing_buffer``.
+
+        Args:
+            start: Index to begin searching from.
+            wrap: If True, continue searching from index 0 when no match is
+                found from ``start`` to end.
+        """
+        size = self.state_machine.size()
+        if size == 0:
+            return
+
+        labels = [
+            cast(Element, state).label
+            for state in self.state_machine.states.values()
+        ]
+        prefix = self.typing_buffer.lower()
+
+        for index in range(start, size):
+            if labels[index].lower().startswith(prefix):
+                self.position = index
+                self.activate_current_state()
+                self.dispatch_event("on_change", self)
+                return
+
+        if wrap:
+            wrapped_end = min(start, size)
+            for index in range(0, wrapped_end):
+                if labels[index].lower().startswith(prefix):
+                    self.position = index
+                    self.activate_current_state()
+                    self.dispatch_event("on_change", self)
+                    return
+
+        self.dispatch_event("on_letter_navigation_fail", self)
 
     def activate_current_state(self, *args: Any, **kwargs: Any) -> None:
         """Activate the state associated with the current menu position."""
@@ -204,8 +259,15 @@ class Menu(Element[str]):
     def add(self, key: str, item: Element | str) -> None:
         """Add a menu item state from text or an Element instance."""
         if isinstance(item, str):
-            self.state_machine.add(key, TextLabel(self, item))  # type: ignore
+            self.state_machine.add(
+                key,
+                TextLabel(self, item, enable_shortcuts=False),
+            )  # type: ignore
         elif isinstance(item, Element):
+            # Menu owns UP/DOWN navigation; disable TextLabel shortcuts for
+            # embedded labels so item handlers do not consume menu keys.
+            if isinstance(item, TextLabel):
+                item.use_key_handler = False
             self.state_machine.add(key, item)
         else:
             raise ValueError("Item must be either str or Element.")

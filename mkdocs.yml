@@ -23,6 +23,7 @@ nav:
   - Guides:
       - Audio Scene And Volume Controls: guides/audio_scene_and_volume_controls.md
       - Map Object Collection Sessions: guides/map_object_collection_sessions.md
+      - UI Elements: guides/ui_elements.md
   - API Reference:
       - Top-Level: api/sonartk.md
       - Map Builder: api/map_builder.md

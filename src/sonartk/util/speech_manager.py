@@ -81,11 +81,14 @@ def _get_screenreader() -> Output:
 
 
 def output(
-    message: str, interrupt: bool = False, log_message: bool = True
+    message: Optional[str], interrupt: bool = False, log_message: bool = True
 ) -> None:
     """Send a message to the active screen reader and optionally store it in history."""
     global _screenreader
     global _speech_history
+
+    if message is None:
+        return
 
     if log_message:
         _speech_history.append(message)

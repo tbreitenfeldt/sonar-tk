@@ -4,6 +4,7 @@ from typing import TypeAlias
 from sonartk.util.key_handler import Callback, Key, KeyHandler
 from sonartk.util.state import State
 from sonartk.util.state_machine import EmptyState, StateMachine
+from sonartk.util.text_history import TextHistory
 
 Coordinates: TypeAlias = tuple[int, int]
 
@@ -28,5 +29,6 @@ __all__ = [
     "KeyHandler",
     "State",
     "StateMachine",
+    "TextHistory",
     "speech_manager",
 ]

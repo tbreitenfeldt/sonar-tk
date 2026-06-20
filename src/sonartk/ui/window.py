@@ -184,7 +184,7 @@ class Window(UIComponent, EventDispatcher):
 
         self.pyglet_window.push_handlers(*args, **kwargs)
 
-    def pop_window_handlers(self) -> None:
+    def pop_window_handlers(self, *args: Any, **kwargs: Any) -> None:
         """
         Pop a handler from the event stack.
 

@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import TypeAlias
 
+from sonartk.util.catalog import resolve_name
 from sonartk.util.key_handler import Callback, Key, KeyHandler
 from sonartk.util.state import State
 from sonartk.util.state_machine import EmptyState, StateMachine
@@ -30,5 +31,6 @@ __all__ = [
     "State",
     "StateMachine",
     "TextHistory",
+    "resolve_name",
     "speech_manager",
 ]

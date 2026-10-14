@@ -18,7 +18,26 @@ from sonartk.orchestration.map_object_collection import (
     MapObjectCollectionSession,
 )
 from sonartk.orchestration.message_action_state import MessageActionState
+from sonartk.orchestration.paged_text_state import PagedTextState
+from sonartk.orchestration.map_exits import (
+    MapExit,
+    MapExitRegistry,
+    MapSwitcher,
+)
 from sonartk.orchestration.scene_audio_state import SceneAudioState
+from sonartk.orchestration.volume_levels import (
+    ChannelVolume,
+    VolumeHotkeys,
+    bind_level_hotkeys,
+)
+from sonartk.orchestration.map_interaction import (
+    InteractableObject,
+    MapInteractionController,
+)
+from sonartk.orchestration import map_definition
+from sonartk.orchestration.map_play_session import MapPlaySession
+from sonartk.orchestration.flyovers import FlyoverConfig, FlyoverController
+from sonartk.orchestration.map_screen_controller import MapScreenController
 from sonartk.orchestration.audio_controls import bind_volume_hotkeys
 from sonartk.orchestration.input_gate import InputGate
 from sonartk.orchestration.proximity_audio import (
@@ -64,11 +83,46 @@ def test_orchestration_exports_are_explicit() -> None:
         "bind_volume_hotkeys",
         "BuiltMapGridGame",
         "MapObjectCollectionSession",
+        "MapExit",
+        "MapExitRegistry",
+        "MapSwitcher",
         "MessageActionState",
+        "PagedTextState",
         "MapGridGameBuilder",
         "MapSoundNavigationController",
         "SceneAudioState",
+        "ChannelVolume",
+        "VolumeHotkeys",
+        "bind_level_hotkeys",
+        "InteractableObject",
+        "MapInteractionController",
+        "MapPlaySession",
+        "MapDefinition",
+        "MapObjectSpec",
+        "ObjectSound",
+        "LoadedMap",
+        "load_map",
+        "MapScreenController",
+        "FlyoverConfig",
+        "FlyoverController",
     ]
+    assert sonartk.orchestration.ChannelVolume is ChannelVolume
+    assert sonartk.orchestration.VolumeHotkeys is VolumeHotkeys
+    assert sonartk.orchestration.bind_level_hotkeys is bind_level_hotkeys
+    assert sonartk.orchestration.InteractableObject is InteractableObject
+    assert (
+        sonartk.orchestration.MapInteractionController
+        is MapInteractionController
+    )
+    assert sonartk.orchestration.MapPlaySession is MapPlaySession
+    assert sonartk.orchestration.MapDefinition is map_definition.MapDefinition
+    assert sonartk.orchestration.MapObjectSpec is map_definition.MapObjectSpec
+    assert sonartk.orchestration.ObjectSound is map_definition.ObjectSound
+    assert sonartk.orchestration.LoadedMap is map_definition.LoadedMap
+    assert sonartk.orchestration.load_map is map_definition.load_map
+    assert sonartk.orchestration.MapScreenController is MapScreenController
+    assert sonartk.orchestration.FlyoverConfig is FlyoverConfig
+    assert sonartk.orchestration.FlyoverController is FlyoverController
     assert (
         sonartk.orchestration.AmbientTileSoundConfig is AmbientTileSoundConfig
     )
@@ -97,6 +151,10 @@ def test_orchestration_exports_are_explicit() -> None:
         is MapObjectCollectionSession
     )
     assert sonartk.orchestration.MessageActionState is MessageActionState
+    assert sonartk.orchestration.PagedTextState is PagedTextState
+    assert sonartk.orchestration.MapExit is MapExit
+    assert sonartk.orchestration.MapExitRegistry is MapExitRegistry
+    assert sonartk.orchestration.MapSwitcher is MapSwitcher
     assert sonartk.orchestration.MapGridGameBuilder is MapGridGameBuilder
     assert (
         sonartk.orchestration.MapSoundNavigationController

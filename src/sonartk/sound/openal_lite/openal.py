@@ -46,6 +46,7 @@ import ctypes
 from ctypes import *
 import wave
 import os
+import weakref
 from pathlib import Path
 import struct
 
@@ -3394,6 +3395,7 @@ class LoadSound(object):
 
         wavefp = wave.open(fname)
         channels = wavefp.getnchannels()
+        self.channels = channels
         bitrate = wavefp.getsampwidth() * 8
         samplerate = wavefp.getframerate()
         wavbuf = wavefp.readframes(wavefp.getnframes())
@@ -3488,11 +3490,15 @@ class BufferSound(object):
 
 # load sound buffers into an openal source player to play them
 class Player(object):
+    # every live player, so audio recovery can rebuild sources in place
+    _live_players = weakref.WeakSet()
+
     # load default settings
     def __init__(self):
         # load source player
         self.source = al.ALuint(0)
         al.alGenSources(1, self.source)
+        Player._live_players.add(self)
         # disable rolloff factor by default
         al.alSourcef(self.source, al.AL_ROLLOFF_FACTOR, 0)
         # disable source relative by default
@@ -3821,6 +3827,37 @@ class Player(object):
         for a in list(self._filter):
             self.del_filter(a)
         al.alDeleteSources(1, self.source)
+        Player._live_players.discard(self)
+
+    def rebind(self):
+        """Recreate the source on the current context, keeping settings.
+
+        Used after the output device changes: the old source died with its
+        context, so the same Player object gets a fresh one. Queued sounds,
+        effects and filters belonged to the old context and are dropped.
+        """
+        self.source = al.ALuint(0)
+        al.alGenSources(1, self.source)
+        Player._live_players.add(self)
+        self.queue = []
+        self._effect = []
+        self._filter = []
+        al.alSourcef(self.source, al.AL_ROLLOFF_FACTOR, 0)
+        al.alSourcei(self.source, al.AL_SOURCE_RELATIVE, 0)
+        self.volume = self._volume
+        self.pitch = self._pitch
+        self.position = self._position
+        self.rolloff = self._rolloff
+        self.source_relative = self._source_relative
+        self.min_gain = self._min_gain
+        self.max_gain = self._max_gain
+        self.reference_distance = self._reference_distance
+        self.max_distance = self._max_distance
+        self.cone_inner_angle = self._cone_inner_angle
+        self.cone_outer_angle = self._cone_outer_angle
+        self.velocity = self._velocity
+        self.direction = self._direction
+        self.loop = self._loop
 
     # Go straight to a set point in the sound file
     def _set_seek(self, offset):  # float 0.0-1.0

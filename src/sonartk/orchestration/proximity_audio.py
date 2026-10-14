@@ -12,16 +12,28 @@ SoundPosition = tuple[int, int, int]
 
 @dataclass(frozen=True)
 class ProximityAudioEmitter:
-    """Distance-based emitter configuration for positional audio."""
+    """Distance-based emitter configuration for positional audio.
+
+    ``distance_curve_exponent`` already fades the sound with distance, and
+    the sound service applies ``rolloff`` on top of it, so keep ``rolloff``
+    small (the default) unless you want the fade to be steeper.
+
+    ``start_offset`` (0.0 to 1.0) is how far into the sound a looping
+    emitter begins. Give neighbouring emitters of the same sound different
+    offsets, otherwise their identical loops stay in phase and blend into
+    what sounds like a single source.
+    """
 
     sound_path: str
     source_coordinates: Coordinates
     max_distance_tiles: int
-    base_volume: float
-    min_volume_at_max_distance: float
-    distance_curve_exponent: float
-    rolloff: float
+    base_volume: float = 1.0
+    min_volume_at_max_distance: float = 0.0
+    distance_curve_exponent: float = 1.0
+    rolloff: float = 0.05
     loop: bool = True
+    channel: Optional[str] = None
+    start_offset: float = 0.0
 
 
 class _SoundServiceLike(Protocol):
@@ -34,6 +46,7 @@ class _SoundServiceLike(Protocol):
         rolloff: float = 0.01,
         loop: bool = False,
         retrigger_if_same: bool = True,
+        channel: str = "sfx",
     ) -> Player: ...
 
 
@@ -53,6 +66,22 @@ class ProximityAudioController:
         self.position_resolver = position_resolver
         self.sound_service = sound_service or cast(
             _SoundServiceLike, sound_manager
+        )
+
+    @classmethod
+    def from_emitters(
+        cls,
+        emitters: Mapping[str, ProximityAudioEmitter],
+        *,
+        position_resolver: Callable[[Coordinates], SoundPosition],
+        sound_service: Optional[_SoundServiceLike] = None,
+    ) -> ProximityAudioController:
+        """Build a controller that creates one player per emitter."""
+        return cls(
+            emitters=emitters,
+            players={key: Player() for key in emitters},
+            position_resolver=position_resolver,
+            sound_service=sound_service,
         )
 
     @staticmethod
@@ -100,6 +129,10 @@ class ProximityAudioController:
             player.remove()
             return False
 
+        channel_options: dict[str, str] = (
+            {} if emitter.channel is None else {"channel": emitter.channel}
+        )
+        offset_needed = emitter.start_offset > 0 and not player.playing()
         self.sound_service.play_sound(
             emitter.sound_path,
             player=player,
@@ -114,7 +147,15 @@ class ProximityAudioController:
             rolloff=emitter.rolloff,
             loop=emitter.loop,
             retrigger_if_same=False,
+            **channel_options,
         )
+        if offset_needed:
+            try:
+                setattr(player, "seek", emitter.start_offset)
+            except IndexError:
+                # Nothing was queued (the sound failed to load), so there
+                # is nothing to seek into.
+                pass
         return True
 
     def update_many(
@@ -132,3 +173,16 @@ class ProximityAudioController:
             )
             for emitter_key in self.emitters.keys()
         }
+
+    def update_at(self, listener_coordinates: Coordinates) -> dict[str, bool]:
+        """Update every emitter as active for a listener position."""
+        return self.update_many(
+            listener_coordinates=listener_coordinates,
+            is_active_by_key={key: True for key in self.emitters},
+        )
+
+    def stop_all(self) -> None:
+        """Stop every emitter's sound and release its player."""
+        for player in self.players.values():
+            player.stop()
+            player.remove()

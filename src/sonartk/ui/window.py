@@ -5,6 +5,7 @@ import pyglet.window
 from pyglet.event import EventDispatcher
 from pyglet.window import key
 
+from sonartk.sound import sound_manager
 from sonartk.ui.focusable_container import FocusableContainer
 from sonartk.ui.ui_component import UIComponent
 from sonartk.util.state import State
@@ -70,8 +71,14 @@ class Window(UIComponent, EventDispatcher):
         height: int = 480,
         fullscreen: bool = False,
         speak_current_element_on_window_focus: bool = True,
+        monitor_audio_device: bool = True,
     ) -> None:
-        """Create, initialize, and start the pyglet event loop for this window."""
+        """Create, initialize, and start the pyglet event loop for this window.
+
+        With ``monitor_audio_device`` (the default), audio follows the
+        output device automatically when headphones are plugged in or
+        removed, unless monitoring was already configured.
+        """
         if not caption and not self._caption:
             raise ValueError("No caption was set for the window")
         if caption:
@@ -97,6 +104,12 @@ class Window(UIComponent, EventDispatcher):
         pyglet.clock.schedule_interval(self.update, 0.01)
         self.setup()
         self.pyglet_window.set_visible()
+        if monitor_audio_device:
+            sound_manager.ensure_output_device_watch(
+                status_callback=lambda message: speech_manager.output(
+                    message, interrupt=False
+                )
+            )
         pyglet.app.run()
 
     def on_window_activate(self) -> bool:

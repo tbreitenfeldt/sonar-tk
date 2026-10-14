@@ -13,6 +13,11 @@ from test.mocks.mock_state import MockState
 from test.mocks.mock_pyglet_window import MockPygletWindow
 
 
+@pytest.fixture(autouse=True)
+def _no_audio_device_watch(mocker: MockerFixture) -> None:
+    mocker.patch("sonartk.ui.window.sound_manager.ensure_output_device_watch")
+
+
 @pytest.fixture
 def default_window() -> Window:
     """Returns a default Window instance"""
@@ -67,9 +72,49 @@ def test_open_window_with_empty_caption(
     mocker.patch("pyglet.clock.schedule_interval")
     mocker.patch("sonartk.ui.window.Window.setup")
     mocker.patch("pyglet.app.run")
+    ensure_watch = mocker.patch(
+        "sonartk.ui.window.sound_manager.ensure_output_device_watch"
+    )
 
     default_window.open_window(caption="test")
     assert default_window.caption == "test"
+    ensure_watch.assert_called_once()
+
+
+def test_open_window_can_skip_audio_device_monitoring(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    mocker.patch("pyglet.window.Window")
+    mocker.patch("pyglet.clock.schedule_once")
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("sonartk.ui.window.Window.setup")
+    mocker.patch("pyglet.app.run")
+    ensure_watch = mocker.patch(
+        "sonartk.ui.window.sound_manager.ensure_output_device_watch"
+    )
+
+    default_window.open_window(caption="test", monitor_audio_device=False)
+
+    ensure_watch.assert_not_called()
+
+
+def test_open_window_announces_device_changes_by_speech(
+    mocker: MockerFixture, default_window: Window
+) -> None:
+    mocker.patch("pyglet.window.Window")
+    mocker.patch("pyglet.clock.schedule_once")
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("sonartk.ui.window.Window.setup")
+    mocker.patch("pyglet.app.run")
+    ensure_watch = mocker.patch(
+        "sonartk.ui.window.sound_manager.ensure_output_device_watch"
+    )
+    output = mocker.patch("sonartk.ui.window.speech_manager.output")
+
+    default_window.open_window(caption="test")
+    ensure_watch.call_args.kwargs["status_callback"]("Recovering")
+
+    output.assert_called_once_with("Recovering", interrupt=False)
 
 
 def test_open_window_with_caption_error(default_window: Window) -> None:

@@ -4,6 +4,7 @@ import sonartk.map_builder.map_2d.map_object
 import sonartk.map_builder.map_2d.parser
 
 from sonartk.map_builder.map_2d import Map2d, MapTile, load_2d_map
+from sonartk.map_builder.map_2d import MapBand, build_banded_map
 from sonartk.map_builder.map_2d import (
     Map2dQueries,
     MapQueryResult,
@@ -17,10 +18,34 @@ from sonartk.map_builder.map_2d.parser import CSVParser, JSONParser, MapParser
 
 
 def test_map_builder_package_exports() -> None:
-    assert sonartk.map_builder.__all__ == ["Map2d", "MapTile", "load_2d_map"]
+    assert sonartk.map_builder.__all__ == [
+        "Map2d",
+        "MapBand",
+        "MapTile",
+        "build_banded_map",
+        "load_2d_map",
+        "DocumentExit",
+        "DocumentObject",
+        "MAP_DOCUMENT_VERSION",
+        "MapCanvas",
+        "MapDocument",
+        "MapDocumentError",
+        "build_map2d_from_document",
+        "jagged_edge",
+        "load_map_document",
+        "save_map_document",
+    ]
+    assert sonartk.map_builder.map_2d.MapDocument is (
+        sonartk.map_builder.MapDocument
+    )
+    assert (
+        sonartk.map_builder.map_2d.MapCanvas is sonartk.map_builder.MapCanvas
+    )
     assert sonartk.map_builder.Map2d is Map2d
     assert sonartk.map_builder.MapTile is MapTile
     assert sonartk.map_builder.load_2d_map is load_2d_map
+    assert sonartk.map_builder.MapBand is MapBand
+    assert sonartk.map_builder.build_banded_map is build_banded_map
 
 
 def test_map_2d_package_exports() -> None:
@@ -31,6 +56,18 @@ def test_map_2d_package_exports() -> None:
         "PathfindingResult",
         "PathfindingState",
         "MapTile",
+        "MapBand",
+        "build_banded_map",
+        "MapCanvas",
+        "jagged_edge",
+        "MAP_DOCUMENT_VERSION",
+        "DocumentExit",
+        "DocumentObject",
+        "MapDocument",
+        "MapDocumentError",
+        "build_map2d_from_document",
+        "load_map_document",
+        "save_map_document",
         "direction_offset",
         "step_coordinates",
         "load_2d_map",

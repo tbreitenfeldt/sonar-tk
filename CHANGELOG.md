@@ -1,8 +1,57 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+* **Looping ambience lost after an output-device change**: loops that the dying device reported as stopped were skipped during recovery. Any loop that was never removed is now restored.
+* **Unplugging or plugging in headphones mid-game**: output-device monitoring now starts automatically when `Window.open_window` runs (`monitor_audio_device=False` opts out, and an earlier `start_output_device_watch` call keeps its own settings). After a device change every `Player`, including ones created directly by game code, is rebuilt in place, so objects a game already holds keep working and looping sounds resume with no recovery callback or role rebinding. `sound_manager.ensure_output_device_watch()` and `Player.rebind()` / `PlayerPool.adopt_active_player()` support this.
+* **Occasional one-sided pop while walking**: `MapSoundNavigationController` moved the listener and then each source in separate calls, so the mixer could render a block with every source one tile off, heard as a crackle in the ear opposite the movement. Each step is now applied as a single batched update.
+
+### Changed
+
+* **PagedTextState** now also advances on Space by default (previously only Enter).
+
+### Added
+
+* **`SoundManager.batch_updates()` / `sound_manager.batch_updates()`**: a re-entrant context manager that defers listener and source changes and commits them together, so the mixer never renders a half-moved scene.
+* **`FlyoverController` / `FlyoverConfig`**: random flyovers, such as birds passing above the player. After a random interval a looping sound travels along a random heading at a set height above the listener, making one or more random calls on the way, then it waits again. Interval, duration, height, headings and call count are all configurable.
+* **`name_keys`** on `MapScreenController` and `MapPlaySession`: keys that speak the current map's name.
+* **`MapDocument.name`**: an optional map name. `MapScreenController` speaks it on every map entry (`announce_map_name=False` turns that off).
+* **`MapDefinition` / `load_map` / `MapScreenController`**: a generic data-driven map layer. `MapDefinition.from_document` turns a `MapDocument` into objects, exits, music and ambience (resolvers bind names to your own enums), `load_map` builds it, and `MapScreenController` registers many maps, switches between them through exits, and builds a `MapPlaySession` per map, leaving only music and ambience hooks to the game.
+* **Blended ambient tiles**: `blend_ambient=True` on `MapSoundNavigationController` (and `MapPlaySession`) plays each distinct ambient sound from its own nearest tile at once. `stop_ambient_sound()` releases every ambient player.
+* **`ProximityAudioEmitter.start_offset`**: starts a looping emitter part-way into its sound so neighbouring emitters of the same sound do not sit in phase and blend into one source.
+* **Exit sounds**: `MapScreenController(exit_sound=ObjectSound(...))` loops a positional sound from the middle of each group of adjacent exit tiles so players can find exits by ear.
+* **Locate key**: `MapPlaySession(locate_keys=...)` speaks the current tile and coordinates.
+* **Stereo positional warning**: `SoundManager.play_sound` logs once per sound when a stereo file is given a position, since OpenAL does not pan stereo buffers. `LoadSound` now exposes `channels`.
+* **Map documents**: `MapDocument` is a versioned, validated JSON map format (north-first rows of single-character terrain codes, a legend, start, objects with sounds, exits, music, ambience). Use `load_map_document`/`save_map_document`, `build_map2d_from_document`, and `MapExitRegistry.from_document`. `MapCanvas` and `jagged_edge` draw maps and organic boundaries in code. See the Map Documents guide.
+* **`ignore_unused_profiles`** on `MapSoundNavigationController.from_terrain_audio_profiles`: skip profiles for terrain absent from the map so one shared terrain table can serve every map.
+* **Per-tile blocked sounds**: `MapSoundNavigationController` now plays a blocked tile's own mapped sound when it has one (for example an object that makes its own collision sound). Blocked tiles without one, and the map border, still play the shared wall sound.
+* **`MapPlaySession`**: builds the screen, grid, terrain footsteps and ambient tiles, positional object sounds, and examinable objects for a `Map2d`, with `start_audio`/`stop_audio`. Games keep only their music, ambience and exit logic.
+* **`MapInteractionController` / `InteractableObject`**: Enter/Space (configurable) on a map grid pages through the description of the nearest object within reach, then returns to the map.
+* **`ChannelVolume` / `VolumeHotkeys` / `bind_level_hotkeys`**: stepped per-channel volume levels with a ceiling and spoken hotkeys that work on every screen.
+* **`ChannelLoop`** (`sonartk.sound.channel_loop`): one looping sound on a channel whose per-loop gain survives channel volume changes.
+* **`ProximityAudioController.from_emitters`, `update_at`, `stop_all`**, and defaults on `ProximityAudioEmitter` (gentle `rolloff`, linear fade) so most emitters need only a path, position and range.
+* **`resolve_name`** (`sonartk.util`) binds names in data files to game enums, and **`MapDocument.require_terrain`** checks a document's legend against the game's terrain.
+* **`apply_channel_volume`** on `SoundManager` (and module level): set a player's volume to a per-sound base volume scaled by its channel, so a per-loop gain survives channel volume changes.: Orchestration state that speaks long text one page at a time. Enter advances to the next page and, after the last page, transitions to an optional next state. Re-read (Up/Down) and copy (Ctrl+C) shortcuts are configurable, and `on_page_change`, `on_complete`, `on_reread`, and `on_copy` events allow games to play sounds as the player progresses.
+* **PagedTextState**: Orchestration state that speaks long text one page at a time. Enter advances to the next page and, after the last page, transitions to an optional next state. Re-read (Up/Down) and copy (Ctrl+C) shortcuts are configurable, and `on_page_change`, `on_complete`, `on_reread`, and `on_copy` events allow games to play sounds as the player progresses.
+* **Ambience channel**: `SoundManager` now has a dedicated `"ambience"` playback channel, so environmental loops get their own volume control without borrowing another channel.
+
+* **Channel for ambient/proximity sounds**: `AmbientTileSoundConfig` and `ProximityAudioEmitter` accept an optional `channel` that is forwarded to `play_sound`.
+
+* **Banded maps**: `MapBand` and `build_banded_map` build maps from horizontal terrain strips listed north to south (coastlines, rivers, etc.).
+
+* **Map exits and switching**: `MapExit`, `MapExitRegistry`, and `MapSwitcher` let a game register map loaders, follow exits between maps (replacing the active map in memory), and react through `on_map_leave` / `on_map_enter` events.
+
+* **Map.tile_revision / refresh_ambient_emitters()**: `Map2d` counts tile changes, and `MapSoundNavigationController` uses it to keep a cached list of ambient emitters instead of scanning every tile on every step.
+
 ## [0.2] - 2026-06-19
 
 This release adds major UI improvements including multiline text viewing, dialog helpers, text input history, and improved menu navigation with immediate first-letter feedback.
+
+### Changed
+
+* **PagedTextState** now also advances on Space by default (previously only Enter).
 
 ### Added
 
@@ -30,6 +79,10 @@ This release adds major UI improvements including multiline text viewing, dialog
 This release improves runtime reliability for both keyboard input and audio playback recovery. Key handling now better manages handler lifecycle and repeat behavior, reducing stuck-input edge cases during fast gameplay combinations.
 
 Audio management is now more resilient when output devices change or recover mid-session. Recovery callbacks, device-watch controls, and replacement-player handoff support are now exposed through `sound_manager`, with coverage and checks updated to match.
+
+### Changed
+
+* **PagedTextState** now also advances on Space by default (previously only Enter).
 
 ### Added
 

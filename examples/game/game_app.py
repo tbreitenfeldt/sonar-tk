@@ -22,7 +22,6 @@ from sonartk.orchestration.map_sound_navigation import (
     MapSoundNavigationController,
 )
 from sonartk.orchestration.message_action_state import MessageActionState
-from sonartk.orchestration.player_roles import recover_players_by_role
 from sonartk.orchestration.proximity_audio import (
     ProximityAudioController,
     ProximityAudioEmitter,
@@ -60,11 +59,8 @@ from game_config import (
     MUSIC_SOUND,
     MUSIC_TO_SFX_VOLUME_RATIO,
     MUSIC_VOLUME_STEP,
-    OUTPUT_DEVICE_WATCH_INTERVAL_SECONDS,
     PICKUP_SOUND,
     PLAYER_ROLES,
-    RECOVERY_RETRY_COUNT,
-    RECOVERY_STATUS_DELAY_SECONDS,
     REWARD_SOUND,
     SFX_DIR,
     SFX_VOLUME_STEP,
@@ -93,7 +89,6 @@ class MapSoundsExampleGame:
             Direction.LEFT,
         )
 
-        self.players: dict[str, Player] = {}
         self.map_navigation_player: Player
         self.ambient_river_player: Player
         self.ambient_monster_player: Player
@@ -130,7 +125,6 @@ class MapSoundsExampleGame:
         self._build_window()
         self._register_input_handlers()
         self._setup_audio_lifecycle_and_states()
-        self._setup_audio_recovery_watch()
         self._open_window()
 
     def _preload_audio_assets(self) -> None:
@@ -149,8 +143,9 @@ class MapSoundsExampleGame:
         preload_audio_assets(required_sound_paths)
 
     def _setup_players(self) -> None:
-        self.players = sound_manager.allocate_players_by_role(PLAYER_ROLES)
-        self._bind_players_from_roles(self.players)
+        self._bind_players_from_roles(
+            sound_manager.allocate_players_by_role(PLAYER_ROLES)
+        )
         self._apply_sfx_levels()
 
     def _bind_players_from_roles(self, players: dict[str, Player]) -> None:
@@ -305,24 +300,11 @@ class MapSoundsExampleGame:
             self.audio_lifecycle,
         )
 
-    def _setup_audio_recovery_watch(self) -> None:
-        sound_manager.register_audio_recovery_callback(self.on_audio_recovered)
-        sound_manager.start_output_device_watch(
-            poll_interval_seconds=OUTPUT_DEVICE_WATCH_INTERVAL_SECONDS,
-            follow_default_output=True,
-            recovery_retry_count=RECOVERY_RETRY_COUNT,
-            status_callback=self._speak_recovery_status,
-            status_delay_seconds=RECOVERY_STATUS_DELAY_SECONDS,
-        )
-
     def _open_window(self) -> None:
         sound_manager.listener.position = as_listener_position(
             self.grid.current_coordinates
         )
         self.window.open_window(speak_current_element_on_window_focus=False)
-
-    def _speak_recovery_status(self, message: str) -> None:
-        speech_manager.output(message, interrupt=False)
 
     def _coin_factory(self, index: int, coordinates: tuple[int, int]) -> Coin:
         return Coin(f"coin-{index}", coordinates)
@@ -507,44 +489,6 @@ class MapSoundsExampleGame:
         self.ambient_monster_player.remove()
 
     def start_game_ambience(self) -> None:
-        self.map_navigation.update_ambient_sound(
-            self.builder.map2d.character.coordinates
-        )
-        self.update_dynamic_emitters(self.builder.map2d.character.coordinates)
-
-    def on_audio_recovered(self) -> None:
-        previous_players: dict[str, Player] = {
-            "map_navigation": self.map_navigation_player,
-            "ambient_river": self.ambient_river_player,
-            "ambient_monster": self.ambient_monster_player,
-            "coin": self.coin_player,
-            "pickup": self.pickup_player,
-            "reward": self.reward_player,
-            "intro": self.intro_player,
-            "monster_announce": self.monster_announce_player,
-            "monster_block": self.monster_block_player,
-            "sword": self.sword_player,
-            "monster_scream": self.monster_scream_player,
-        }
-
-        self.players = recover_players_by_role(
-            previous_players,
-            take_recovered_player=sound_manager.take_recovered_player,
-            allocate_players_by_role=sound_manager.allocate_players_by_role,
-        )
-        self._bind_players_from_roles(self.players)
-        self._apply_sfx_levels()
-
-        self.map_navigation.player = self.map_navigation_player
-        self.map_navigation.ambient_player = self.ambient_river_player
-        self.proximity_audio.players["monster"] = self.ambient_monster_player
-
-        self.intro_state.scene_player = self.intro_player
-        self.monster_unlocked_state.entry_sound_player = (
-            self.monster_announce_player
-        )
-        self.monster_defeated_state.scene_player = self.monster_scream_player
-
         self.map_navigation.update_ambient_sound(
             self.builder.map2d.character.coordinates
         )

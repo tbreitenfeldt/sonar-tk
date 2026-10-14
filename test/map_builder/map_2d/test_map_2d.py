@@ -303,6 +303,40 @@ def test_set_tile_raises_for_out_of_range_coordinates() -> None:
         map2d.set_tile((0, 3), MapTile("x"))
 
 
+def test_tile_revision_starts_at_zero_and_counts_add_row() -> None:
+    map2d = Map2d("world", Character("hero", (0, 0), Direction.UP))
+    assert map2d.tile_revision == 0
+
+    map2d.add_row([MapTile("x"), MapTile("y")])
+    assert map2d.tile_revision == 1
+
+    map2d.add_row([MapTile("a"), MapTile("b")])
+    assert map2d.tile_revision == 2
+
+
+def test_tile_revision_counts_each_replaced_tile() -> None:
+    map2d = make_map()
+    start = map2d.tile_revision
+
+    map2d.set_tile((1, 1), MapTile("changed"))
+    assert map2d.tile_revision == start + 1
+
+    map2d.set_tiles({(0, 0): MapTile("a1"), (2, 2): MapTile("i1")})
+    assert map2d.tile_revision == start + 3
+
+
+def test_tile_revision_unchanged_by_rejected_changes() -> None:
+    map2d = make_map()
+    start = map2d.tile_revision
+
+    with pytest.raises(IndexError):
+        map2d.set_tile((9, 9), MapTile("x"))
+    with pytest.raises(IndexError):
+        map2d.add_row([MapTile("too-short")])
+
+    assert map2d.tile_revision == start
+
+
 def test_set_tiles_replaces_multiple_tiles() -> None:
     map2d = make_map()
 

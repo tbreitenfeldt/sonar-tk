@@ -151,6 +151,56 @@ Behavior:
 - Pressing `Enter` also continues early.
 - `on_continue` is a good place to start looping background music.
 
+## Multi-Page Text With PagedTextState
+
+Use `PagedTextState` for long text (story intros, tutorials) that should be
+read one page at a time. Each page is spoken in turn, the player presses
+Enter to continue, and pressing Enter on the last page transitions to the next
+state.
+
+```python
+from pyglet.window import key
+
+from sonartk.orchestration import PagedTextState
+from sonartk.util.key_handler import Key
+
+story_state = PagedTextState(
+    window=window,
+    pages=[
+        "The first thing you notice is the sound of the waves.",
+        "You are alive.",
+        "A lighthouse sweeps its beam across the sky.",
+    ],
+    next_state_key="game",
+    # Optional: each option is a sequence of key symbols or Key objects.
+    continue_keys=[key.RETURN, key.ENTER],
+    reread_keys=[Key(key.R, [key.MOD_CTRL])],
+    copy_keys=[Key(key.C, [key.MOD_CTRL])],
+    interrupt_on_advance=True,
+)
+
+story_state.push_handlers(
+    on_page_change=lambda state, page_index: play_page_turn_sound(),
+    on_complete=lambda state: play_story_end_sound(),
+)
+
+window.add("story", story_state)
+```
+
+Behavior:
+- The first page is spoken when the state becomes active.
+- Continue keys speak the next page; on the last page they finish the state.
+- Defaults: Enter continues, Up/Down re-read the current page, and Ctrl+C
+  copies it. Pass an empty sequence to disable a shortcut.
+- Without `next_state_key`, the last page stays active and `on_complete` is
+  still dispatched.
+- `interrupt_on_advance` (default `True`) cuts off the previous page's speech
+  when the next page is spoken.
+- Events: `on_page_change(state, page_index)` fires after the player advances
+  to a new page (not for the first page), `on_complete(state)` fires when the
+  last page is continued, and `on_reread(state, page_index)` and
+  `on_copy(state, page_index)` fire after those shortcuts.
+
 ## Runtime Hotkeys For Music And SFX
 
 ```python
@@ -326,18 +376,13 @@ sound_manager.play_sound(
     completion_poll_interval_seconds=0.05,
 )
 
-# Register post-recovery callback and follow default output device.
-sound_manager.register_audio_recovery_callback(on_audio_recovered)
-sound_manager.start_output_device_watch(
-    poll_interval_seconds=0.5,
-    follow_default_output=True,
-    recovery_retry_count=1,
-    status_callback=lambda message: speech_manager.output(message),
-    status_delay_seconds=5.0,
-)
-
-# Map old players to recovered replacements inside your callback.
-recovered = sound_manager.take_recovered_player(previous_player)
+# Audio follows the output device automatically (headphones plugged in or
+# removed) once a Window is open. Opt out with
+# window.open_window(monitor_audio_device=False), or call
+# sound_manager.start_output_device_watch(...) first to tune it.
+# Players you already hold keep working; use
+# sound_manager.register_audio_recovery_callback(callback) only if you
+# need to react after a recovery.
 ```
 
 Prefer `on_complete` for scene flow in active UI/game loops. Blocking waits are available but can freeze input if used on the main thread.

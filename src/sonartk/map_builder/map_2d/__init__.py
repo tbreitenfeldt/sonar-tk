@@ -6,6 +6,18 @@ from sonartk.map_builder.map_2d.map_queries import (
     PathfindingResult,
     PathfindingState,
 )
+from sonartk.map_builder.map_2d.map_bands import MapBand, build_banded_map
+from sonartk.map_builder.map_2d.map_canvas import MapCanvas, jagged_edge
+from sonartk.map_builder.map_2d.map_document import (
+    MAP_DOCUMENT_VERSION,
+    DocumentExit,
+    DocumentObject,
+    MapDocument,
+    MapDocumentError,
+    build_map2d_from_document,
+    load_map_document,
+    save_map_document,
+)
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.map_builder.map_2d.direction_tools import (
     direction_offset,
@@ -19,6 +31,18 @@ __all__ = [
     "PathfindingResult",
     "PathfindingState",
     "MapTile",
+    "MapBand",
+    "build_banded_map",
+    "MapCanvas",
+    "jagged_edge",
+    "MAP_DOCUMENT_VERSION",
+    "DocumentExit",
+    "DocumentObject",
+    "MapDocument",
+    "MapDocumentError",
+    "build_map2d_from_document",
+    "load_map_document",
+    "save_map_document",
     "direction_offset",
     "step_coordinates",
     "load_2d_map",

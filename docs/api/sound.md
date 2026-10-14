@@ -17,3 +17,7 @@
 ## player_pool
 
 ::: sonartk.sound.player_pool
+
+## channel_loop
+
+::: sonartk.sound.channel_loop

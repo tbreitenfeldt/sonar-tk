@@ -23,6 +23,10 @@
 
 ::: sonartk.orchestration.message_action_state
 
+## paged_text_state
+
+::: sonartk.orchestration.paged_text_state
+
 ## scene_audio_state
 
 ::: sonartk.orchestration.scene_audio_state
@@ -38,3 +42,31 @@
 ## map_object_collection
 
 ::: sonartk.orchestration.map_object_collection
+
+## map_exits
+
+::: sonartk.orchestration.map_exits
+
+## volume_levels
+
+::: sonartk.orchestration.volume_levels
+
+## map_interaction
+
+::: sonartk.orchestration.map_interaction
+
+## map_play_session
+
+::: sonartk.orchestration.map_play_session
+
+## map_definition
+
+::: sonartk.orchestration.map_definition
+
+## map_screen_controller
+
+::: sonartk.orchestration.map_screen_controller
+
+## flyovers
+
+::: sonartk.orchestration.flyovers

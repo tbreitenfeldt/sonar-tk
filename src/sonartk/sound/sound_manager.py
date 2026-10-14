@@ -1,7 +1,17 @@
-import time
 import ctypes
+import logging
+import time
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional, Literal, cast
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    Optional,
+    Literal,
+    cast,
+)
 
 import pyglet.clock
 
@@ -14,22 +24,26 @@ from sonartk.sound.openal_lite.openal import (
     alc,
 )
 from sonartk.sound._output_device_recovery_controller import (
+    MONITORING_ENABLED_MESSAGE,
     OutputDeviceRecoveryController,
 )
 from sonartk.sound.player_pool import PlayerPool
 from sonartk.sound.sound_pool import SoundPool
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_CHANNEL_VOLUMES: dict[str, float] = {
     "music": 1.0,
     "sfx": 1.0,
     "ui": 1.0,
     "voice": 1.0,
+    "ambience": 1.0,
 }
 
 ALC_DEFAULT_ALL_DEVICES_SPECIFIER = 0x1012
 ALC_ALL_DEVICES_SPECIFIER = 0x1013
 
-PlaybackChannel = Literal["music", "sfx", "ui", "voice"]
+PlaybackChannel = Literal["music", "sfx", "ui", "voice", "ambience"]
 
 
 @dataclass(frozen=True)
@@ -43,6 +57,7 @@ class PlayerRecoveryIntent:
     rolloff: float
     loop: bool
     channel: PlaybackChannel
+    player: Optional[Player] = None
 
 
 def _clamp_volume(value: float) -> float:
@@ -98,8 +113,10 @@ class SoundManager:
         self._music_stall_elapsed_seconds: float = 0.0
         self._last_music_byte_offset: Optional[int] = None
         self._player_channels_by_id: dict[int, PlaybackChannel] = {}
+        self._stereo_position_warnings: set[str] = set()
         self._last_recovered_player_map: dict[int, Player] = {}
         self._debug_callback: Optional[Callable[[str], None]] = None
+        self._batch_depth: int = 0
         self._recovery_controller = OutputDeviceRecoveryController(self)
 
     def set_debug_callback(
@@ -154,6 +171,29 @@ class SoundManager:
             status_delay_seconds=status_delay_seconds,
         )
 
+    def ensure_output_device_watch(
+        self,
+        *,
+        status_callback: Optional[Callable[[str], None]] = None,
+    ) -> bool:
+        """Start output-device monitoring with defaults unless already running.
+
+        Unplugging or plugging in headphones is then handled without any
+        setup by the game. Returns True if monitoring was started. Call
+        ``start_output_device_watch`` first to use custom settings.
+        """
+        if self._device_watch_callback is not None:
+            return False
+
+        def announce(message: str) -> None:
+            if status_callback is not None and (
+                message != MONITORING_ENABLED_MESSAGE
+            ):
+                status_callback(message)
+
+        self.start_output_device_watch(status_callback=announce)
+        return True
+
     def stop_output_device_watch(self) -> None:
         """Stop monitoring output device changes."""
         self._recovery_controller.stop_output_device_watch()
@@ -173,6 +213,27 @@ class SoundManager:
         if isinstance(active_players, list):
             return tuple(active_players)
         return tuple()
+
+    def _collect_rebindable_players(self) -> list[Player]:
+        """Return every player a game may still hold, except pooled idle ones.
+
+        Players are created by the pool and also directly by game code, so
+        all of them are tracked and later rebuilt in place after a device
+        change; the objects a game holds keep working.
+        """
+        idle = {
+            id(player)
+            for player in getattr(self.player_pool, "_idle_players", ())
+        }
+        excluded = idle | {id(self.music_player)}
+        players: dict[int, Player] = {
+            id(player): player for player in self._iter_active_players()
+        }
+        for player in tuple(Player._live_players):
+            players.setdefault(id(player), player)
+        return [
+            player for key, player in players.items() if key not in excluded
+        ]
 
     def _resolve_cached_sound_path_for_player(
         self, player: Player
@@ -202,9 +263,11 @@ class SoundManager:
     ) -> list[PlayerRecoveryIntent]:
         snapshots: list[PlayerRecoveryIntent] = []
 
-        for player in self._iter_active_players():
+        for player in self._collect_rebindable_players():
             try:
-                if not player.playing():
+                # A dying device can report a loop as stopped; a loop that
+                # was never removed is still meant to be playing.
+                if not (player.playing() or (player.loop and player.queue)):
                     continue
 
                 sound_path = self._resolve_cached_sound_path_for_player(player)
@@ -224,6 +287,7 @@ class SoundManager:
                         rolloff=float(player.rolloff),
                         loop=bool(player.loop),
                         channel=channel,
+                        player=player,
                     )
                 )
             except Exception as exc:
@@ -235,12 +299,18 @@ class SoundManager:
     def _restore_active_player_recovery_states(
         self,
         snapshots: list[PlayerRecoveryIntent],
+        rebound_ids: Optional[set[int]] = None,
     ) -> None:
-        self._last_recovered_player_map.clear()
-
         for snapshot in snapshots:
             try:
-                recovered_player = self.player_pool.get_player()
+                if (
+                    snapshot.player is not None
+                    and rebound_ids is not None
+                    and id(snapshot.player) in rebound_ids
+                ):
+                    recovered_player = snapshot.player
+                else:
+                    recovered_player = self.player_pool.get_player()
                 self.play_sound(
                     snapshot.sound_path,
                     player=recovered_player,
@@ -625,8 +695,26 @@ class SoundManager:
         )
         return True
 
+    def _rebind_players(
+        self, players: list[Player], active: set[int]
+    ) -> set[int]:
+        rebound: set[int] = set()
+        for player in players:
+            try:
+                player.rebind()
+            except Exception as exc:
+                self._debug(f"Failed to rebind player after recovery: {exc}")
+                continue
+            rebound.add(id(player))
+            self._last_recovered_player_map[id(player)] = player
+            if id(player) in active:
+                self.player_pool.adopt_active_player(player)
+        return rebound
+
     def _rebuild_audio_graph(self) -> bool:  # noqa: C901
         recovered_snapshots = self._snapshot_active_player_recovery_states()
+        rebindable_players = self._collect_rebindable_players()
+        active_ids = {id(p) for p in self._iter_active_players()}
         cached_paths = list(self.sound_pool.cached_paths())
         cached_channel_volumes = dict(self._channel_volumes)
         last_music_path = self._last_music_path
@@ -693,9 +781,11 @@ class SoundManager:
             if cached_paths:
                 self.sound_pool.load_many(cached_paths)
 
+            self._last_recovered_player_map.clear()
+            rebound_ids = self._rebind_players(rebindable_players, active_ids)
             if recovered_snapshots:
                 self._restore_active_player_recovery_states(
-                    recovered_snapshots
+                    recovered_snapshots, rebound_ids
                 )
 
             if resume_music and last_music_path is not None:
@@ -792,6 +882,9 @@ class SoundManager:
             self._cancel_music_seek_restore()
             if self.music_player.playing():
                 self.music_player.stop()
+            # A stopped player still holds its buffer; drop it so the new
+            # track does not queue behind the old one.
+            for _ in range(len(self.music_player.queue)):
                 self.music_player.remove()
 
             self._last_music_path = path
@@ -863,6 +956,28 @@ class SoundManager:
         self._music_target_playing = False
         self._last_music_seek_ratio = 0.0
         self.music_player.stop()
+
+    @contextmanager
+    def batch_updates(self) -> Iterator[None]:
+        """Apply every listener and source change made inside as one update.
+
+        Moving the listener and then its sources in separate calls lets the
+        mixer thread render a block in between, where each source is briefly
+        offset from the listener by the distance just moved. That is heard
+        as a pop or crackle on one side. Changes made inside this block are
+        deferred and committed together when the outermost block ends.
+        Blocks may be nested.
+        """
+        context = self.listener.context
+        if self._batch_depth == 0:
+            alc.alcSuspendContext(context)
+        self._batch_depth += 1
+        try:
+            yield
+        finally:
+            self._batch_depth -= 1
+            if self._batch_depth == 0:
+                alc.alcProcessContext(context)
 
     def preload_sounds(
         self, paths: Iterable[str]
@@ -936,6 +1051,7 @@ class SoundManager:
                 active_position = self.listener.position
             else:
                 active_position = position
+                self._warn_if_stereo_positioned(active_sound)
 
             queue_was_replaced = False
             if active_sound not in active_player.queue:
@@ -997,6 +1113,25 @@ class SoundManager:
             active_player
             if active_player is not None
             else self.player_pool.get_player()
+        )
+
+    def _warn_if_stereo_positioned(self, sound: Any) -> None:
+        """Log once per sound when a stereo sound is given a position.
+
+        OpenAL does not spatialize stereo buffers, so they ignore panning.
+        Convert such files to mono for directional cues.
+        """
+        channels = getattr(sound, "channels", 1)
+        if not isinstance(channels, int) or channels < 2:
+            return
+        name = str(getattr(sound, "name", sound))
+        if name in self._stereo_position_warnings:
+            return
+        self._stereo_position_warnings.add(name)
+        logger.warning(
+            "Positional sound %r is stereo and will not pan; "
+            "convert it to mono.",
+            name,
         )
 
     def _schedule_on_complete(
@@ -1072,7 +1207,22 @@ class SoundManager:
         self, player: Player, base_volume: float = 1.0
     ) -> None:
         """Apply effective sfx volume to a player using an optional base volume."""
-        player.volume = self._effective_volume(base_volume, "sfx")
+        self.apply_channel_volume(player, "sfx", base_volume)
+
+    def apply_channel_volume(
+        self,
+        player: Player,
+        channel: str,
+        base_volume: float = 1.0,
+    ) -> float:
+        """Set a player's volume to ``base_volume`` scaled by its channel.
+
+        Use this to keep a per-sound gain when a channel volume changes
+        while that sound is already playing. Returns the applied volume.
+        """
+        volume = self._effective_volume(base_volume, channel)
+        player.volume = volume
+        return volume
 
     def _effective_volume(self, local_volume: float, channel: str) -> float:
         key = self._validate_channel(channel)
@@ -1227,6 +1377,13 @@ def play_sound(
     )
 
 
+def batch_updates() -> AbstractContextManager[None]:
+    """Apply listener and source changes made inside as one update."""
+    return cast(
+        AbstractContextManager[None], _call_default_manager("batch_updates")
+    )
+
+
 def preload_sounds(paths: Iterable[str]) -> dict[str, LoadSound | BufferSound]:
     """Preload multiple sounds into the shared module-level sound pool."""
     return cast(
@@ -1294,6 +1451,20 @@ def apply_sfx_volume(player: Player, base_volume: float = 1.0) -> None:
     _call_default_manager("apply_sfx_volume", player, base_volume=base_volume)
 
 
+def apply_channel_volume(
+    player: Player,
+    channel: str,
+    base_volume: float = 1.0,
+) -> float:
+    """Set a player's volume to ``base_volume`` scaled by its channel."""
+    return cast(
+        float,
+        _call_default_manager(
+            "apply_channel_volume", player, channel, base_volume
+        ),
+    )
+
+
 def cleanup() -> None:
     """Release all shared audio resources managed by the sound subsystem."""
     _call_default_manager("cleanup")
@@ -1325,6 +1496,18 @@ def start_output_device_watch(
         recovery_retry_count=recovery_retry_count,
         status_callback=status_callback,
         status_delay_seconds=status_delay_seconds,
+    )
+
+
+def ensure_output_device_watch(
+    *, status_callback: Optional[Callable[[str], None]] = None
+) -> bool:
+    """Start output-device monitoring with defaults unless already running."""
+    return cast(
+        bool,
+        _call_default_manager(
+            "ensure_output_device_watch", status_callback=status_callback
+        ),
     )
 
 

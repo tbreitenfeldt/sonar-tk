@@ -15,13 +15,60 @@ __all__ = [
     "bind_volume_hotkeys",
     "BuiltMapGridGame",
     "MapObjectCollectionSession",
+    "MapExit",
+    "MapExitRegistry",
+    "MapSwitcher",
     "MessageActionState",
+    "PagedTextState",
     "MapGridGameBuilder",
     "MapSoundNavigationController",
     "SceneAudioState",
+    "ChannelVolume",
+    "VolumeHotkeys",
+    "bind_level_hotkeys",
+    "InteractableObject",
+    "MapInteractionController",
+    "MapPlaySession",
+    "MapDefinition",
+    "MapObjectSpec",
+    "ObjectSound",
+    "LoadedMap",
+    "load_map",
+    "MapScreenController",
+    "FlyoverConfig",
+    "FlyoverController",
 ]
 
 if TYPE_CHECKING:
+    from sonartk.orchestration.volume_levels import (
+        ChannelVolume,
+        VolumeHotkeys,
+        bind_level_hotkeys,
+    )
+    from sonartk.orchestration.map_interaction import (
+        InteractableObject,
+        MapInteractionController,
+    )
+    from sonartk.orchestration.map_play_session import MapPlaySession
+    from sonartk.orchestration.map_definition import (
+        LoadedMap,
+        MapDefinition,
+        MapObjectSpec,
+        ObjectSound,
+        load_map,
+    )
+    from sonartk.orchestration.flyovers import (
+        FlyoverConfig,
+        FlyoverController,
+    )
+    from sonartk.orchestration.map_screen_controller import (
+        MapScreenController,
+    )
+    from sonartk.orchestration.map_exits import (
+        MapExit,
+        MapExitRegistry,
+        MapSwitcher,
+    )
     from sonartk.orchestration.game_builder import (
         BuiltMapGridGame,
         MapGridGameBuilder,
@@ -36,6 +83,7 @@ if TYPE_CHECKING:
         MapObjectCollectionSession,
     )
     from sonartk.orchestration.message_action_state import MessageActionState
+    from sonartk.orchestration.paged_text_state import PagedTextState
     from sonartk.orchestration.scene_audio_state import SceneAudioState
     from sonartk.orchestration.audio_controls import bind_volume_hotkeys
     from sonartk.orchestration.input_gate import InputGate
@@ -51,45 +99,48 @@ if TYPE_CHECKING:
     )
 
 
+_LAZY_MODULES = {
+    "bind_volume_hotkeys": "audio_controls",
+    "MapObjectCollectionSession": "map_object_collection",
+    "BuiltMapGridGame": "game_builder",
+    "MapGridGameBuilder": "game_builder",
+    "MapExit": "map_exits",
+    "MapExitRegistry": "map_exits",
+    "MapSwitcher": "map_exits",
+    "PagedTextState": "paged_text_state",
+    "MessageActionState": "message_action_state",
+    "MapSoundNavigationController": "map_sound_navigation",
+    "AmbientTileSoundConfig": "map_sound_navigation",
+    "TerrainAudioProfile": "map_sound_navigation",
+    "IntroGameAudioLifecycle": "audio_lifecycle",
+    "SceneAudioState": "scene_audio_state",
+    "InputGate": "input_gate",
+    "ProximityAudioController": "proximity_audio",
+    "ProximityAudioEmitter": "proximity_audio",
+    "recover_players_by_role": "player_roles",
+    "WindowStateFlow": "state_flow",
+    "MapSectionGate": "map_section_gate",
+    "MapSectionTiles": "map_section_gate",
+    "ChannelVolume": "volume_levels",
+    "VolumeHotkeys": "volume_levels",
+    "bind_level_hotkeys": "volume_levels",
+    "InteractableObject": "map_interaction",
+    "MapInteractionController": "map_interaction",
+    "MapPlaySession": "map_play_session",
+    "MapDefinition": "map_definition",
+    "MapObjectSpec": "map_definition",
+    "ObjectSound": "map_definition",
+    "LoadedMap": "map_definition",
+    "load_map": "map_definition",
+    "MapScreenController": "map_screen_controller",
+    "FlyoverConfig": "flyovers",
+    "FlyoverController": "flyovers",
+}
+
+
 def __getattr__(name: str) -> Any:
-    if name == "bind_volume_hotkeys":
-        module = import_module("sonartk.orchestration.audio_controls")
-        return getattr(module, name)
-    if name == "MapObjectCollectionSession":
-        module = import_module("sonartk.orchestration.map_object_collection")
-        return getattr(module, name)
-    if name in {"BuiltMapGridGame", "MapGridGameBuilder"}:
-        module = import_module("sonartk.orchestration.game_builder")
-        return getattr(module, name)
-    if name == "MessageActionState":
-        module = import_module("sonartk.orchestration.message_action_state")
-        return getattr(module, name)
-    if name in {
-        "MapSoundNavigationController",
-        "AmbientTileSoundConfig",
-        "TerrainAudioProfile",
-    }:
-        module = import_module("sonartk.orchestration.map_sound_navigation")
-        return getattr(module, name)
-    if name == "IntroGameAudioLifecycle":
-        module = import_module("sonartk.orchestration.audio_lifecycle")
-        return getattr(module, name)
-    if name == "SceneAudioState":
-        module = import_module("sonartk.orchestration.scene_audio_state")
-        return getattr(module, name)
-    if name == "InputGate":
-        module = import_module("sonartk.orchestration.input_gate")
-        return getattr(module, name)
-    if name in {"ProximityAudioController", "ProximityAudioEmitter"}:
-        module = import_module("sonartk.orchestration.proximity_audio")
-        return getattr(module, name)
-    if name == "recover_players_by_role":
-        module = import_module("sonartk.orchestration.player_roles")
-        return getattr(module, name)
-    if name == "WindowStateFlow":
-        module = import_module("sonartk.orchestration.state_flow")
-        return getattr(module, name)
-    if name in {"MapSectionGate", "MapSectionTiles"}:
-        module = import_module("sonartk.orchestration.map_section_gate")
-        return getattr(module, name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module_name = _LAZY_MODULES.get(name)
+    if module_name is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    module = import_module(f"sonartk.orchestration.{module_name}")
+    return getattr(module, name)

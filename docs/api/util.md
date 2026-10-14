@@ -21,3 +21,7 @@
 ## text_history
 
 ::: sonartk.util.text_history
+
+## catalog
+
+::: sonartk.util.catalog

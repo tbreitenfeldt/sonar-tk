@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Iterator, Optional
 
 import pytest
+from pytest_mock import MockerFixture
 
+from sonartk.map_builder.map_2d.map_2d import Map2d
+from sonartk.map_builder.map_2d.map_object.character import Character
 from sonartk.map_builder.map_2d.map_tile import MapTile
 from sonartk.orchestration.map_sound_navigation import (
     AmbientTileSoundConfig,
@@ -148,6 +152,48 @@ def test_on_navigation_blocks_and_plays_wall_sound_for_impassable_tile() -> (
     assert sound_service.play_calls == [
         ("wall.wav", (2, 3, 0), player, 1.0, 0.01, False)
     ]
+
+
+def test_blocked_tile_plays_its_own_sound_when_mapped() -> None:
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(2, 2),
+        next_coordinates=(2, 3),
+        next_tile=MapTile("boat", is_passable=False),
+    )
+    controller = MapSoundNavigationController(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav", "boat": "bonk.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+    )
+
+    assert controller.on_navigation(grid, Direction.RIGHT) is True  # type: ignore[arg-type]
+
+    assert sound_service.play_calls == [
+        ("bonk.wav", (2, 3, 0), player, 1.0, 0.01, False)
+    ]
+
+
+def test_blocked_tile_without_own_sound_uses_the_wall_sound() -> None:
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(2, 2),
+        next_coordinates=(2, 3),
+        next_tile=MapTile("rock", is_passable=False),
+    )
+    controller = MapSoundNavigationController(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+    )
+
+    controller.on_navigation(grid, Direction.RIGHT)  # type: ignore[arg-type]
+
+    assert sound_service.play_calls[0][0] == "wall.wav"
 
 
 def test_on_navigation_handles_none_tile_as_border() -> None:
@@ -525,6 +571,43 @@ def test_build_tile_reference_from_profiles_uses_passability() -> None:
     assert tile_reference["2"].is_passable is False
 
 
+def test_from_profiles_rejects_unused_ambient_profile_by_default() -> None:
+    profiles = _shared_profiles()
+    with pytest.raises(ValueError, match="not present in map"):
+        MapSoundNavigationController.from_terrain_audio_profiles(
+            map2d=_FakeMap2D(),  # type: ignore[arg-type]
+            terrain_audio_profiles=profiles,
+            player=object(),  # type: ignore[arg-type]
+            sound_service=_FakeSoundService(),  # type: ignore[arg-type]
+        )
+
+
+def test_from_profiles_can_ignore_unused_profiles() -> None:
+    controller = MapSoundNavigationController.from_terrain_audio_profiles(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        terrain_audio_profiles=_shared_profiles(),
+        player=object(),  # type: ignore[arg-type]
+        sound_service=_FakeSoundService(),  # type: ignore[arg-type]
+        ignore_unused_profiles=True,
+    )
+
+    assert set(controller.sound_map) == {"path", "wall"}
+    assert controller.ambient_sound_map == {}
+
+
+def _shared_profiles() -> dict[str, TerrainAudioProfile]:
+    return {
+        "path": TerrainAudioProfile(movement_sound_file="step.wav"),
+        "wall": TerrainAudioProfile(
+            movement_sound_file="wall.wav", is_passable=False
+        ),
+        "river": TerrainAudioProfile(
+            movement_sound_file="splash.wav",
+            ambient_sound=AmbientTileSoundConfig(sound_file="river.wav"),
+        ),
+    }
+
+
 def test_validate_sound_map_for_map_rejects_missing_passable_tile_sound() -> (
     None
 ):
@@ -592,3 +675,344 @@ class _FakeAmbientPlayer:
 
     def remove(self) -> None:
         self.remove_calls += 1
+
+
+class _ChannelRecordingSoundService(_FakeSoundService):
+    def __init__(self) -> None:
+        super().__init__()
+        self.channels: list[Optional[str]] = []
+
+    def play_sound(  # type: ignore[override]
+        self,
+        sound_file: str,
+        position: tuple[int, int, int],
+        player: object,
+        volume: float = 1.0,
+        rolloff: float = 0.01,
+        loop: bool = False,
+        retrigger_if_same: bool = True,
+        channel: Optional[str] = None,
+    ) -> None:
+        self.channels.append(channel)
+        super().play_sound(
+            sound_file,
+            position,
+            player,
+            volume,
+            rolloff,
+            loop,
+            retrigger_if_same,
+        )
+
+
+def _river_controller(
+    map2d: _FakeMap2D,
+    sound_service: _FakeSoundService,
+    channel: Optional[str] = None,
+) -> MapSoundNavigationController:
+    return MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=object(),  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        ambient_sound_map={
+            "river": AmbientTileSoundConfig(
+                sound_file="river_loop.wav",
+                max_distance_tiles=5,
+                channel=channel,
+            )
+        },
+        ambient_player=_FakeAmbientPlayer(),  # type: ignore[arg-type]
+    )
+
+
+def test_ambient_sound_uses_configured_channel() -> None:
+    map2d = _FakeMap2D()
+    map2d._tiles_by_coordinates[(0, 1)] = MapTile("river", is_passable=False)
+    sound_service = _ChannelRecordingSoundService()
+
+    controller = _river_controller(map2d, sound_service, channel="ambience")
+    controller.update_ambient_sound()
+
+    assert sound_service.channels == ["ambience"]
+
+
+def test_ambient_sound_omits_channel_when_not_configured() -> None:
+    map2d = _FakeMap2D()
+    map2d._tiles_by_coordinates[(0, 1)] = MapTile("river", is_passable=False)
+    sound_service = _ChannelRecordingSoundService()
+
+    controller = _river_controller(map2d, sound_service)
+    controller.update_ambient_sound()
+
+    assert sound_service.channels == [None]
+
+
+def test_ambient_emitters_are_scanned_once_until_tiles_change() -> None:
+    map2d = _FakeMap2D()
+    map2d._tiles_by_coordinates[(0, 1)] = MapTile("river", is_passable=False)
+    controller = _river_controller(map2d, _FakeSoundService())
+    reads = 0
+    original_get_tile = map2d.get_tile
+
+    def counting_get_tile(coordinates: Coordinates) -> MapTile:
+        nonlocal reads
+        reads += 1
+        return original_get_tile(coordinates)
+
+    map2d.get_tile = counting_get_tile  # type: ignore[method-assign]
+
+    controller.update_ambient_sound()
+    first_scan_reads = reads
+    controller.update_ambient_sound((2, 2))
+    controller.update_ambient_sound((0, 0))
+
+    assert first_scan_reads == 9
+    assert reads == first_scan_reads
+
+
+def test_ambient_emitters_rescan_when_map_reports_tile_change() -> None:
+    map2d = _FakeMap2D()
+    map2d.tile_revision = 0  # type: ignore[attr-defined]
+    sound_service = _FakeSoundService()
+    controller = _river_controller(map2d, sound_service)
+
+    assert controller.update_ambient_sound() is False
+
+    map2d._tiles_by_coordinates[(2, 2)] = MapTile("river", is_passable=False)
+    assert controller.update_ambient_sound() is False
+
+    map2d.tile_revision = 1  # type: ignore[attr-defined]
+    assert controller.update_ambient_sound() is True
+    assert sound_service.play_calls[0][1] == (2, 2, 0)
+
+
+def test_refresh_ambient_emitters_picks_up_unreported_changes() -> None:
+    map2d = _FakeMap2D()
+    sound_service = _FakeSoundService()
+    controller = _river_controller(map2d, sound_service)
+    assert controller.update_ambient_sound() is False
+
+    map2d._tiles_by_coordinates[(1, 2)] = MapTile("river", is_passable=False)
+    controller.refresh_ambient_emitters()
+
+    assert controller.update_ambient_sound() is True
+
+
+def test_refresh_with_no_ambient_config_caches_no_emitters() -> None:
+    map2d = _FakeMap2D()
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=object(),  # type: ignore[arg-type]
+        sound_service=_FakeSoundService(),  # type: ignore[arg-type]
+    )
+    reads = 0
+    original_get_tile = map2d.get_tile
+
+    def counting_get_tile(coordinates: Coordinates) -> MapTile:
+        nonlocal reads
+        reads += 1
+        return original_get_tile(coordinates)
+
+    map2d.get_tile = counting_get_tile  # type: ignore[method-assign]
+
+    controller.refresh_ambient_emitters()
+
+    assert reads == 0
+    assert controller._find_nearest_ambient_emitter((0, 0)) is None
+
+
+def test_real_map_set_tile_triggers_emitter_rescan() -> None:
+    character = Character("hero", (0, 0), Direction.UP)
+    map2d = Map2d("coast", character)
+    sand = MapTile("path")
+    for _ in range(3):
+        map2d.add_row([sand] * 3)
+    sound_service = _FakeSoundService()
+    controller = MapSoundNavigationController(
+        map2d=map2d,
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=object(),  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        ambient_sound_map={
+            "river": AmbientTileSoundConfig(
+                sound_file="river_loop.wav", max_distance_tiles=5
+            )
+        },
+        ambient_player=_FakeAmbientPlayer(),  # type: ignore[arg-type]
+    )
+    assert controller.update_ambient_sound() is False
+
+    map2d.set_tile((2, 2), MapTile("river", is_passable=False))
+
+    assert controller.update_ambient_sound() is True
+    assert sound_service.play_calls[0][1] == (2, 2, 0)
+
+
+def test_ambient_tie_break_prefers_first_tile_in_scan_order() -> None:
+    map2d = _FakeMap2D()
+    map2d.character.coordinates = (1, 1)
+    map2d._tiles_by_coordinates[(1, 0)] = MapTile("river", is_passable=False)
+    map2d._tiles_by_coordinates[(1, 2)] = MapTile("river", is_passable=False)
+    sound_service = _FakeSoundService()
+    controller = _river_controller(map2d, sound_service)
+
+    controller.update_ambient_sound()
+
+    assert sound_service.play_calls[0][1] == (1, 0, 0)
+
+
+def _blend_controller(
+    mocker: MockerFixture,
+) -> tuple[
+    MapSoundNavigationController,
+    _FakeMap2D,
+    _FakeSoundService,
+    _FakeAmbientPlayer,
+    _FakeAmbientPlayer,
+]:
+    map2d = _FakeMap2D()
+    map2d.character.coordinates = (1, 1)
+    map2d._tiles_by_coordinates[(0, 1)] = MapTile("river", is_passable=False)
+    map2d._tiles_by_coordinates[(2, 1)] = MapTile("river", is_passable=False)
+    map2d._tiles_by_coordinates[(1, 2)] = MapTile("wind", is_passable=False)
+    sound_service = _FakeSoundService()
+    first = _FakeAmbientPlayer()
+    second = _FakeAmbientPlayer()
+    mocker.patch(
+        "sonartk.orchestration.map_sound_navigation.Player",
+        return_value=second,
+    )
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=object(),  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        ambient_sound_map={
+            "river": AmbientTileSoundConfig(
+                "river.wav", max_distance_tiles=3, volume=0.5
+            ),
+            "wind": AmbientTileSoundConfig(
+                "wind.wav", max_distance_tiles=3, volume=0.5
+            ),
+        },
+        ambient_player=first,  # type: ignore[arg-type]
+        blend_ambient=True,
+    )
+    return controller, map2d, sound_service, first, second
+
+
+def test_blended_ambient_plays_each_sound_from_its_nearest_tile(
+    mocker: MockerFixture,
+) -> None:
+    controller, _, sound_service, first, second = _blend_controller(mocker)
+
+    assert controller.update_ambient_sound() is True
+
+    played = {call[0]: call for call in sound_service.play_calls}
+    assert set(played) == {"river.wav", "wind.wav"}
+    assert played["river.wav"][2] is first
+    assert played["wind.wav"][2] is second
+    assert played["river.wav"][1] == (0, 1, 0)
+    assert played["wind.wav"][1] == (1, 2, 0)
+
+
+def test_blended_ambient_releases_sounds_that_fall_out_of_range(
+    mocker: MockerFixture,
+) -> None:
+    controller, map2d, sound_service, first, second = _blend_controller(mocker)
+    controller.update_ambient_sound()
+    map2d._tiles_by_coordinates[(1, 2)] = MapTile("path")
+    controller.ambient_sound_map["wind"] = AmbientTileSoundConfig(
+        "wind.wav", max_distance_tiles=0
+    )
+    controller.refresh_ambient_emitters()
+    sound_service.play_calls.clear()
+
+    assert controller.update_ambient_sound() is True
+
+    assert [call[0] for call in sound_service.play_calls] == ["river.wav"]
+    assert second.stop_calls == 1 and second.remove_calls == 1
+    assert first.stop_calls == 0
+
+
+def test_blended_ambient_reports_silence_when_nothing_is_in_range(
+    mocker: MockerFixture,
+) -> None:
+    controller, _, sound_service, _, _ = _blend_controller(mocker)
+    assert controller.update_ambient_sound((1, 1)) is True
+    sound_service.play_calls.clear()
+    assert controller.update_ambient_sound((50, 50)) is False
+    assert sound_service.play_calls == []
+
+
+def test_stop_ambient_sound_stops_blended_and_primary_players(
+    mocker: MockerFixture,
+) -> None:
+    controller, _, _, first, second = _blend_controller(mocker)
+    controller.update_ambient_sound()
+
+    controller.stop_ambient_sound()
+
+    assert first.stop_calls >= 1 and second.stop_calls >= 1
+    assert first.remove_calls >= 1 and second.remove_calls >= 1
+
+
+def test_stop_ambient_sound_without_a_player_is_safe() -> None:
+    controller = MapSoundNavigationController(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        sound_map={},
+        player=object(),  # type: ignore[arg-type]
+    )
+    controller.stop_ambient_sound()
+
+
+def test_from_terrain_profiles_passes_blend_ambient_through() -> None:
+    controller = MapSoundNavigationController.from_terrain_audio_profiles(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        terrain_audio_profiles={
+            "path": TerrainAudioProfile(movement_sound_file="s.wav"),
+            "wall": TerrainAudioProfile(
+                is_passable=False, movement_sound_file="w.wav"
+            ),
+        },
+        player=object(),  # type: ignore[arg-type]
+        validate_sound_map=False,
+        blend_ambient=True,
+    )
+    assert controller.blend_ambient is True
+
+
+def test_on_navigation_batches_listener_and_footstep_updates() -> None:
+    events: list[str] = []
+
+    class _BatchingService(_FakeSoundService):
+        @contextmanager
+        def batch_updates(self) -> Iterator[None]:
+            events.append("begin")
+            try:
+                yield
+            finally:
+                events.append("end")
+
+        def play_sound(self, *args: Any, **kwargs: Any) -> None:
+            events.append("play")
+            super().play_sound(*args, **kwargs)
+
+    grid = _FakeGrid(
+        current_coordinates=(1, 1),
+        next_coordinates=(1, 2),
+        next_tile=MapTile("path", is_passable=True),
+    )
+    controller = MapSoundNavigationController(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        sound_map={"path": "step.wav"},
+        player=object(),  # type: ignore[arg-type]
+        sound_service=_BatchingService(),  # type: ignore[arg-type]
+        on_move_success=lambda *_: events.append("success"),
+    )
+
+    controller.on_navigation(grid, Direction.UP)  # type: ignore[arg-type]
+
+    assert events == ["begin", "play", "success", "end"]

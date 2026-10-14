@@ -62,6 +62,9 @@ class _OutputDeviceRecoveryHost(Protocol):
     def _cancel_recovery_status_timer(self) -> None: ...
 
 
+MONITORING_ENABLED_MESSAGE = "Audio device monitoring enabled."
+
+
 class OutputDeviceRecoveryController:
     """Internal coordinator for output-device watch and recovery orchestration."""
 
@@ -108,7 +111,7 @@ class OutputDeviceRecoveryController:
         self._host._device_watch_callback = poll
         pyglet.clock.schedule_interval(poll, poll_interval_seconds)
         if self._host._status_callback is not None:
-            self._host._status_callback("Audio device monitoring enabled.")
+            self._host._status_callback(MONITORING_ENABLED_MESSAGE)
 
     def stop_output_device_watch(self) -> None:
         """Stop polling and cancel any pending delayed recovery status prompt."""

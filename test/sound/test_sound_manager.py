@@ -15,6 +15,7 @@ def test_play_music_stops_existing_music_before_replacing(
     """Test play_music stops and removes currently playing music first."""
     music_player = mocker.MagicMock()
     music_player.playing.return_value = True
+    music_player.queue = [object()]
     mocker.patch.object(sound_manager, "music_player", music_player)
 
     loaded_sound = object()
@@ -32,12 +33,29 @@ def test_play_music_stops_existing_music_before_replacing(
     music_player.play.assert_called_once()
 
 
+def test_play_music_removes_buffer_left_by_stopped_music(
+    mocker: MockerFixture,
+) -> None:
+    """A stopped player keeps its buffer, which must not play first."""
+    music_player = mocker.MagicMock()
+    music_player.playing.return_value = False
+    music_player.queue = [object()]
+    mocker.patch.object(sound_manager, "music_player", music_player)
+    mocker.patch.object(sound_manager, "sound_pool", mocker.MagicMock())
+
+    sound_manager.play_music("music/theme.ogg")
+
+    music_player.stop.assert_not_called()
+    music_player.remove.assert_called_once()
+
+
 def test_play_music_does_not_stop_when_nothing_playing(
     mocker: MockerFixture,
 ) -> None:
     """Test play_music skips stop/remove when music is not playing."""
     music_player = mocker.MagicMock()
     music_player.playing.return_value = False
+    music_player.queue = []
     mocker.patch.object(sound_manager, "music_player", music_player)
 
     loaded_sound = object()
@@ -547,6 +565,22 @@ def test_channel_helpers_apply_and_validate(mocker: MockerFixture) -> None:
         manager.get_channel_volume("bad")
 
 
+def test_ambience_channel_is_independent(mocker: MockerFixture) -> None:
+    """Test the ambience channel exists and does not affect other channels."""
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+
+    assert manager.get_channel_volume("ambience") == 1.0
+    assert manager.set_channel_volume("ambience", 0.3) == pytest.approx(0.3)
+    assert manager.get_channel_volume("ambience") == pytest.approx(0.3)
+    assert manager.get_channel_volume("voice") == 1.0
+    assert manager.get_channel_volume("sfx") == 1.0
+
+
 def test_module_clamp_volume_function() -> None:
     """Test module-level clamp_volume keeps values within [0, 1]."""
     assert sound_manager.clamp_volume(-0.1) == 0.0
@@ -653,6 +687,12 @@ def test_module_volume_wrappers_delegate_to_default_manager(
     assert sound_manager.set_music_volume(0.8, fade_seconds=1.0) == 0.6
     assert sound_manager.set_sfx_volume(0.3, players=[player]) == 0.7
     sound_manager.apply_sfx_volume(player, base_volume=0.2)
+    sound_manager.apply_channel_volume(player, "ambience", 0.4)
+    assert manager.apply_channel_volume.call_args.args == (
+        player,
+        "ambience",
+        0.4,
+    )
 
     manager.get_channel_volume.assert_called_once_with("music")
     manager.set_channel_volume.assert_called_once_with("music", 0.9)
@@ -663,6 +703,30 @@ def test_module_volume_wrappers_delegate_to_default_manager(
     )
     manager.set_sfx_volume.assert_called_once_with(0.3, players=[player])
     manager.apply_sfx_volume.assert_called_once_with(player, base_volume=0.2)
+
+
+def test_apply_channel_volume_scales_base_by_channel(
+    mocker: MockerFixture,
+) -> None:
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+    manager.set_channel_volume("ambience", 0.5)
+    player = mocker.MagicMock()
+
+    applied = manager.apply_channel_volume(player, "ambience", 0.4)
+
+    assert applied == pytest.approx(0.2)
+    assert player.volume == pytest.approx(0.2)
+    with pytest.raises(ValueError, match="Unknown channel"):
+        manager.apply_channel_volume(player, "nope")
+
+    manager.set_channel_volume("sfx", 0.5)
+    manager.apply_sfx_volume(player, 0.5)
+    assert player.volume == pytest.approx(0.25)
 
 
 def test_set_music_volume_validates_and_schedules_fade(
@@ -1687,8 +1751,9 @@ def test_take_recovered_player_returns_and_consumes_mapping(
 def test_rebuild_audio_graph_restores_currently_playing_players(
     mocker: MockerFixture,
 ) -> None:
-    """Active playing players should be restored and mapped during rebuild."""
+    """If a player cannot be rebuilt in place, a pool player replaces it."""
     old_player = mocker.MagicMock()
+    old_player.rebind.side_effect = RuntimeError("no source")
     old_player.playing.return_value = True
     old_player.queue = [object()]
     old_player.position = (1, 0, 2)
@@ -1748,6 +1813,232 @@ def test_rebuild_audio_graph_restores_currently_playing_players(
     assert play_sound.call_args_list[0].args[0] == "music/river.wav"
     assert play_sound.call_args_list[0].kwargs["player"] is recovered_player
     assert manager.take_recovered_player(old_player) is recovered_player
+
+
+def _rebuild_with_playing_player(
+    mocker: MockerFixture,
+) -> tuple[SoundManager, Any, Any, Any, Any]:
+    old_player = mocker.MagicMock()
+    old_player.playing.return_value = True
+    old_player.queue = [object()]
+    old_player.position = (1, 0, 2)
+    old_player.volume = 0.42
+    old_player.rolloff = 1.1
+    old_player.loop = True
+    idle_player = mocker.MagicMock()
+    sound_pool = mocker.MagicMock()
+    sound_pool.pool = {"a.wav": old_player.queue[0]}
+    sound_pool.cached_paths.return_value = ["a.wav"]
+    player_pool = mocker.MagicMock()
+    player_pool._active_players = [old_player]
+    player_pool._idle_players = [idle_player]
+    manager = SoundManager(
+        listener=mocker.MagicMock(position=(0, 0, 0)),
+        sound_pool=sound_pool,
+        player_pool=player_pool,
+        music_player=mocker.MagicMock(),
+    )
+    manager._player_channels_by_id[id(old_player)] = "sfx"
+    new_pool = mocker.MagicMock()
+    mocker.patch("sonartk.sound.sound_manager.Listener")
+    mocker.patch("sonartk.sound.sound_manager.SoundPool")
+    mocker.patch(
+        "sonartk.sound.sound_manager.PlayerPool", return_value=new_pool
+    )
+    mocker.patch("sonartk.sound.sound_manager.Player")
+    mocker.patch.object(manager, "_safe_default_output_name", return_value="S")
+    mocker.patch.object(manager, "_safe_current_output_name", return_value="S")
+    return manager, old_player, idle_player, new_pool, sound_pool
+
+
+def test_rebuild_audio_graph_rebinds_held_players_in_place(
+    mocker: MockerFixture,
+) -> None:
+    """Players a game already holds keep working after a device change."""
+    manager, old_player, idle_player, new_pool, _ = (
+        _rebuild_with_playing_player(mocker)
+    )
+    play_sound = mocker.patch.object(manager, "play_sound")
+
+    assert manager._rebuild_audio_graph()
+
+    old_player.rebind.assert_called_once_with()
+    idle_player.rebind.assert_not_called()
+    new_pool.adopt_active_player.assert_called_once_with(old_player)
+    new_pool.get_player.assert_not_called()
+    assert play_sound.call_args.kwargs["player"] is old_player
+    assert manager.take_recovered_player(old_player) is old_player
+
+
+def test_rebuild_restores_loop_reported_as_stopped(
+    mocker: MockerFixture,
+) -> None:
+    """A loop the old device reports as stopped is still restored."""
+    manager, old_player, _, _, _ = _rebuild_with_playing_player(mocker)
+    old_player.playing.return_value = False
+    play_sound = mocker.patch.object(manager, "play_sound")
+
+    assert manager._rebuild_audio_graph()
+
+    assert play_sound.call_args.kwargs["player"] is old_player
+    assert play_sound.call_args.kwargs["loop"] is True
+
+
+def test_rebuild_skips_finished_one_shot(mocker: MockerFixture) -> None:
+    manager, old_player, _, _, _ = _rebuild_with_playing_player(mocker)
+    old_player.playing.return_value = False
+    old_player.loop = False
+    play_sound = mocker.patch.object(manager, "play_sound")
+
+    assert manager._rebuild_audio_graph()
+
+    play_sound.assert_not_called()
+
+
+def test_rebind_players_does_not_adopt_directly_created_players(
+    mocker: MockerFixture,
+) -> None:
+    pool = mocker.MagicMock()
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=pool,
+        music_player=mocker.MagicMock(),
+    )
+    direct = mocker.MagicMock()
+    pooled = mocker.MagicMock()
+
+    rebound = manager._rebind_players([direct, pooled], {id(pooled)})
+
+    assert rebound == {id(direct), id(pooled)}
+    pool.adopt_active_player.assert_called_once_with(pooled)
+    assert manager.take_recovered_player(direct) is direct
+
+
+def test_module_batch_updates_delegates_to_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    call = mocker.patch.object(
+        sound_manager, "_call_default_manager", return_value="ctx"
+    )
+
+    assert sound_manager.batch_updates() == "ctx"
+    call.assert_called_once_with("batch_updates")
+
+
+def test_collect_rebindable_players_includes_directly_created_players(
+    mocker: MockerFixture,
+) -> None:
+    """Players made outside the pool are found; idle and music ones are not."""
+    from sonartk.sound.openal_lite import openal
+
+    mocker.patch.object(openal, "al")
+    held = openal.Player()
+    pooled_idle = openal.Player()
+    music = openal.Player()
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(
+            _active_players=[], _idle_players=[pooled_idle]
+        ),
+        music_player=music,
+    )
+
+    found = manager._collect_rebindable_players()
+
+    assert held in found
+    assert pooled_idle not in found
+    assert music not in found
+
+
+def test_ensure_output_device_watch_starts_once_and_hides_enabled_notice(
+    mocker: MockerFixture,
+) -> None:
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+    start = mocker.patch.object(manager, "start_output_device_watch")
+    spoken: list[str] = []
+
+    assert manager.ensure_output_device_watch(status_callback=spoken.append)
+    announce = start.call_args.kwargs["status_callback"]
+    announce("Audio device monitoring enabled.")
+    announce("Audio device changed. Recovering audio.")
+    assert spoken == ["Audio device changed. Recovering audio."]
+
+    manager._device_watch_callback = lambda dt: None
+    assert not manager.ensure_output_device_watch()
+    start.assert_called_once()
+
+
+def test_ensure_output_device_watch_without_status_callback(
+    mocker: MockerFixture,
+) -> None:
+    manager = SoundManager(
+        listener=mocker.MagicMock(),
+        sound_pool=mocker.MagicMock(),
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+    start = mocker.patch.object(manager, "start_output_device_watch")
+
+    manager.ensure_output_device_watch()
+    start.call_args.kwargs["status_callback"]("anything")
+
+
+def test_module_ensure_output_device_watch_delegates(
+    mocker: MockerFixture,
+) -> None:
+    call = mocker.patch.object(
+        sound_manager, "_call_default_manager", return_value=True
+    )
+
+    assert sound_manager.ensure_output_device_watch() is True
+    call.assert_called_once_with(
+        "ensure_output_device_watch", status_callback=None
+    )
+
+
+def test_player_rebind_creates_new_source_and_keeps_settings(
+    mocker: MockerFixture,
+) -> None:
+    from sonartk.sound.openal_lite import openal
+
+    fake_al = mocker.patch.object(openal, "al")
+    player = openal.Player()
+    player._volume = 0.5
+    player._loop = True
+    player.queue = [object()]
+    player.rebind()
+
+    assert fake_al.alGenSources.call_count == 2
+    assert player.queue == []
+    assert player.volume == 0.5
+    assert player.loop is True
+    assert player in openal.Player._live_players
+    player.delete()
+    assert player not in openal.Player._live_players
+
+
+def test_player_pool_adopt_active_player_tracks_it_once(
+    mocker: MockerFixture,
+) -> None:
+    from sonartk.sound.player_pool import PlayerPool
+
+    mocker.patch("sonartk.sound.player_pool.Player")
+    pool = PlayerPool()
+    adopted = mocker.MagicMock()
+    before = pool.total_allocated_players
+
+    pool.adopt_active_player(adopted)
+    pool.adopt_active_player(adopted)
+
+    assert pool._active_players == [adopted]
+    assert pool.total_allocated_players == before + 1
 
 
 def test_music_seek_ratio_helpers_get_and_set(mocker: MockerFixture) -> None:
@@ -2280,3 +2571,95 @@ def test_play_sound_skips_trigger_when_same_sound_already_playing(
     manager.play_sound(sound, player=player, retrigger_if_same=False)
 
     trigger.assert_not_called()
+
+
+def _play_positioned(
+    mocker: MockerFixture, sound: Any, position: Any = (1, 2, 3)
+) -> None:
+    mocker.patch.object(sound_manager, "sound_pool", mocker.MagicMock())
+    mocker.patch.object(sound_manager, "player_pool", mocker.MagicMock())
+    player = mocker.MagicMock()
+    player.queue = []
+    sound_manager.play_sound(sound=sound, player=player, position=position)
+
+
+def test_stereo_positional_sound_logs_one_warning(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Stereo buffers cannot pan, so a positioned one is reported once."""
+    mocker.patch.object(
+        sound_manager._default_manager, "_stereo_position_warnings", set()
+    )
+    sound = mocker.MagicMock(channels=2)
+    sound.name = "boat.wav"
+
+    with caplog.at_level("WARNING"):
+        _play_positioned(mocker, sound)
+        _play_positioned(mocker, sound)
+
+    warnings = [r for r in caplog.records if "boat.wav" in r.getMessage()]
+    assert len(warnings) == 1
+    assert "convert it to mono" in warnings[0].getMessage()
+
+
+def test_mono_positional_sound_does_not_warn(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch.object(
+        sound_manager._default_manager, "_stereo_position_warnings", set()
+    )
+    with caplog.at_level("WARNING"):
+        _play_positioned(mocker, mocker.MagicMock(channels=1))
+    assert not caplog.records
+
+
+def test_stereo_sound_without_position_does_not_warn(
+    mocker: MockerFixture, caplog: pytest.LogCaptureFixture
+) -> None:
+    mocker.patch.object(
+        sound_manager._default_manager, "_stereo_position_warnings", set()
+    )
+    with caplog.at_level("WARNING"):
+        _play_positioned(mocker, mocker.MagicMock(channels=2), position=None)
+    assert not caplog.records
+
+
+def test_batch_updates_suspends_and_processes_once_when_nested(
+    mocker: MockerFixture,
+) -> None:
+    alc = mocker.patch.object(sound_manager, "alc")
+    manager = SoundManager(
+        listener=mocker.Mock(),
+        sound_pool=mocker.Mock(),
+        player_pool=mocker.Mock(),
+        music_player=mocker.Mock(),
+    )
+
+    with manager.batch_updates():
+        with manager.batch_updates():
+            pass
+        alc.alcProcessContext.assert_not_called()
+
+    alc.alcSuspendContext.assert_called_once_with(manager.listener.context)
+    alc.alcProcessContext.assert_called_once_with(manager.listener.context)
+
+
+def test_batch_updates_processes_context_when_body_raises(
+    mocker: MockerFixture,
+) -> None:
+    alc = mocker.patch.object(sound_manager, "alc")
+    manager = SoundManager(
+        listener=mocker.Mock(),
+        sound_pool=mocker.Mock(),
+        player_pool=mocker.Mock(),
+        music_player=mocker.Mock(),
+    )
+
+    with pytest.raises(RuntimeError):
+        with manager.batch_updates():
+            raise RuntimeError("boom")
+
+    alc.alcProcessContext.assert_called_once_with(manager.listener.context)
+    with manager.batch_updates():
+        pass
+    assert alc.alcSuspendContext.call_count == 2

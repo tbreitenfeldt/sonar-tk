@@ -23,6 +23,7 @@ class Map2d:
         self.name: str = name
         self.character: Character = character
         self.tile_map: list[MapTile] = []
+        self.tile_revision: int = 0
         self.height: int = 0
         self.width: int = 0
         self.character_collision_policy = character_collision_policy
@@ -63,6 +64,7 @@ class Map2d:
 
         self.height += 1
         self.tile_map[:0] = row
+        self.tile_revision += 1
 
     def get_tile(self, coordinates: Coordinates) -> MapTile:
         """Return the tile at coordinates, raising on out-of-range access."""
@@ -91,6 +93,7 @@ class Map2d:
             )
 
         self.tile_map[y * self.width + x] = tile
+        self.tile_revision += 1
 
     def set_tiles(self, updates: Mapping[Coordinates, MapTile]) -> None:
         """Apply multiple tile replacements as a single convenience operation."""

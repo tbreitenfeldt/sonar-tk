@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
-from typing import Callable, Mapping, Optional, Protocol, cast
+from typing import Any, Callable, Mapping, Optional, Protocol, cast
 
 from sonartk.map_builder.map_2d import Map2d, MapTile
 from sonartk.sound import sound_manager
@@ -26,6 +27,9 @@ class AmbientTileSoundConfig:
         min_volume_at_max_distance: Relative gain at max_distance_tiles.
         distance_curve_exponent: Curve shaping for distance gain. Higher values
             increase contrast between near and far volumes.
+        channel: Optional playback channel (for example ``"ambience"``) so
+            the sound follows that channel's volume. When None, the sound
+            manager's default channel is used.
     """
 
     sound_file: str
@@ -35,6 +39,7 @@ class AmbientTileSoundConfig:
     loop: bool = True
     min_volume_at_max_distance: float = 0.12
     distance_curve_exponent: float = 2.0
+    channel: Optional[str] = None
 
 
 AmbientSoundMap = dict[str, AmbientTileSoundConfig]
@@ -48,8 +53,8 @@ class TerrainAudioProfile:
         is_passable: Whether this terrain type is walkable.
         movement_sound_file: Movement sound for passable tiles.
         ambient_sound: Optional ambient config for this terrain.
-        include_in_sound_map_when_blocked: When True, blocked terrain still
-            contributes to sound_map (useful for explicit blocked cues).
+        include_in_sound_map_when_blocked: Unused; blocked terrain with a
+            ``movement_sound_file`` always contributes to the sound map.
     """
 
     is_passable: bool = True
@@ -77,6 +82,7 @@ class _SoundServiceLike(Protocol):
         rolloff: float = 0.01,
         loop: bool = False,
         retrigger_if_same: bool = True,
+        channel: str = "sfx",
     ) -> None: ...
 
 
@@ -104,6 +110,7 @@ class MapSoundNavigationController:
         ambient_player: Optional[Player] = None,
         blocked_tile_sound_name: str = "wall",
         validate_sound_map: bool = False,
+        blend_ambient: bool = False,
     ) -> None:
         self.map2d = map2d
         self.sound_map = sound_map
@@ -117,7 +124,13 @@ class MapSoundNavigationController:
         self.on_move_blocked = on_move_blocked
         self.ambient_sound_map = ambient_sound_map or {}
         self.ambient_player = ambient_player
+        self.blend_ambient = blend_ambient
+        self._blend_players: dict[str, Player] = {}
         self.blocked_tile_sound_name = blocked_tile_sound_name
+        self._ambient_emitters: Optional[
+            list[tuple[Coordinates, AmbientTileSoundConfig]]
+        ] = None
+        self._ambient_emitters_revision: Optional[int] = None
 
         for tile_name, config in self.ambient_sound_map.items():
             if config.max_distance_tiles < 0:
@@ -154,7 +167,28 @@ class MapSoundNavigationController:
         ambient_player: Optional[Player] = None,
         blocked_tile_sound_name: str = "wall",
         validate_sound_map: bool = True,
+        ignore_unused_profiles: bool = False,
+        blend_ambient: bool = False,
     ) -> "MapSoundNavigationController":
+        """Build a controller from terrain audio profiles.
+
+        With ``ignore_unused_profiles`` the profiles may describe more
+        terrain than ``map2d`` uses: profiles for tile names absent from the
+        map are skipped, so one shared terrain table serves every map. The
+        blocked-tile profile is always kept.
+
+        With ``blend_ambient`` every distinct ambient sound file plays from
+        its own nearest tile at once, instead of only the single nearest
+        ambient tile.
+        """
+        if ignore_unused_profiles:
+            used = {tile.name for tile in map2d.tile_map}
+            used.add(blocked_tile_sound_name)
+            terrain_audio_profiles = {
+                name: profile
+                for name, profile in terrain_audio_profiles.items()
+                if name in used
+            }
         sound_map, ambient_sound_map = cls.build_audio_maps_from_profiles(
             terrain_audio_profiles
         )
@@ -170,6 +204,7 @@ class MapSoundNavigationController:
             ambient_player=ambient_player,
             blocked_tile_sound_name=blocked_tile_sound_name,
             validate_sound_map=validate_sound_map,
+            blend_ambient=blend_ambient,
         )
 
     @staticmethod
@@ -240,6 +275,18 @@ class MapSoundNavigationController:
         False when grid navigation should continue.
         """
         self.map2d.character.directional_orientation = direction
+        with self._batched():
+            return self._navigate(grid, direction)
+
+    def _batched(self) -> AbstractContextManager[Any]:
+        """Group the audio changes of one step into a single update.
+
+        Services without ``batch_updates`` simply apply them one by one.
+        """
+        batch = getattr(self.sound_service, "batch_updates", None)
+        return batch() if batch is not None else nullcontext()
+
+    def _navigate(self, grid: Grid[MapTile], direction: Direction) -> bool:
         new_coordinates, tile = grid.get_next_cell(direction)
         if tile is None:
             if self.on_move_blocked is not None:
@@ -247,9 +294,9 @@ class MapSoundNavigationController:
             return True
 
         new_position = self.position_resolver(new_coordinates)
-        sound_file = self.sound_map[tile.name]
 
         if tile.is_passable:
+            sound_file = self.sound_map[tile.name]
             # Replacement policy may return a displaced character; navigation
             # intentionally ignores that value and only advances the active
             # player character.
@@ -267,7 +314,7 @@ class MapSoundNavigationController:
                 self.on_move_success(new_coordinates, tile)
             return False
 
-        self.play_blocked_sound(grid, direction)
+        self.play_blocked_sound(grid, direction, tile.name)
         if self.on_move_blocked is not None:
             self.on_move_blocked(direction)
         return True
@@ -280,10 +327,20 @@ class MapSoundNavigationController:
         return self.play_blocked_sound(grid, direction)
 
     def play_blocked_sound(
-        self, grid: Grid[MapTile], direction: Direction
+        self,
+        grid: Grid[MapTile],
+        direction: Direction,
+        tile_name: Optional[str] = None,
     ) -> bool:
-        """Play a blocked collision sound from the next tile position."""
-        sound_file = self.sound_map[self.blocked_tile_sound_name]
+        """Play a blocked collision sound from the next tile position.
+
+        A blocked tile plays its own mapped sound when it has one. Otherwise,
+        and at the map border, the shared blocked collision sound plays.
+        """
+        sound_file = self.sound_map.get(
+            tile_name if tile_name is not None else "",
+            self.sound_map[self.blocked_tile_sound_name],
+        )
         next_coordinates, _ = grid.get_next_cell(direction)
         self.sound_service.play_sound(
             sound_file,
@@ -309,6 +366,8 @@ class MapSoundNavigationController:
             return False
 
         origin = coordinates or self.map2d.character.coordinates
+        if self.blend_ambient:
+            return self._update_blended_ambient(origin)
         nearest = self._find_nearest_ambient_emitter(origin)
         if nearest is None:
             self.ambient_player.stop()
@@ -316,6 +375,9 @@ class MapSoundNavigationController:
             return False
 
         emitter_coordinates, config, distance = nearest
+        channel_options: dict[str, str] = (
+            {} if config.channel is None else {"channel": config.channel}
+        )
         self.sound_service.play_sound(
             config.sound_file,
             position=self.position_resolver(emitter_coordinates),
@@ -324,42 +386,125 @@ class MapSoundNavigationController:
             rolloff=config.rolloff,
             loop=config.loop,
             retrigger_if_same=False,
+            **channel_options,
         )
         return True
+
+    def stop_ambient_sound(self) -> None:
+        """Stop and release every ambient player, including blended ones."""
+        players = [*self._blend_players.values()]
+        if self.ambient_player is not None:
+            players.append(self.ambient_player)
+        for player in players:
+            player.stop()
+            player.remove()
+
+    def _update_blended_ambient(self, origin: Coordinates) -> bool:
+        self._ensure_ambient_emitters()
+        nearest_by_sound: dict[
+            str, tuple[Coordinates, AmbientTileSoundConfig, int]
+        ] = {}
+        for coordinates, config in self._ambient_emitters or []:
+            distance = abs(origin[0] - coordinates[0]) + abs(
+                origin[1] - coordinates[1]
+            )
+            if distance > config.max_distance_tiles:
+                continue
+            best = nearest_by_sound.get(config.sound_file)
+            if best is None or distance < best[2]:
+                nearest_by_sound[config.sound_file] = (
+                    coordinates,
+                    config,
+                    distance,
+                )
+
+        for sound_file in list(self._blend_players):
+            if sound_file not in nearest_by_sound:
+                self._blend_players[sound_file].stop()
+                self._blend_players[sound_file].remove()
+        for sound_file, (coordinates, config, distance) in sorted(
+            nearest_by_sound.items()
+        ):
+            channel_options: dict[str, str] = (
+                {} if config.channel is None else {"channel": config.channel}
+            )
+            self.sound_service.play_sound(
+                sound_file,
+                position=self.position_resolver(coordinates),
+                player=self._blend_player(sound_file),
+                volume=self._effective_ambient_volume(distance, config),
+                rolloff=config.rolloff,
+                loop=config.loop,
+                retrigger_if_same=False,
+                **channel_options,
+            )
+        return bool(nearest_by_sound)
+
+    def _blend_player(self, sound_file: str) -> Player:
+        player = self._blend_players.get(sound_file)
+        if player is None:
+            adopt = self.ambient_player is not None and not any(
+                existing is self.ambient_player
+                for existing in self._blend_players.values()
+            )
+            player = self.ambient_player if adopt else Player()
+            assert player is not None
+            self._blend_players[sound_file] = player
+        return player
+
+    def refresh_ambient_emitters(self) -> None:
+        """Rebuild the cached ambient emitter list from the current map.
+
+        Called automatically when the map reports changed tiles. Call it
+        manually only if tiles are changed in a way the map cannot report.
+        """
+        emitters: list[tuple[Coordinates, AmbientTileSoundConfig]] = []
+        if self.ambient_sound_map:
+            for y in range(self.map2d.height):
+                for x in range(self.map2d.width):
+                    coordinates = cast(Coordinates, (x, y))
+                    tile = self.map2d.get_tile(coordinates)
+                    config = self.ambient_sound_map.get(tile.name)
+                    if config is not None:
+                        emitters.append((coordinates, config))
+
+        self._ambient_emitters = emitters
+        self._ambient_emitters_revision = getattr(
+            self.map2d, "tile_revision", None
+        )
+
+    def _ensure_ambient_emitters(self) -> None:
+        revision = getattr(self.map2d, "tile_revision", None)
+        if (
+            self._ambient_emitters is None
+            or revision != self._ambient_emitters_revision
+        ):
+            self.refresh_ambient_emitters()
 
     def _find_nearest_ambient_emitter(
         self, origin: Coordinates
     ) -> Optional[tuple[Coordinates, AmbientTileSoundConfig, int]]:
+        self._ensure_ambient_emitters()
+
         best: Optional[tuple[Coordinates, AmbientTileSoundConfig, int]] = None
+        for coordinates, config in self._ambient_emitters or []:
+            distance = abs(origin[0] - coordinates[0]) + abs(
+                origin[1] - coordinates[1]
+            )
+            if distance > config.max_distance_tiles:
+                continue
 
-        for y in range(self.map2d.height):
-            for x in range(self.map2d.width):
-                coordinates = cast(Coordinates, (x, y))
-                tile = self.map2d.get_tile(coordinates)
-                config = self.ambient_sound_map.get(tile.name)
-                if config is None:
-                    continue
+            if best is None or distance < best[2]:
+                best = (coordinates, config, distance)
+                continue
 
-                distance = abs(origin[0] - x) + abs(origin[1] - y)
-                if distance > config.max_distance_tiles:
-                    continue
+            if distance != best[2]:
+                continue
 
-                if best is None or distance < best[2]:
-                    best = (coordinates, config, distance)
-                    continue
-
-                if distance != best[2]:
-                    continue
-
-                best_gain = self._effective_ambient_volume(best[2], best[1])
-                candidate_gain = self._effective_ambient_volume(
-                    distance, config
-                )
-                if candidate_gain > best_gain:
-                    best = (coordinates, config, distance)
-
-        if best is None:
-            return None
+            best_gain = self._effective_ambient_volume(best[2], best[1])
+            candidate_gain = self._effective_ambient_volume(distance, config)
+            if candidate_gain > best_gain:
+                best = (coordinates, config, distance)
 
         return best
 

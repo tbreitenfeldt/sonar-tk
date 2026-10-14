@@ -72,6 +72,12 @@ class PlayerPool:
         self._active_players.append(player)
         return player
 
+    def adopt_active_player(self, player: Player) -> None:
+        """Track a player that was handed out before the pool was rebuilt."""
+        if player not in self._active_players:
+            self._active_players.append(player)
+            self.total_allocated_players += 1
+
     def unload_player(self, player: Player) -> None:
         """Unload player."""
         index: int = self._active_players.index(player)

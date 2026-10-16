@@ -57,6 +57,42 @@ called once per terrain. Objects are registered on the returned map.
 rows, codes missing from the legend, out-of-bounds positions, duplicate
 objects or exits, and a start tile that is not passable.
 
+## Object types
+
+Objects with a `"type"` take their shape, sounds and description from an
+object type defined once in a data file (see `load_object_types`):
+
+```json
+{
+  "rowboat": {
+    "footprint": [[0, 0]],
+    "passable": false,
+    "collision_sound": "rowboat_collision",
+    "side_sounds": {"north": "hull_scrape"},
+    "loop": {"sound": "rowboat_object", "max_distance_tiles": 20},
+    "description": ["Your rowboat."]
+  }
+}
+```
+
+```json
+{"name": "rowboat", "type": "rowboat", "at": [128, 85]}
+```
+
+* `footprint` lists tile offsets from `at`, so objects can have any shape.
+* A blocking (`passable: false`) object is stamped onto the map as
+  impassable tiles named `object:<name>`; do not paint it in `rows`.
+* `collision_sound` plays when the player bumps into any of its tiles.
+  `side_sounds` (`north`, `south`, `east`, `west`) replace it for that side.
+* `loop` is one uniform sound: it plays from the footprint tile nearest the
+  player, so it sounds the same from every side.
+* The object can be examined from next to any footprint tile.
+* `sound`, `max_distance_tiles` and `properties.description` on the object
+  itself override the type.
+* Pass the types to `MapDefinition.from_document(..., object_types=...)`.
+  Unknown types, footprints off the map, overlaps and footprints on exits
+  are rejected.
+
 ## Drawing maps in code
 
 `MapCanvas` uses the same coordinates and writes the rows for you.

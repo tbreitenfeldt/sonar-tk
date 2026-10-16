@@ -34,7 +34,11 @@ from sonartk.orchestration.map_interaction import (
     InteractableObject,
     MapInteractionController,
 )
-from sonartk.orchestration import map_definition
+from sonartk.orchestration import (
+    map_definition,
+    object_types,
+    terrain_profiles,
+)
 from sonartk.orchestration.map_play_session import MapPlaySession
 from sonartk.orchestration.flyovers import FlyoverConfig, FlyoverController
 from sonartk.orchestration.map_screen_controller import MapScreenController
@@ -105,7 +109,33 @@ def test_orchestration_exports_are_explicit() -> None:
         "MapScreenController",
         "FlyoverConfig",
         "FlyoverController",
+        "TerrainProfileError",
+        "ObjectType",
+        "ObjectTypeError",
+        "load_object_types",
+        "object_types_from_dict",
+        "object_tile_name",
+        "load_terrain_profiles",
+        "terrain_profiles_from_dict",
+        "terrain_tile_factory",
     ]
+    assert sonartk.orchestration.ObjectType is object_types.ObjectType
+    assert (
+        sonartk.orchestration.load_terrain_profiles
+        is terrain_profiles.load_terrain_profiles
+    )
+    assert (
+        sonartk.orchestration.terrain_profiles_from_dict
+        is terrain_profiles.terrain_profiles_from_dict
+    )
+    assert (
+        sonartk.orchestration.terrain_tile_factory
+        is terrain_profiles.terrain_tile_factory
+    )
+    assert (
+        sonartk.orchestration.TerrainProfileError
+        is terrain_profiles.TerrainProfileError
+    )
     assert sonartk.orchestration.ChannelVolume is ChannelVolume
     assert sonartk.orchestration.VolumeHotkeys is VolumeHotkeys
     assert sonartk.orchestration.bind_level_hotkeys is bind_level_hotkeys

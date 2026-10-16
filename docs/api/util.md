@@ -25,3 +25,7 @@
 ## catalog
 
 ::: sonartk.util.catalog
+
+## asset_loader
+
+::: sonartk.util.asset_loader

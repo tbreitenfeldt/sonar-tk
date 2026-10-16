@@ -139,6 +139,24 @@ def test_start_audio_positions_the_listener_and_starts_sounds(
     assert sound["prox"].play_sound.call_args.args[0] == "hum.wav"  # type: ignore[attr-defined]
 
 
+def test_start_audio_faces_the_listener_north_with_z_up(sound: dict) -> None:
+    _session().start_audio()
+
+    listener = sound["manager"].listener
+    assert listener.at_orientation == (0.0, 1.0, 0.0)
+    assert listener.up_orientation == (0.0, 0.0, 1.0)
+
+
+def test_the_listener_orientation_can_be_left_alone(sound: dict) -> None:
+    session = _session(listener_orientation=None)
+    listener = sound["manager"].listener
+    listener.at_orientation = "unchanged"
+
+    session.start_audio()
+
+    assert listener.at_orientation == "unchanged"
+
+
 def test_stop_audio_releases_object_and_ambient_players(sound: dict) -> None:
     emitter = ProximityAudioEmitter("hum.wav", (2, 1), max_distance_tiles=3)
     session = _session(object_emitters={"hum": emitter})

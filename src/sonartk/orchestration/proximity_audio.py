@@ -34,6 +34,22 @@ class ProximityAudioEmitter:
     loop: bool = True
     channel: Optional[str] = None
     start_offset: float = 0.0
+    footprint: tuple[Coordinates, ...] = ()
+
+    def nearest_source(self, listener: Coordinates) -> Coordinates:
+        """Return the closest tile the sound comes from.
+
+        A sound with a ``footprint`` comes from whichever of its tiles is
+        nearest the listener, so a large object sounds the same from every
+        side. Otherwise it comes from ``source_coordinates``.
+        """
+        if not self.footprint:
+            return self.source_coordinates
+        return min(
+            self.footprint,
+            key=lambda tile: abs(listener[0] - tile[0])
+            + abs(listener[1] - tile[1]),
+        )
 
 
 class _SoundServiceLike(Protocol):
@@ -121,9 +137,10 @@ class ProximityAudioController:
             player.remove()
             return False
 
-        distance = abs(
-            listener_coordinates[0] - emitter.source_coordinates[0]
-        ) + abs(listener_coordinates[1] - emitter.source_coordinates[1])
+        source = emitter.nearest_source(listener_coordinates)
+        distance = abs(listener_coordinates[0] - source[0]) + abs(
+            listener_coordinates[1] - source[1]
+        )
         if distance > emitter.max_distance_tiles:
             player.stop()
             player.remove()
@@ -136,7 +153,7 @@ class ProximityAudioController:
         self.sound_service.play_sound(
             emitter.sound_path,
             player=player,
-            position=self.position_resolver(emitter.source_coordinates),
+            position=self.position_resolver(source),
             volume=self.effective_volume(
                 distance_tiles=distance,
                 max_distance_tiles=emitter.max_distance_tiles,

@@ -725,6 +725,8 @@ class SoundManager:
             last_music_path is not None and self._music_target_playing
         )
         previous_listener_position = tuple(self.listener.position)
+        previous_at = tuple(self.listener.at_orientation)
+        previous_up = tuple(self.listener.up_orientation)
 
         self._cancel_recovery_status_timer()
         self._cancel_music_seek_restore()
@@ -777,6 +779,8 @@ class SoundManager:
             self.music_player = Player()
             self._channel_volumes = cached_channel_volumes
             self.listener.position = previous_listener_position
+            self.listener.at_orientation = previous_at
+            self.listener.up_orientation = previous_up
 
             if cached_paths:
                 self.sound_pool.load_many(cached_paths)

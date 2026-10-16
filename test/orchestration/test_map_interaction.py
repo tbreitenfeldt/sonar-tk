@@ -167,3 +167,18 @@ def test_on_page_change_is_forwarded(mocker: MockerFixture) -> None:
     state.dispatch_event("on_page_change", state, 1)  # type: ignore[attr-defined]
 
     handler.assert_called_once_with(state, 1)
+
+
+def test_a_large_object_can_be_examined_from_any_footprint_tile() -> None:
+    log = InteractableObject(
+        "log", (10, 10), ("A log.",), ((10, 10), (11, 10), (12, 10))
+    )
+    controller, window, grid = _controller((13, 10), (log,))
+
+    assert controller.nearest() == "log"
+
+    grid.current_coordinates = (12, 11)
+    assert controller.nearest() == "log"
+
+    grid.current_coordinates = (14, 10)
+    assert controller.nearest() is None

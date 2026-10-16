@@ -12,9 +12,11 @@ from sonartk.map_builder import (
     MapDocument,
     MapTile,
 )
+from sonartk.orchestration import map_sound_navigation as navigation
 from sonartk.orchestration.map_definition import MapDefinition, ObjectSound
 from sonartk.orchestration.map_screen_controller import MapScreenController
 from sonartk.orchestration.map_sound_navigation import TerrainAudioProfile
+from sonartk.orchestration.object_types import object_types_from_dict
 from sonartk.ui.window import Window
 from sonartk.util import Direction
 
@@ -123,6 +125,53 @@ def test_enter_hook_runs_before_sounds_start() -> None:
     assert controller.session is None
     controller.enter("yard")
     assert events == ["enter yard_theme"]
+
+
+def test_music_and_ambience_follow_the_active_map() -> None:
+    events: list[str] = []
+    controller = _controller(
+        play_music=lambda music: events.append(f"music {music}"),
+        stop_music=lambda: events.append("stop music"),
+        play_ambience=lambda ambience: events.append(f"ambience {ambience}"),
+        stop_ambience=lambda: events.append("stop ambience"),
+        on_leave=lambda d: events.append("leave"),
+    )
+    controller.enter("yard")
+    controller.enter("cabin")
+
+    assert events == [
+        "stop music",
+        "stop ambience",
+        "music yard_theme",
+        "stop music",
+        "stop ambience",
+        "leave",
+        "stop music",
+        "stop ambience",
+    ]
+
+
+def test_ambience_plays_when_the_map_has_it() -> None:
+    played: list[Any] = []
+    controller = _controller(play_ambience=played.append)
+    definitions = dict(_definitions())
+    yard = definitions["yard"]
+    definitions["yard"] = MapDefinition(
+        key=yard.key,
+        document=yard.document,
+        start=yard.start,
+        ambience="wind",
+    )
+    controller = MapScreenController(
+        controller.window,
+        definitions,
+        terrain_audio_profiles=PROFILES,
+        tile_factory=_tile,
+        play_ambience=played.append,
+    )
+    controller.enter("yard")
+
+    assert played == ["wind"]
 
 
 def test_leave_hook_and_previous_screen_release() -> None:
@@ -272,3 +321,72 @@ def test_returning_to_a_map_does_not_collide_with_released_states() -> None:
     controller.enter("yard")
 
     assert controller.window.state_machine.contains("map:yard:describe:sign")
+
+
+def _log_controller() -> MapScreenController:
+    kinds = object_types_from_dict(
+        {
+            "log": {
+                "footprint": [[0, 0], [1, 0]],
+                "collision_sound": "thud.wav",
+                "side_sounds": {"north": "north.wav"},
+                "loop": {"sound": "creak.wav", "max_distance_tiles": 9},
+                "description": ["A log."],
+            }
+        }
+    )
+    yard = MapDocument(
+        key="yard",
+        legend={"s": "sand"},
+        rows=("sssss",) * 5,
+        start=(0, 0),
+        objects=(DocumentObject("log", (2, 2), type="log"),),
+    )
+    window = Window(caption="Test")
+    window.transition_to = lambda *_: None  # type: ignore[method-assign]
+    return MapScreenController(
+        window,
+        {"yard": MapDefinition.from_document(yard, object_types=kinds)},
+        terrain_audio_profiles=PROFILES,
+        tile_factory=_tile,
+    )
+
+
+def _play_sound() -> Any:
+    return navigation.sound_manager.play_sound
+
+
+def _sounds_played() -> list[str]:
+    return [call.args[0] for call in _play_sound().call_args_list]
+
+
+def test_a_typed_object_blocks_with_its_collision_sound() -> None:
+    controller = _log_controller()
+    controller.enter("yard", spawn=(1, 2))
+    _play_sound().reset_mock()
+
+    _step(controller, Direction.RIGHT)
+
+    assert _sounds_played() == ["thud.wav"]
+
+
+def test_a_typed_object_plays_a_sound_per_side() -> None:
+    controller = _log_controller()
+    controller.enter("yard", spawn=(3, 3))
+    _play_sound().reset_mock()
+
+    _step(controller, Direction.DOWN)
+
+    assert _sounds_played() == ["north.wav"]
+
+
+def test_a_typed_object_is_one_loop_examined_from_any_tile() -> None:
+    controller = _log_controller()
+    controller.enter("yard", spawn=(3, 3))
+    session = controller.session
+    assert session is not None
+
+    emitter = session.objects.emitters["log"]
+    assert emitter.footprint == ((2, 2), (3, 2))
+    assert emitter.sound_path == "creak.wav"
+    assert session.interaction.nearest() == "log"

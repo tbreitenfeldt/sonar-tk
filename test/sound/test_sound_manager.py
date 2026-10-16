@@ -2396,6 +2396,49 @@ def test_rebuild_audio_graph_handles_teardown_failures_and_listener_fallback(
     assert debug.call_count >= 4
 
 
+def test_rebuild_audio_graph_keeps_the_listener_orientation(
+    mocker: MockerFixture,
+) -> None:
+    listener = mocker.MagicMock()
+    listener.position = (1, 2, 3)
+    listener.at_orientation = [0.0, 1.0, 0.0]
+    listener.up_orientation = [0.0, 0.0, 1.0]
+    sound_pool = mocker.MagicMock()
+    sound_pool.cached_paths.return_value = []
+    manager = SoundManager(
+        listener=listener,
+        sound_pool=sound_pool,
+        player_pool=mocker.MagicMock(),
+        music_player=mocker.MagicMock(),
+    )
+    manager._follow_default_output = False
+    new_listener = mocker.MagicMock()
+    new_listener.position = (0, 0, 0)
+    mocker.patch(
+        "sonartk.sound.sound_manager.Listener", return_value=new_listener
+    )
+    mocker.patch("sonartk.sound.sound_manager.SoundPool")
+    mocker.patch("sonartk.sound.sound_manager.PlayerPool")
+    mocker.patch("sonartk.sound.sound_manager.Player")
+    mocker.patch.object(
+        manager, "_safe_default_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager, "_safe_current_output_name", return_value="Speakers"
+    )
+    mocker.patch.object(
+        manager,
+        "_safe_output_device_inventory_signature",
+        return_value="Speakers|Headphones",
+    )
+
+    assert manager._rebuild_audio_graph()
+
+    assert new_listener.at_orientation == (0.0, 1.0, 0.0)
+    assert new_listener.up_orientation == (0.0, 0.0, 1.0)
+    assert new_listener.position == (1, 2, 3)
+
+
 def test_rebuild_audio_graph_follow_default_post_checks(
     mocker: MockerFixture,
 ) -> None:

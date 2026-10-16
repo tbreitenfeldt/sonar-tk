@@ -22,7 +22,7 @@ from sonartk.sound.openal_lite.openal import Player
 from sonartk.ui.element.grid import Grid
 from sonartk.ui.screen.container_screen import ContainerScreen
 from sonartk.ui.window import Window
-from sonartk.util import Coordinates, speech_manager
+from sonartk.util import Coordinates, Direction, speech_manager
 
 
 def describe_tile_name(tile: MapTile) -> str:
@@ -32,6 +32,12 @@ def describe_tile_name(tile: MapTile) -> str:
 
 DEFAULT_GRID_KEY = "grid"
 DEFAULT_ARROW_KEY_REPEAT_SECONDS = 0.25
+
+# Map positions are (x, y, z) with x east, y north and z up. Facing north
+# with z up puts north ahead, east to the right, and heights overhead.
+MAP_LISTENER_ORIENTATION: tuple[
+    tuple[float, float, float], tuple[float, float, float]
+] = ((0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
 
 
 class MapPlaySession:
@@ -62,10 +68,17 @@ class MapPlaySession:
         arrow_key_repeat_interval: Seconds between repeats of a held arrow.
         blend_ambient: Play each distinct ambient sound from its nearest
             tile at once, instead of only the nearest ambient tile.
+        blocked_side_sounds: Tile name to ``{Direction: sound}``, played
+            instead of the tile's usual collision sound when hit while
+            travelling that direction.
         locate_keys: Keys that speak the current tile and coordinates.
         describe_tile: Turns a tile into the text spoken for it.
         name_keys: Keys that speak the map's name.
         map_name: The name spoken by ``name_keys``.
+        listener_orientation: ``(at, up)`` vectors the listener takes when
+            audio starts. The default faces north with z up, so heights
+            such as flyovers sound overhead. Pass ``None`` to leave the
+            listener as it is.
     """
 
     def __init__(
@@ -86,12 +99,19 @@ class MapPlaySession:
         grid_key: str = DEFAULT_GRID_KEY,
         arrow_key_repeat_interval: float = DEFAULT_ARROW_KEY_REPEAT_SECONDS,
         blend_ambient: bool = False,
+        blocked_side_sounds: Optional[
+            Mapping[str, Mapping[Direction, str]]
+        ] = None,
         locate_keys: tuple[int, ...] = (),
         describe_tile: Callable[[MapTile], str] = describe_tile_name,
         name_keys: tuple[int, ...] = (),
         map_name: Optional[str] = None,
+        listener_orientation: Optional[
+            tuple[tuple[float, float, float], tuple[float, float, float]]
+        ] = MAP_LISTENER_ORIENTATION,
     ) -> None:
         self.window = window
+        self.listener_orientation = listener_orientation
         self.map2d = map2d
         self.screen_key = screen_key
         self.on_move_success = on_move_success
@@ -118,6 +138,7 @@ class MapPlaySession:
                 terrain_audio_profiles=terrain_audio_profiles,
                 ignore_unused_profiles=True,
                 blend_ambient=blend_ambient,
+                blocked_side_sounds=blocked_side_sounds,
                 player=Player(),
                 ambient_player=Player(),
                 on_move_success=self._handle_move_success,
@@ -165,6 +186,10 @@ class MapPlaySession:
     def start_audio(self) -> None:
         """Place the listener at the player and start nearby sounds."""
         start = self.map2d.character.coordinates
+        if self.listener_orientation is not None:
+            at, up = self.listener_orientation
+            sound_manager.listener.at_orientation = at
+            sound_manager.listener.up_orientation = up
         sound_manager.listener.position = self.navigation.position_resolver(
             start
         )

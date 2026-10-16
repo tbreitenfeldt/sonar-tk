@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Hashable, Mapping, Optional
+from typing import Any, Callable, Hashable, Mapping, Optional
 
 from sonartk.map_builder import MapTile
 from sonartk.orchestration.map_definition import (
@@ -20,6 +20,7 @@ from sonartk.orchestration.map_play_session import (
     describe_tile_name,
 )
 from sonartk.orchestration.map_sound_navigation import TerrainAudioProfile
+from sonartk.orchestration.object_types import object_tile_name
 from sonartk.orchestration.paged_text_state import PagedTextState
 from sonartk.orchestration.proximity_audio import ProximityAudioEmitter
 from sonartk.ui.window import Window
@@ -33,7 +34,9 @@ class MapScreenController:
     builds a fresh ``MapPlaySession``, adds its screen to the window and
     moves onto it, releases the previous screen, then starts the sounds.
     Stepping on an exit tile switches maps. Game-specific work such as music
-    is supplied through ``on_enter`` and ``on_leave``.
+    is supplied through ``on_enter`` and ``on_leave``. Music and ambience can
+    be handled by passing ``play_music``, ``stop_music``, ``play_ambience``
+    and ``stop_ambience``.
 
     Args:
         window: Window the map screens are added to.
@@ -44,6 +47,12 @@ class MapScreenController:
             is active, just before the session's sounds start.
         on_leave: Called with the definition of the map being left, before
             its sounds are stopped.
+        play_music: Called with a map's ``music`` value when the map is
+            entered, if the map has music.
+        stop_music: Called when a map is left, before ``on_leave``, and again
+            on entry so sound from an earlier screen does not carry over.
+        play_ambience: Like ``play_music``, for the map's ``ambience``.
+        stop_ambience: Like ``stop_music``, for ambience.
         on_page_change: Called when an object description advances.
         interact_keys: Keys that examine objects.
         interact_reach_tiles: How far away objects can be examined.
@@ -69,6 +78,10 @@ class MapScreenController:
             Callable[[MapDefinition, MapPlaySession], None]
         ] = None,
         on_leave: Optional[Callable[[MapDefinition], None]] = None,
+        play_music: Optional[Callable[[Any], None]] = None,
+        stop_music: Optional[Callable[[], None]] = None,
+        play_ambience: Optional[Callable[[Any], None]] = None,
+        stop_ambience: Optional[Callable[[], None]] = None,
         on_page_change: Optional[Callable[[PagedTextState, int], None]] = None,
         interact_keys: tuple[int, ...] = DEFAULT_INTERACT_KEYS,
         interact_reach_tiles: int = 1,
@@ -85,6 +98,10 @@ class MapScreenController:
         self.tile_factory = tile_factory
         self.on_enter = on_enter
         self.on_leave = on_leave
+        self.play_music = play_music
+        self.stop_music = stop_music
+        self.play_ambience = play_ambience
+        self.stop_ambience = stop_ambience
         self.on_page_change = on_page_change
         self.interact_keys = interact_keys
         self.interact_reach_tiles = interact_reach_tiles
@@ -120,6 +137,10 @@ class MapScreenController:
         self.switcher.switch_to(key, spawn)
 
     def _on_map_leave(self, key: Hashable, loaded: LoadedMap) -> None:
+        if self.stop_music is not None:
+            self.stop_music()
+        if self.stop_ambience is not None:
+            self.stop_ambience()
         if self.on_leave is not None:
             self.on_leave(loaded.definition)
         if self.session is not None:
@@ -138,19 +159,43 @@ class MapScreenController:
         self.window.transition_to(session.screen_key)
         if previous is not None:
             previous.release()
+        definition = loaded.definition
+        if self.stop_music is not None:
+            self.stop_music()
+        if self.stop_ambience is not None:
+            self.stop_ambience()
+        if self.play_music is not None and definition.music is not None:
+            self.play_music(definition.music)
+        if self.play_ambience is not None and definition.ambience is not None:
+            self.play_ambience(definition.ambience)
         if self.on_enter is not None:
-            self.on_enter(loaded.definition, session)
+            self.on_enter(definition, session)
         if self.announce_map_name and loaded.definition.name:
             speech_manager.output(loaded.definition.name, interrupt=True)
         session.start_audio()
 
     def _build_session(self, loaded: LoadedMap) -> MapPlaySession:
         specs = loaded.definition.objects
+        blocking = [spec for spec in specs if spec.blocking]
         return MapPlaySession(
             window=self.window,
             map2d=loaded.map2d,
             screen_key=f"map:{loaded.definition.key}",
-            terrain_audio_profiles=self.terrain_audio_profiles,
+            terrain_audio_profiles={
+                **self.terrain_audio_profiles,
+                **{
+                    object_tile_name(spec.name): TerrainAudioProfile(
+                        is_passable=False,
+                        movement_sound_file=spec.collision_sound,
+                    )
+                    for spec in blocking
+                },
+            },
+            blocked_side_sounds={
+                object_tile_name(spec.name): spec.side_sounds
+                for spec in blocking
+                if spec.side_sounds
+            },
             object_emitters={
                 **{
                     spec.name: ProximityAudioEmitter(
@@ -158,6 +203,7 @@ class MapScreenController:
                         source_coordinates=spec.coordinates,
                         max_distance_tiles=spec.sound.max_distance_tiles,
                         base_volume=spec.sound.volume,
+                        footprint=spec.footprint,
                     )
                     for spec in specs
                     if spec.sound is not None
@@ -166,7 +212,10 @@ class MapScreenController:
             },
             interactables=[
                 InteractableObject(
-                    spec.name, spec.coordinates, spec.description
+                    spec.name,
+                    spec.coordinates,
+                    spec.description,
+                    spec.footprint,
                 )
                 for spec in specs
             ],

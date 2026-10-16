@@ -19,6 +19,11 @@ from sonartk.orchestration.map_definition import (
     load_map,
 )
 from sonartk.orchestration.map_exits import MapExit
+from sonartk.orchestration.object_types import (
+    ObjectType,
+    object_types_from_dict,
+)
+from sonartk.util import Direction
 
 
 def _document(**kwargs: Any) -> MapDocument:
@@ -108,10 +113,14 @@ def test_objects_resolve_sound_and_read_descriptions() -> None:
 
     assert definition.objects == (
         MapObjectSpec(
-            "boat", (1, 1), ObjectSound("hum.wav", 5), ("One.", "Two.")
+            "boat",
+            (1, 1),
+            ObjectSound("hum.wav", 5),
+            ("One.", "Two."),
+            ((1, 1),),
         ),
-        MapObjectSpec("sign", (2, 2), None, ("Hello.",)),
-        MapObjectSpec("rock", (0, 2), None, ()),
+        MapObjectSpec("sign", (2, 2), None, ("Hello.",), ((2, 2),)),
+        MapObjectSpec("rock", (0, 2), None, (), ((0, 2),)),
     )
 
 
@@ -176,3 +185,127 @@ def test_load_map_honours_a_spawn_override() -> None:
     definition = MapDefinition.from_document(_document())
     loaded = load_map(definition, _tile, spawn=(2, 1))
     assert loaded.map2d.character.coordinates == (2, 1)
+
+
+def _kinds() -> dict[str, ObjectType]:
+    return object_types_from_dict(
+        {
+            "log": {
+                "footprint": [[0, 0], [1, 0]],
+                "collision_sound": "thud",
+                "side_sounds": {"north": "n"},
+                "loop": {"sound": "creak", "max_distance_tiles": 6},
+                "description": ["A log."],
+                "movable": True,
+            },
+            "puddle": {"passable": True},
+        }
+    )
+
+
+def _typed(**kwargs: Any) -> MapDefinition:
+    objects = (DocumentObject("log", (0, 1), type="log", **kwargs),)
+    return MapDefinition.from_document(
+        _document(objects=objects), object_types=_kinds()
+    )
+
+
+def test_a_typed_object_takes_its_type_and_moves_the_footprint() -> None:
+    (spec,) = _typed().objects
+
+    assert spec.footprint == ((0, 1), (1, 1))
+    assert spec.blocking is True
+    assert spec.collision_sound == "thud"
+    assert spec.side_sounds == {Direction.DOWN: "n"}
+    assert spec.sound == ObjectSound("creak", 6)
+    assert spec.description == ("A log.",)
+    assert spec.movable is True
+
+
+def test_an_object_overrides_its_type() -> None:
+    (spec,) = _typed(
+        sound="rumble",
+        max_distance_tiles=2,
+        properties={"description": "Mine."},
+    ).objects
+
+    assert spec.sound == ObjectSound("rumble", 2)
+    assert spec.description == ("Mine.",)
+
+
+def test_an_object_sound_may_use_the_types_range() -> None:
+    (spec,) = _typed(sound="rumble").objects
+
+    assert spec.sound == ObjectSound("rumble", 6)
+
+
+def test_an_untyped_object_covers_only_its_tile() -> None:
+    document = _document(objects=(DocumentObject("sign", (1, 1)),))
+
+    (spec,) = MapDefinition.from_document(document).objects
+
+    assert spec.footprint == ((1, 1),)
+    assert spec.blocking is False
+    assert spec.side_sounds == {}
+
+
+def test_a_passable_type_does_not_block() -> None:
+    document = _document(objects=(DocumentObject("p", (1, 1), type="puddle"),))
+
+    (spec,) = MapDefinition.from_document(
+        document, object_types=_kinds()
+    ).objects
+
+    assert spec.blocking is False
+    assert spec.sound is None
+
+
+def test_an_unknown_type_is_rejected() -> None:
+    document = _document(objects=(DocumentObject("x", (1, 1), type="nope"),))
+
+    with pytest.raises(ValueError, match="unknown type"):
+        MapDefinition.from_document(document)
+
+
+def test_a_footprint_off_the_map_is_rejected() -> None:
+    document = _document(objects=(DocumentObject("log", (2, 1), type="log"),))
+
+    with pytest.raises(ValueError, match="outside the map"):
+        MapDefinition.from_document(document, object_types=_kinds())
+
+
+def test_overlapping_blocking_objects_are_rejected() -> None:
+    document = _document(
+        objects=(
+            DocumentObject("a", (0, 1), type="log"),
+            DocumentObject("b", (1, 1), type="log"),
+        )
+    )
+
+    with pytest.raises(ValueError, match="overlap"):
+        MapDefinition.from_document(document, object_types=_kinds())
+
+
+def test_a_blocking_object_may_not_cover_an_exit() -> None:
+    document = _document(
+        objects=(DocumentObject("log", (0, 1), type="log"),),
+        exits=(DocumentExit((1, 1), "cabin", (0, 0)),),
+    )
+
+    with pytest.raises(ValueError, match="exit"):
+        MapDefinition.from_document(document, object_types=_kinds())
+
+
+def test_load_map_stamps_the_footprint_as_blocked_tiles() -> None:
+    loaded = load_map(_typed(), _tile)
+
+    tiles = [loaded.map2d.get_tile(c) for c in ((0, 1), (1, 1))]
+    assert {tile.name for tile in tiles} == {"object:log"}
+    assert not any(tile.is_passable for tile in tiles)
+    assert loaded.map2d.get_tile((2, 1)).is_passable
+    assert loaded.objects["log"].coordinates == (0, 1)
+
+
+def test_load_map_rejects_a_start_inside_an_object() -> None:
+    with pytest.raises(ValueError, match="inside the object"):
+        load_map(_typed(), _tile, spawn=(1, 1))

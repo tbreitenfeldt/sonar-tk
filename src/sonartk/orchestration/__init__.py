@@ -37,9 +37,31 @@ __all__ = [
     "MapScreenController",
     "FlyoverConfig",
     "FlyoverController",
+    "TerrainProfileError",
+    "ObjectType",
+    "ObjectTypeError",
+    "load_object_types",
+    "object_types_from_dict",
+    "object_tile_name",
+    "load_terrain_profiles",
+    "terrain_profiles_from_dict",
+    "terrain_tile_factory",
 ]
 
 if TYPE_CHECKING:
+    from sonartk.orchestration.object_types import (
+        ObjectType,
+        ObjectTypeError,
+        load_object_types,
+        object_tile_name,
+        object_types_from_dict,
+    )
+    from sonartk.orchestration.terrain_profiles import (
+        TerrainProfileError,
+        load_terrain_profiles,
+        terrain_profiles_from_dict,
+        terrain_tile_factory,
+    )
     from sonartk.orchestration.volume_levels import (
         ChannelVolume,
         VolumeHotkeys,
@@ -100,6 +122,15 @@ if TYPE_CHECKING:
 
 
 _LAZY_MODULES = {
+    "ObjectType": "object_types",
+    "ObjectTypeError": "object_types",
+    "load_object_types": "object_types",
+    "object_types_from_dict": "object_types",
+    "object_tile_name": "object_types",
+    "TerrainProfileError": "terrain_profiles",
+    "load_terrain_profiles": "terrain_profiles",
+    "terrain_profiles_from_dict": "terrain_profiles",
+    "terrain_tile_factory": "terrain_profiles",
     "bind_volume_hotkeys": "audio_controls",
     "MapObjectCollectionSession": "map_object_collection",
     "BuiltMapGridGame": "game_builder",

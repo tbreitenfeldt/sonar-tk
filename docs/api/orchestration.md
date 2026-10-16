@@ -70,3 +70,11 @@
 ## flyovers
 
 ::: sonartk.orchestration.flyovers
+
+## terrain_profiles
+
+::: sonartk.orchestration.terrain_profiles
+
+## object_types
+
+::: sonartk.orchestration.object_types

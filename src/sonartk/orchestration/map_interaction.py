@@ -25,6 +25,7 @@ class InteractableObject:
     name: str
     coordinates: Coordinates
     pages: tuple[str, ...]
+    footprint: tuple[Coordinates, ...] = ()
 
 
 def tile_distance(first: Coordinates, second: Coordinates) -> int:
@@ -67,7 +68,7 @@ class MapInteractionController:
         self.grid = grid
         self.reach_tiles = reach_tiles
         self.state_keys: dict[str, str] = {}
-        self._coordinates: dict[str, Coordinates] = {}
+        self._coordinates: dict[str, tuple[Coordinates, ...]] = {}
 
         states: dict[str, PagedTextState] = {}
         for item in objects:
@@ -84,7 +85,9 @@ class MapInteractionController:
                 state.push_handlers(on_page_change=on_page_change)
             states[state_key] = state
             self.state_keys[item.name] = state_key
-            self._coordinates[item.name] = item.coordinates
+            self._coordinates[item.name] = item.footprint or (
+                item.coordinates,
+            )
         if states:
             WindowStateFlow(window).add_many(states)
         for binding in keys:
@@ -100,11 +103,11 @@ class MapInteractionController:
     def nearest(self) -> Optional[str]:
         """Return the name of the closest object within reach, if any."""
         position = self.grid.current_coordinates
-        reachable = [
-            (tile_distance(position, coordinates), name)
-            for name, coordinates in self._coordinates.items()
-            if tile_distance(position, coordinates) <= self.reach_tiles
-        ]
+        reachable = []
+        for name, tiles in self._coordinates.items():
+            distance = min(tile_distance(position, tile) for tile in tiles)
+            if distance <= self.reach_tiles:
+                reachable.append((distance, name))
         return min(reachable)[1] if reachable else None
 
     def interact(self) -> bool:

@@ -306,3 +306,50 @@ def test_start_offset_is_skipped_when_nothing_was_queued() -> None:
 
     assert controller.update_at((5, 5)) == {"hum": True}
     assert player.seek == 0.0
+
+
+def test_footprint_sound_comes_from_the_nearest_tile() -> None:
+    emitter = ProximityAudioEmitter(
+        sound_path="hum.wav",
+        source_coordinates=(5, 5),
+        max_distance_tiles=10,
+        footprint=((5, 5), (6, 5), (7, 5)),
+    )
+
+    assert emitter.nearest_source((9, 6)) == (7, 5)
+    assert emitter.nearest_source((0, 5)) == (5, 5)
+
+
+def test_emitter_without_a_footprint_uses_its_source() -> None:
+    emitter = ProximityAudioEmitter(
+        sound_path="hum.wav",
+        source_coordinates=(5, 5),
+        max_distance_tiles=10,
+    )
+
+    assert emitter.nearest_source((9, 6)) == (5, 5)
+
+
+def test_footprint_sounds_the_same_from_either_end() -> None:
+    sound_service = _FakeSoundService()
+    player = _FakePlayer()
+    emitter = ProximityAudioEmitter(
+        sound_path="hum.wav",
+        source_coordinates=(5, 5),
+        max_distance_tiles=10,
+        footprint=((5, 5), (6, 5), (7, 5)),
+    )
+    controller = ProximityAudioController(
+        emitters={"hum": emitter},
+        players={"hum": cast(Player, player)},
+        position_resolver=lambda c: (c[0], 0, c[1]),
+        sound_service=sound_service,  # type: ignore[arg-type]
+    )
+
+    controller.update("hum", listener_coordinates=(4, 5), is_active=True)
+    controller.update("hum", listener_coordinates=(8, 5), is_active=True)
+
+    first, second = sound_service.calls
+    assert first["volume"] == second["volume"]
+    assert first["position"] == (5, 0, 5)
+    assert second["position"] == (7, 0, 5)

@@ -111,9 +111,13 @@ class MapSoundNavigationController:
         blocked_tile_sound_name: str = "wall",
         validate_sound_map: bool = False,
         blend_ambient: bool = False,
+        blocked_side_sounds: Optional[
+            Mapping[str, Mapping[Direction, str]]
+        ] = None,
     ) -> None:
         self.map2d = map2d
         self.sound_map = sound_map
+        self.blocked_side_sounds = blocked_side_sounds or {}
         self.player = player
         self.sound_service = sound_service or cast(
             _SoundServiceLike,
@@ -169,6 +173,9 @@ class MapSoundNavigationController:
         validate_sound_map: bool = True,
         ignore_unused_profiles: bool = False,
         blend_ambient: bool = False,
+        blocked_side_sounds: Optional[
+            Mapping[str, Mapping[Direction, str]]
+        ] = None,
     ) -> "MapSoundNavigationController":
         """Build a controller from terrain audio profiles.
 
@@ -180,6 +187,10 @@ class MapSoundNavigationController:
         With ``blend_ambient`` every distinct ambient sound file plays from
         its own nearest tile at once, instead of only the single nearest
         ambient tile.
+
+        ``blocked_side_sounds`` maps a blocked tile name to collision sounds
+        by the direction the player was moving, replacing that tile's usual
+        blocked sound for those directions.
         """
         if ignore_unused_profiles:
             used = {tile.name for tile in map2d.tile_map}
@@ -205,6 +216,7 @@ class MapSoundNavigationController:
             blocked_tile_sound_name=blocked_tile_sound_name,
             validate_sound_map=validate_sound_map,
             blend_ambient=blend_ambient,
+            blocked_side_sounds=blocked_side_sounds,
         )
 
     @staticmethod
@@ -334,10 +346,12 @@ class MapSoundNavigationController:
     ) -> bool:
         """Play a blocked collision sound from the next tile position.
 
-        A blocked tile plays its own mapped sound when it has one. Otherwise,
-        and at the map border, the shared blocked collision sound plays.
+        A blocked tile plays its own mapped sound when it has one, or the
+        sound set for the direction of travel. Otherwise, and at the map
+        border, the shared blocked collision sound plays.
         """
-        sound_file = self.sound_map.get(
+        by_side = self.blocked_side_sounds.get(tile_name or "", {})
+        sound_file = by_side.get(direction) or self.sound_map.get(
             tile_name if tile_name is not None else "",
             self.sound_map[self.blocked_tile_sound_name],
         )

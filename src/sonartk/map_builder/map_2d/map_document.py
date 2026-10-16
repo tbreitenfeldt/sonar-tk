@@ -29,6 +29,8 @@ class DocumentObject:
             it; the game maps ids to its own sound catalog.
         max_distance_tiles: Range of the sound, when one is set.
         properties: Free-form JSON-compatible data for the game.
+        type: Optional object type name. The library never interprets it;
+            ``MapDefinition`` looks it up among the game's object types.
     """
 
     name: str
@@ -36,6 +38,7 @@ class DocumentObject:
     sound: Optional[str] = None
     max_distance_tiles: Optional[int] = None
     properties: dict[str, Any] = field(default_factory=dict)
+    type: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -340,6 +343,8 @@ def _coordinates(value: Any, label: str) -> Coordinates:
 
 def _object_to_dict(item: DocumentObject) -> dict[str, Any]:
     data: dict[str, Any] = {"name": item.name, "at": list(item.coordinates)}
+    if item.type is not None:
+        data["type"] = item.type
     if item.sound is not None:
         data["sound"] = item.sound
     if item.max_distance_tiles is not None:
@@ -356,6 +361,7 @@ def _object_from_dict(data: Mapping[str, Any]) -> DocumentObject:
         sound=data.get("sound"),
         max_distance_tiles=data.get("max_distance_tiles"),
         properties=dict(data.get("properties", {})),
+        type=data.get("type"),
     )
 
 

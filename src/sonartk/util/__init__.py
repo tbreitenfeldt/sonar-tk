@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import TypeAlias
 
-from sonartk.util.catalog import resolve_name
+from sonartk.util.asset_loader import AssetLoader, sound_pool_loader
+from sonartk.util.catalog import AssetCatalog, resolve_name
 from sonartk.util.key_handler import Callback, Key, KeyHandler
 from sonartk.util.state import State
 from sonartk.util.state_machine import EmptyState, StateMachine
@@ -23,6 +24,8 @@ class Direction(Enum):
 
 __all__ = [
     "Callback",
+    "AssetCatalog",
+    "AssetLoader",
     "Coordinates",
     "Direction",
     "EmptyState",
@@ -32,5 +35,6 @@ __all__ = [
     "StateMachine",
     "TextHistory",
     "resolve_name",
+    "sound_pool_loader",
     "speech_manager",
 ]

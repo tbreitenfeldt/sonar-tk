@@ -1016,3 +1016,45 @@ def test_on_navigation_batches_listener_and_footstep_updates() -> None:
     controller.on_navigation(grid, Direction.UP)  # type: ignore[arg-type]
 
     assert events == ["begin", "play", "success", "end"]
+
+
+def _side_sound_controller(
+    sound_service: _FakeSoundService, player: object
+) -> MapSoundNavigationController:
+    return MapSoundNavigationController(
+        map2d=_FakeMap2D(),  # type: ignore[arg-type]
+        sound_map={"wall": "wall.wav", "object:boat": "bonk.wav"},
+        player=player,  # type: ignore[arg-type]
+        sound_service=sound_service,  # type: ignore[arg-type]
+        blocked_side_sounds={"object:boat": {Direction.UP: "south.wav"}},
+    )
+
+
+def test_blocked_tile_plays_the_sound_for_the_direction_of_travel() -> None:
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(2, 2),
+        next_coordinates=(2, 3),
+        next_tile=MapTile("object:boat", is_passable=False),
+    )
+    controller = _side_sound_controller(sound_service, player)
+
+    controller.on_navigation(grid, Direction.UP)  # type: ignore[arg-type]
+
+    assert sound_service.play_calls[0][0] == "south.wav"
+
+
+def test_other_directions_fall_back_to_the_tiles_own_sound() -> None:
+    sound_service = _FakeSoundService()
+    player = object()
+    grid = _FakeGrid(
+        current_coordinates=(2, 2),
+        next_coordinates=(2, 3),
+        next_tile=MapTile("object:boat", is_passable=False),
+    )
+    controller = _side_sound_controller(sound_service, player)
+
+    controller.on_navigation(grid, Direction.LEFT)  # type: ignore[arg-type]
+
+    assert sound_service.play_calls[0][0] == "bonk.wav"

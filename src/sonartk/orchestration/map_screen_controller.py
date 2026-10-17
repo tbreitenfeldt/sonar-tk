@@ -23,6 +23,7 @@ from sonartk.orchestration.map_sound_navigation import TerrainAudioProfile
 from sonartk.orchestration.object_types import object_tile_name
 from sonartk.orchestration.paged_text_state import PagedTextState
 from sonartk.orchestration.proximity_audio import ProximityAudioEmitter
+from sonartk.sound import sound_manager
 from sonartk.ui.window import Window
 from sonartk.util import Coordinates, speech_manager
 
@@ -64,7 +65,8 @@ class MapScreenController:
         announce_map_name: Speak the map's name each time it is entered.
         exit_sound: If given, every exit tile gives off this looping
             sound in sync, so the tiles read as one source and exits can be
-            found by ear.
+            found by ear. Exits that have their own sound (a door) do not
+            give it off.
     """
 
     def __init__(
@@ -262,10 +264,14 @@ class MapScreenController:
                 base_volume=sound.volume,
             )
             for index, map_exit in enumerate(exits)
+            if map_exit.sound is None
         }
 
     def _on_move_success(
         self, coordinates: Coordinates, tile: MapTile
     ) -> None:
         if self.loaded is not None:
+            map_exit = self.loaded.exits.exit_at(coordinates)
+            if map_exit is not None and map_exit.sound is not None:
+                sound_manager.play_sound(map_exit.sound)
             self.switcher.try_exit(self.loaded.exits, coordinates)

@@ -172,9 +172,11 @@ class MapPlaySession:
         """Speak the tile under the player and its coordinates."""
         x, y = self.grid.current_coordinates
         tile = self.map2d.get_tile((x, y))
-        speech_manager.output(
-            f"{self.describe_tile(tile)}, x {x}, y {y}", interrupt=True
-        )
+        height = self.map2d.elevation_at((x, y))
+        spoken = f"{self.describe_tile(tile)}, x {x}, y {y}"
+        if height != 0:
+            spoken += f", height {height}"
+        speech_manager.output(spoken, interrupt=True)
         return True
 
     def speak_map_name(self) -> bool:

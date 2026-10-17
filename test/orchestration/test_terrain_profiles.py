@@ -17,6 +17,23 @@ def test_profiles_default_to_passable_and_silent() -> None:
     assert profiles["grass"].is_passable
     assert profiles["grass"].movement_sound_file is None
     assert profiles["grass"].ambient_sound is None
+    assert profiles["grass"].climb_pitch == 1.0
+    assert profiles["grass"].descend_pitch == 1.0
+
+
+def test_slope_pitches_are_read() -> None:
+    profiles = terrain_profiles_from_dict(
+        {"path": {"climb_pitch": 1.08, "descend_pitch": 1}}
+    )
+
+    assert profiles["path"].climb_pitch == 1.08
+    assert profiles["path"].descend_pitch == 1.0
+
+
+@pytest.mark.parametrize("bad", [0, -1, "high", True, None])
+def test_bad_slope_pitches_are_rejected(bad: object) -> None:
+    with pytest.raises(TerrainProfileError, match="climb_pitch"):
+        terrain_profiles_from_dict({"path": {"climb_pitch": bad}})
 
 
 def test_sounds_go_through_the_resolver() -> None:

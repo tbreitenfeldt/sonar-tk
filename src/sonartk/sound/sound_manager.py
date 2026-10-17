@@ -1019,6 +1019,7 @@ class SoundManager:
         on_complete: Optional[Callable[[Player], None]] = None,
         completion_poll_interval_seconds: float = 0.01,
         retrigger_if_same: bool = True,
+        pitch: float = 1.0,
     ) -> Player:
         """Play a sound effect.
 
@@ -1073,6 +1074,7 @@ class SoundManager:
 
             active_player.loop = loop
             active_player.rolloff = rolloff
+            active_player.pitch = pitch
             active_player.position = active_position
             active_player.volume = self._effective_volume(volume, channel)
             should_trigger = (
@@ -1357,6 +1359,7 @@ def play_sound(
     on_complete: Optional[Callable[[Player], None]] = None,
     completion_poll_interval_seconds: float = 0.01,
     retrigger_if_same: bool = True,
+    pitch: float = 1.0,
 ) -> Player:
     """Play a sound effect."""
     return cast(
@@ -1377,6 +1380,7 @@ def play_sound(
             on_complete=on_complete,
             completion_poll_interval_seconds=completion_poll_interval_seconds,
             retrigger_if_same=retrigger_if_same,
+            pitch=pitch,
         ),
     )
 

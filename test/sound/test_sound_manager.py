@@ -257,8 +257,23 @@ def test_play_sound_loads_from_path_and_uses_pool_player(
     player.remove.assert_called_once()
     player.add.assert_called_once_with(loaded_sound)
     assert player.rolloff == 0.01
+    assert player.pitch == 1.0
     assert player.position == (1, 2, 3)
     player.play.assert_called_once()
+
+
+def test_play_sound_sets_pitch(mocker: MockerFixture) -> None:
+    """Test play_sound passes pitch to the player and resets it each call."""
+    mocker.patch.object(sound_manager, "sound_pool", mocker.MagicMock())
+    mocker.patch.object(sound_manager, "player_pool", mocker.MagicMock())
+    player = mocker.MagicMock()
+    player.queue = []
+
+    sound_manager.play_sound(object(), player=player, pitch=1.25)  # type: ignore[arg-type]
+    assert player.pitch == 1.25
+
+    sound_manager.play_sound(object(), player=player)  # type: ignore[arg-type]
+    assert player.pitch == 1.0
 
 
 def test_play_sound_uses_given_player_and_position_without_loading(

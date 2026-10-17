@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Mapping, Optional, Protocol, cast
 
 from sonartk.map_builder.map_2d import Map2d, MapTile
+from sonartk.map_builder.map_2d.map_2d import MAX_STEP_HEIGHT
 from sonartk.sound import sound_manager
 from sonartk.sound.openal_lite.openal import Player
 from sonartk.ui.element.grid import Grid
@@ -53,6 +54,9 @@ class TerrainAudioProfile:
         is_passable: Whether this terrain type is walkable.
         movement_sound_file: Movement sound for passable tiles.
         ambient_sound: Optional ambient config for this terrain.
+        climb_pitch: Pitch multiplier for the movement sound when stepping
+            up onto this terrain.
+        descend_pitch: Pitch multiplier when stepping down onto it.
         include_in_sound_map_when_blocked: Unused; blocked terrain with a
             ``movement_sound_file`` always contributes to the sound map.
     """
@@ -61,6 +65,8 @@ class TerrainAudioProfile:
     movement_sound_file: Optional[str] = None
     ambient_sound: Optional[AmbientTileSoundConfig] = None
     include_in_sound_map_when_blocked: bool = False
+    climb_pitch: float = 1.0
+    descend_pitch: float = 1.0
 
 
 TerrainAudioProfileMap = dict[str, TerrainAudioProfile]
@@ -114,8 +120,10 @@ class MapSoundNavigationController:
         blocked_side_sounds: Optional[
             Mapping[str, Mapping[Direction, str]]
         ] = None,
+        slope_pitches: Optional[Mapping[str, tuple[float, float]]] = None,
     ) -> None:
         self.map2d = map2d
+        self.slope_pitches = dict(slope_pitches or {})
         self.sound_map = sound_map
         self.blocked_side_sounds = blocked_side_sounds or {}
         self.player = player
@@ -217,6 +225,11 @@ class MapSoundNavigationController:
             validate_sound_map=validate_sound_map,
             blend_ambient=blend_ambient,
             blocked_side_sounds=blocked_side_sounds,
+            slope_pitches={
+                name: (profile.climb_pitch, profile.descend_pitch)
+                for name, profile in terrain_audio_profiles.items()
+                if (profile.climb_pitch, profile.descend_pitch) != (1.0, 1.0)
+            },
         )
 
     @staticmethod
@@ -308,6 +321,13 @@ class MapSoundNavigationController:
         new_position = self.position_resolver(new_coordinates)
 
         if tile.is_passable:
+            here = self.map2d.elevation_at(self.map2d.character.coordinates)
+            there = self.map2d.elevation_at(new_coordinates)
+            if abs(there - here) > MAX_STEP_HEIGHT:
+                self.play_blocked_sound(grid, direction)
+                if self.on_move_blocked is not None:
+                    self.on_move_blocked(direction)
+                return True
             sound_file = self.sound_map[tile.name]
             # Replacement policy may return a displaced character; navigation
             # intentionally ignores that value and only advances the active
@@ -320,6 +340,7 @@ class MapSoundNavigationController:
                 sound_file,
                 position=new_position,
                 player=self.player,
+                **self._pitch_options(tile.name, there - here),
             )
             self.update_ambient_sound(new_coordinates)
             if self.on_move_success is not None:
@@ -330,6 +351,13 @@ class MapSoundNavigationController:
         if self.on_move_blocked is not None:
             self.on_move_blocked(direction)
         return True
+
+    def _pitch_options(self, tile_name: str, rise: int) -> dict[str, Any]:
+        """Pitch for a step that climbs or descends; none for level steps."""
+        if rise == 0 or tile_name not in self.slope_pitches:
+            return {}
+        climb, descend = self.slope_pitches[tile_name]
+        return {"pitch": climb if rise > 0 else descend}
 
     def on_border(self, grid: Grid[MapTile], direction: Direction) -> bool:
         """Play a border collision sound.
@@ -538,6 +566,9 @@ class MapSoundNavigationController:
         )
         return config.volume * relative_gain
 
-    @staticmethod
-    def _default_position(coordinates: Coordinates) -> SoundPosition:
-        return (coordinates[0], coordinates[1], 0)
+    def _default_position(self, coordinates: Coordinates) -> SoundPosition:
+        return (
+            coordinates[0],
+            coordinates[1],
+            self.map2d.elevation_at(coordinates),
+        )

@@ -10,6 +10,9 @@ from sonartk.util import Coordinates
 CharacterCollisionPolicy = Literal["error", "replace"]
 ObjectCollisionPolicy = Literal["error", "replace"]
 
+# The largest height difference a character can climb in a single step.
+MAX_STEP_HEIGHT = 1
+
 
 class Map2d:
     def __init__(
@@ -28,6 +31,7 @@ class Map2d:
         self.width: int = 0
         self.character_collision_policy = character_collision_policy
         self.object_collision_policy = object_collision_policy
+        self._elevations: dict[Coordinates, int] = {}
         self._character_index: dict[Coordinates, Character] = {}
         self._object_index: dict[Coordinates, MapObject] = {}
         self._character_index_view: Mapping[Coordinates, Character] = (
@@ -99,6 +103,38 @@ class Map2d:
         """Apply multiple tile replacements as a single convenience operation."""
         for coordinates, tile in updates.items():
             self.set_tile(coordinates, tile)
+
+    def set_elevations(self, heights: Mapping[Coordinates, int]) -> None:
+        """Set the height of tiles; tiles not listed are at level 0."""
+        self._elevations = dict(heights)
+
+    def elevation_at(self, coordinates: Coordinates) -> int:
+        """Return the height of the tile at coordinates (0 when flat)."""
+        return self._elevations.get(coordinates, 0)
+
+    def steep_steps(self) -> list[tuple[Coordinates, Coordinates]]:
+        """Return pairs of neighbouring passable tiles too far apart in height.
+
+        Characters cannot walk between these, so a map that should be
+        walkable has none. Each pair is listed once, west or south tile first.
+        """
+        steep: list[tuple[Coordinates, Coordinates]] = []
+        for y in range(self.height):
+            for x in range(self.width):
+                here = (x, y)
+                if not self.get_tile(here).is_passable:
+                    continue
+                for there in ((x + 1, y), (x, y + 1)):
+                    if there[0] >= self.width or there[1] >= self.height:
+                        continue
+                    if not self.get_tile(there).is_passable:
+                        continue
+                    if (
+                        abs(self.elevation_at(here) - self.elevation_at(there))
+                        > MAX_STEP_HEIGHT
+                    ):
+                        steep.append((here, there))
+        return steep
 
     def register_character(self, character: Character) -> Optional[Character]:
         """Register a character and return any displaced occupant at that coordinate."""

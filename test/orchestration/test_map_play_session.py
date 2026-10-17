@@ -206,6 +206,20 @@ def test_locate_uses_a_custom_tile_description(
     output.assert_called_once_with("<sand>, x 1, y 1", interrupt=True)
 
 
+def test_locate_speaks_height_only_above_level_zero(
+    sound: dict, mocker: MockerFixture
+) -> None:
+    output = mocker.patch(
+        "sonartk.orchestration.map_play_session.speech_manager.output"
+    )
+    session = _session()
+    session.map2d.set_elevations({(1, 1): 6})
+
+    session.speak_location()
+
+    output.assert_called_once_with("sand, x 1, y 1, height 6", interrupt=True)
+
+
 def test_tile_names_are_spoken_with_spaces() -> None:
     from sonartk.orchestration.map_play_session import describe_tile_name
 

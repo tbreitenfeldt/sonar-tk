@@ -84,6 +84,16 @@ def test_known_terrain_is_accepted() -> None:
     MapDefinition.from_document(_document(), known_terrain=["sand"])
 
 
+def test_an_exit_sound_is_resolved_through_the_sound_resolver() -> None:
+    document = _document(
+        exits=(DocumentExit((1, 1), "cabin", (0, 0), "door"),)
+    )
+    definition = MapDefinition.from_document(
+        document, resolve_sound=lambda name: f"{name}.wav"
+    )
+    assert definition.exits == (MapExit((1, 1), "cabin", (0, 0), "door.wav"),)
+
+
 def test_exits_become_map_exits() -> None:
     document = _document(exits=(DocumentExit((1, 1), "cabin", (0, 0)),))
     definition = MapDefinition.from_document(document)

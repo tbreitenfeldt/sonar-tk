@@ -112,7 +112,16 @@ class MapDefinition:
             for item in document.objects
         )
         exits = tuple(
-            MapExit(item.coordinates, item.target_map, item.target_coordinates)
+            MapExit(
+                item.coordinates,
+                item.target_map,
+                item.target_coordinates,
+                (
+                    None
+                    if item.sound is None
+                    else _resolve(resolve_sound, item.sound)
+                ),
+            )
             for item in document.exits
         )
         _check_footprints(document, specs, exits)

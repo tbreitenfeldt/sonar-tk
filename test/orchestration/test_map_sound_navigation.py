@@ -42,6 +42,10 @@ class _FakeMap2D:
             (2, 2): MapTile("path", is_passable=True),
         }
         self.tile_map = list(self._tiles_by_coordinates.values())
+        self.elevations: dict[Coordinates, int] = {}
+
+    def elevation_at(self, coordinates: Coordinates) -> int:
+        return self.elevations.get(coordinates, 0)
 
     def move_character(
         self, character: _FakeCharacter, new_coordinates: Coordinates
@@ -62,6 +66,7 @@ class _FakeListener:
 class _FakeSoundService:
     def __init__(self) -> None:
         self.listener = _FakeListener()
+        self.pitches: list[float] = []
         self.play_calls: list[
             tuple[str, tuple[int, int, int], object, float, float, bool]
         ] = []
@@ -75,7 +80,9 @@ class _FakeSoundService:
         rolloff: float = 0.01,
         loop: bool = False,
         retrigger_if_same: bool = True,
+        pitch: float = 1.0,
     ) -> None:
+        self.pitches.append(pitch)
         self.play_calls.append(
             (sound_file, position, player, volume, rolloff, loop)
         )

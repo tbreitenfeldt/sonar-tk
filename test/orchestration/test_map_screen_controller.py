@@ -44,13 +44,15 @@ def _tile(name: str) -> MapTile:
     return MapTile(name)
 
 
-def _definitions() -> Mapping[Hashable, MapDefinition]:
+def _definitions(
+    door_sound: str | None = None,
+) -> Mapping[Hashable, MapDefinition]:
     yard = MapDocument(
         key="yard",
         legend={"s": "sand"},
         rows=("sss", "sss", "sss"),
         start=(0, 0),
-        exits=(DocumentExit((1, 0), "cabin", (2, 2)),),
+        exits=(DocumentExit((1, 0), "cabin", (2, 2), door_sound),),
         objects=(
             DocumentObject(
                 "sign",
@@ -75,12 +77,14 @@ def _definitions() -> Mapping[Hashable, MapDefinition]:
     }
 
 
-def _controller(**kwargs: Any) -> MapScreenController:
+def _controller(
+    door_sound: str | None = None, **kwargs: Any
+) -> MapScreenController:
     window = Window(caption="Test")
     window.transition_to = lambda *_: None  # type: ignore[method-assign]
     return MapScreenController(
         window,
-        _definitions(),
+        _definitions(door_sound),
         terrain_audio_profiles=PROFILES,
         tile_factory=_tile,
         **kwargs,
@@ -262,6 +266,42 @@ def test_stepping_on_an_exit_switches_maps() -> None:
     assert controller.switcher.current_key == "cabin"
     assert controller.session is not None
     assert controller.session.map2d.character.coordinates == (2, 2)
+
+
+def test_an_exit_with_a_sound_plays_it_once_when_taken(
+    mocker: MockerFixture,
+) -> None:
+    play = mocker.patch(
+        "sonartk.orchestration.map_screen_controller.sound_manager"
+    )
+    controller = _controller(door_sound="door.wav")
+    controller.enter("yard")
+
+    _step(controller, Direction.RIGHT)
+
+    play.play_sound.assert_called_once_with("door.wav")
+    assert controller.switcher.current_key == "cabin"
+
+
+def test_an_exit_with_its_own_sound_gives_off_no_exit_chime() -> None:
+    controller = _controller(
+        door_sound="door.wav", exit_sound=ObjectSound("chime.wav", 9, 0.5)
+    )
+    controller.enter("yard")
+    assert controller.session is not None
+    assert "exit:0" not in controller.session.objects.emitters
+
+
+def test_a_silent_exit_plays_nothing(mocker: MockerFixture) -> None:
+    play = mocker.patch(
+        "sonartk.orchestration.map_screen_controller.sound_manager"
+    )
+    controller = _controller()
+    controller.enter("yard")
+
+    _step(controller, Direction.RIGHT)
+
+    play.play_sound.assert_not_called()
 
 
 def test_ordinary_steps_stay_on_the_map() -> None:

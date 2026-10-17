@@ -69,6 +69,15 @@ class TestDocument:
         lines = path.read_text(encoding="utf-8").splitlines()
         assert any(line.strip() == '"~~~~",' for line in lines)
 
+    def test_exit_sound_round_trips_and_is_omitted_when_unset(self) -> None:
+        plain = DocumentExit((3, 0), "cave", (0, 5))
+        loud = DocumentExit((3, 0), "cave", (0, 5), "door")
+        for exit_ in (plain, loud):
+            document = make_document(exits=(exit_,))
+            data = document.to_dict()
+            assert ("sound" in data["exits"][0]) is (exit_.sound is not None)
+            assert MapDocument.from_dict(data).exits == (exit_,)
+
     def test_name_round_trips(self) -> None:
         document = MapDocument(
             key="a", legend={"s": "sand"}, rows=("s",), start=(0, 0), name="A"

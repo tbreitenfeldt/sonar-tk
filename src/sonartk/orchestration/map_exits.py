@@ -20,11 +20,14 @@ class MapExit:
         target_map: Key of the destination map registered with a
             ``MapSwitcher``.
         target_coordinates: Where the player appears on the destination map.
+        sound: Sound file played once when the player takes the exit, such as
+            a door opening. None for a silent exit.
     """
 
     coordinates: Coordinates
     target_map: Hashable
     target_coordinates: Coordinates
+    sound: Optional[str] = None
 
 
 class MapExitRegistry:
@@ -43,6 +46,7 @@ class MapExitRegistry:
                     item.coordinates,
                     item.target_map,
                     item.target_coordinates,
+                    item.sound,
                 )
             )
         return registry

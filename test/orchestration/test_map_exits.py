@@ -55,6 +55,16 @@ def test_second_switch_fires_leave_then_enter() -> None:
     assert switcher.current_key == "hut"
 
 
+def test_register_rejects_a_duplicate_key_unless_replacing() -> None:
+    switcher, _ = _build()
+
+    with pytest.raises(ValueError, match="already registered"):
+        switcher.register("beach", lambda spawn: "other")
+
+    switcher.register("beach", lambda spawn: "reloaded", replace=True)
+    assert switcher.switch_to("beach") == "reloaded"
+
+
 def test_failing_loader_keeps_current_map() -> None:
     switcher, events = _build()
 

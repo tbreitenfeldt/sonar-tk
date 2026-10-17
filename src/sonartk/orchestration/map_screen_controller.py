@@ -136,6 +136,16 @@ class MapScreenController:
         """Make a map active and move the window onto its screen."""
         self.switcher.switch_to(key, spawn)
 
+    def replace_definition(
+        self, key: Hashable, definition: MapDefinition
+    ) -> None:
+        """Use a new definition the next time the map is entered.
+
+        This lets a game reload a map file while it runs. The active map is
+        unchanged until it is entered again.
+        """
+        self.switcher.register(key, self._loader(definition), replace=True)
+
     def _on_map_leave(self, key: Hashable, loaded: LoadedMap) -> None:
         if self.stop_music is not None:
             self.stop_music()
@@ -154,6 +164,12 @@ class MapScreenController:
     ) -> None:
         previous = self.session
         self.loaded = loaded
+        if previous is not None and previous.screen_key == (
+            f"map:{loaded.definition.key}"
+        ):
+            # Re-entering the same map: free its keys before adding again.
+            previous.release()
+            previous = None
         session = self.session = self._build_session(loaded)
         self.window.add(session.screen_key, session.screen)
         self.window.transition_to(session.screen_key)

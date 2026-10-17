@@ -105,6 +105,23 @@ def test_entering_adds_the_screen_and_builds_a_session() -> None:
     assert controller.loaded.definition.key == "yard"
 
 
+def test_replacing_a_definition_takes_effect_on_the_next_entry() -> None:
+    controller = _controller()
+    controller.enter("cabin")
+    assert controller.loaded is not None
+    assert controller.loaded.map2d.width == 4
+
+    wider = MapDocument(
+        key="cabin", legend={"s": "sand"}, rows=("sssss",), start=(0, 0)
+    )
+    controller.replace_definition("cabin", MapDefinition.from_document(wider))
+    assert controller.loaded.map2d.width == 4
+
+    controller.enter("cabin")
+    assert controller.loaded is not None
+    assert controller.loaded.map2d.width == 5
+
+
 def test_objects_get_emitters_and_interaction() -> None:
     controller = _controller()
     controller.enter("yard")

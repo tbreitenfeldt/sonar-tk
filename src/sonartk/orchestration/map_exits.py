@@ -98,9 +98,15 @@ class MapSwitcher(EventDispatcher, Generic[TMap]):
         self,
         key: Hashable,
         loader: Callable[[Optional[Coordinates]], TMap],
+        *,
+        replace: bool = False,
     ) -> None:
-        """Register a loader for a map key."""
-        if key in self._loaders:
+        """Register a loader for a map key.
+
+        An existing key raises ``ValueError`` unless ``replace`` is true,
+        which swaps in the new loader, such as after reloading a map file.
+        """
+        if key in self._loaders and not replace:
             raise ValueError(f"A map is already registered for {key!r}.")
         self._loaders[key] = loader
 

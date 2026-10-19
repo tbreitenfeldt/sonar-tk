@@ -2690,6 +2690,7 @@ def _batching_manager(mocker: MockerFixture) -> tuple[SoundManager, Any]:
         player_pool=mocker.Mock(),
         music_player=mocker.Mock(),
     )
+    manager.defer_updates = True
     return manager, al
 
 
@@ -2733,3 +2734,28 @@ def test_batch_updates_is_harmless_without_the_extension(
 
     with manager.batch_updates():
         pass
+
+
+def test_batch_updates_does_not_defer_by_default(
+    mocker: MockerFixture,
+) -> None:
+    manager, al = _batching_manager(mocker)
+    manager.defer_updates = False
+
+    with manager.batch_updates():
+        pass
+
+    al.alDeferUpdatesSOFT.assert_not_called()
+    al.alProcessUpdatesSOFT.assert_not_called()
+
+
+def test_set_defer_updates_changes_the_default_manager(
+    mocker: MockerFixture,
+) -> None:
+    manager = mocker.Mock()
+    mocker.patch.object(sound_manager, "_default_manager", manager)
+    mocker.patch.object(sound_manager, "_sync_default_manager_from_module")
+
+    sound_manager.set_defer_updates(True)
+
+    assert manager.defer_updates is True

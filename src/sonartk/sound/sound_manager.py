@@ -117,6 +117,7 @@ class SoundManager:
         self._last_recovered_player_map: dict[int, Player] = {}
         self._debug_callback: Optional[Callable[[str], None]] = None
         self._batch_depth: int = 0
+        self.defer_updates: bool = False
         self._recovery_controller = OutputDeviceRecoveryController(self)
 
     def set_debug_callback(
@@ -974,11 +975,15 @@ class SoundManager:
 
         This uses AL_SOFT_deferred_updates. It deliberately avoids
         ``alcSuspendContext``, which in OpenAL Soft stops the mixer and so
-        makes all audio skip each time it is used. Where the extension is
-        missing the changes are simply applied one by one.
+        makes all audio skip each time it is used. Deferring is off by
+        default (``defer_updates``) because it can still pop with several
+        looping sources; changes are then applied one by one, as they are
+        where the extension is missing.
         """
         defer = getattr(al, "alDeferUpdatesSOFT", None)
         process = getattr(al, "alProcessUpdatesSOFT", None)
+        if not self.defer_updates:
+            defer = process = None
         if self._batch_depth == 0 and defer is not None:
             defer()
         self._batch_depth += 1
@@ -1389,6 +1394,12 @@ def play_sound(
             pitch=pitch,
         ),
     )
+
+
+def set_defer_updates(enabled: bool) -> None:
+    """Turn deferred batching of listener and source changes on or off."""
+    _sync_default_manager_from_module()
+    _default_manager.defer_updates = enabled
 
 
 def batch_updates() -> AbstractContextManager[None]:

@@ -2682,42 +2682,54 @@ def test_stereo_sound_without_position_does_not_warn(
     assert not caplog.records
 
 
-def test_batch_updates_suspends_and_processes_once_when_nested(
-    mocker: MockerFixture,
-) -> None:
-    alc = mocker.patch.object(sound_manager, "alc")
+def _batching_manager(mocker: MockerFixture) -> tuple[SoundManager, Any]:
+    al = mocker.patch.object(sound_manager, "al")
     manager = SoundManager(
         listener=mocker.Mock(),
         sound_pool=mocker.Mock(),
         player_pool=mocker.Mock(),
         music_player=mocker.Mock(),
     )
+    return manager, al
+
+
+def test_batch_updates_defers_and_processes_once_when_nested(
+    mocker: MockerFixture,
+) -> None:
+    manager, al = _batching_manager(mocker)
+    alc = mocker.patch.object(sound_manager, "alc")
 
     with manager.batch_updates():
         with manager.batch_updates():
             pass
-        alc.alcProcessContext.assert_not_called()
+        al.alProcessUpdatesSOFT.assert_not_called()
 
-    alc.alcSuspendContext.assert_called_once_with(manager.listener.context)
-    alc.alcProcessContext.assert_called_once_with(manager.listener.context)
+    al.alDeferUpdatesSOFT.assert_called_once_with()
+    al.alProcessUpdatesSOFT.assert_called_once_with()
+    alc.alcSuspendContext.assert_not_called()
 
 
-def test_batch_updates_processes_context_when_body_raises(
+def test_batch_updates_processes_when_body_raises(
     mocker: MockerFixture,
 ) -> None:
-    alc = mocker.patch.object(sound_manager, "alc")
-    manager = SoundManager(
-        listener=mocker.Mock(),
-        sound_pool=mocker.Mock(),
-        player_pool=mocker.Mock(),
-        music_player=mocker.Mock(),
-    )
+    manager, al = _batching_manager(mocker)
 
     with pytest.raises(RuntimeError):
         with manager.batch_updates():
             raise RuntimeError("boom")
 
-    alc.alcProcessContext.assert_called_once_with(manager.listener.context)
+    al.alProcessUpdatesSOFT.assert_called_once_with()
     with manager.batch_updates():
         pass
-    assert alc.alcSuspendContext.call_count == 2
+    assert al.alDeferUpdatesSOFT.call_count == 2
+
+
+def test_batch_updates_is_harmless_without_the_extension(
+    mocker: MockerFixture,
+) -> None:
+    manager, al = _batching_manager(mocker)
+    al.alDeferUpdatesSOFT = None
+    al.alProcessUpdatesSOFT = None
+
+    with manager.batch_updates():
+        pass

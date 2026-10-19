@@ -971,17 +971,23 @@ class SoundManager:
         as a pop or crackle on one side. Changes made inside this block are
         deferred and committed together when the outermost block ends.
         Blocks may be nested.
+
+        This uses AL_SOFT_deferred_updates. It deliberately avoids
+        ``alcSuspendContext``, which in OpenAL Soft stops the mixer and so
+        makes all audio skip each time it is used. Where the extension is
+        missing the changes are simply applied one by one.
         """
-        context = self.listener.context
-        if self._batch_depth == 0:
-            alc.alcSuspendContext(context)
+        defer = getattr(al, "alDeferUpdatesSOFT", None)
+        process = getattr(al, "alProcessUpdatesSOFT", None)
+        if self._batch_depth == 0 and defer is not None:
+            defer()
         self._batch_depth += 1
         try:
             yield
         finally:
             self._batch_depth -= 1
-            if self._batch_depth == 0:
-                alc.alcProcessContext(context)
+            if self._batch_depth == 0 and process is not None:
+                process()
 
     def preload_sounds(
         self, paths: Iterable[str]

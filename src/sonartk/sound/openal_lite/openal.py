@@ -239,6 +239,15 @@ class lib_openal(object):
         self.alIsExtensionPresent.restype = self.ALboolean
         self.alIsExtensionPresent.argtypes = [POINTER(self.ALchar)]
 
+        # AL_SOFT_deferred_updates: hold changes, then apply them together
+        # without pausing the mixer. Absent from some OpenAL builds.
+        for name in ("alDeferUpdatesSOFT", "alProcessUpdatesSOFT"):
+            function = getattr(self._lib, name, None)
+            if function is not None:
+                function.restype = None
+                function.argtypes = []
+            setattr(self, name, function)
+
         # /usr/include/AL/al.h:429
         self.alGetProcAddress = self._lib.alGetProcAddress
         self.alGetProcAddress.restype = POINTER(c_void)

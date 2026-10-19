@@ -227,6 +227,29 @@ def test_on_navigation_handles_none_tile_as_border() -> None:
     assert sound_service.play_calls == []
 
 
+def test_the_player_turns_to_face_a_border_and_a_wall() -> None:
+    for blocked_tile in (MapTile("wall", is_passable=False), None):
+        map2d = _FakeMap2D()
+        grid = _FakeGrid(
+            current_coordinates=(4, 4),
+            next_coordinates=(4, 5),
+            next_tile=blocked_tile,
+        )
+        controller = MapSoundNavigationController(
+            map2d=map2d,  # type: ignore[arg-type]
+            sound_map={"wall": "wall.wav"},
+            player=object(),  # type: ignore[arg-type]
+            sound_service=_FakeSoundService(),  # type: ignore[arg-type]
+        )
+
+        controller.on_navigation(grid, Direction.RIGHT)  # type: ignore[arg-type]
+        assert map2d.character.directional_orientation is Direction.RIGHT
+
+        map2d.character.directional_orientation = Direction.UP
+        controller.on_border(grid, Direction.LEFT)  # type: ignore[arg-type]
+        assert map2d.character.directional_orientation is Direction.LEFT
+
+
 def test_on_border_raises_when_wall_sound_is_missing() -> None:
     map2d = _FakeMap2D()
     sound_service = _FakeSoundService()
@@ -1025,43 +1048,101 @@ def test_on_navigation_batches_listener_and_footstep_updates() -> None:
     assert events == ["begin", "play", "success", "end"]
 
 
-def _side_sound_controller(
-    sound_service: _FakeSoundService, player: object
-) -> MapSoundNavigationController:
-    return MapSoundNavigationController(
-        map2d=_FakeMap2D(),  # type: ignore[arg-type]
-        sound_map={"wall": "wall.wav", "object:boat": "bonk.wav"},
-        player=player,  # type: ignore[arg-type]
+class _GlideAmbientPlayer(_FakeAmbientPlayer):
+    def __init__(self) -> None:
+        super().__init__()
+        self.is_playing = False
+        self.position: tuple[float, float, float] = (0, 0, 0)
+
+    def playing(self) -> bool:
+        return self.is_playing
+
+
+def _glide_ambient_controller(
+    mocker: Any, *, blend: bool = False
+) -> tuple[
+    MapSoundNavigationController, _GlideAmbientPlayer, _FakeSoundService
+]:
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    map2d = _FakeMap2D()
+    map2d._tiles_by_coordinates[(0, 2)] = MapTile("river", is_passable=False)
+    sound_service = _FakeSoundService()
+    ambient_player = _GlideAmbientPlayer()
+    controller = MapSoundNavigationController(
+        map2d=map2d,  # type: ignore[arg-type]
+        sound_map={"path": "step.wav", "wall": "wall.wav"},
+        player=object(),  # type: ignore[arg-type]
         sound_service=sound_service,  # type: ignore[arg-type]
-        blocked_side_sounds={"object:boat": {Direction.UP: "south.wav"}},
+        ambient_sound_map={
+            "river": AmbientTileSoundConfig(
+                sound_file="river_loop.wav", max_distance_tiles=20
+            )
+        },
+        ambient_player=ambient_player,  # type: ignore[arg-type]
+        blend_ambient=blend,
+        glide_seconds=0.1,
     )
+    controller._glider.listener_position = lambda: (0, 0, 0)
+    return controller, ambient_player, sound_service
 
 
-def test_blocked_tile_plays_the_sound_for_the_direction_of_travel() -> None:
-    sound_service = _FakeSoundService()
-    player = object()
-    grid = _FakeGrid(
-        current_coordinates=(2, 2),
-        next_coordinates=(2, 3),
-        next_tile=MapTile("object:boat", is_passable=False),
+def test_a_playing_ambient_starts_where_it_was_heard(mocker: Any) -> None:
+    controller, player, sound_service = _glide_ambient_controller(mocker)
+    controller.update_ambient_sound((0, 0))
+    player.is_playing = True
+    controller._glider.listener_position = lambda: (0, 1, 0)
+
+    controller.update_ambient_sound((0, 1))
+
+    assert sound_service.play_calls[-1][1] == (0, 3, 0)
+    assert controller._glider.active
+
+
+def test_a_blended_ambient_glides_too(mocker: Any) -> None:
+    controller, _, sound_service = _glide_ambient_controller(
+        mocker, blend=True
     )
-    controller = _side_sound_controller(sound_service, player)
+    controller.update_ambient_sound((0, 0))
+    controller._blend_players["river_loop.wav"].is_playing = True  # type: ignore[attr-defined]
+    controller._glider.listener_position = lambda: (0, 1, 0)
 
-    controller.on_navigation(grid, Direction.UP)  # type: ignore[arg-type]
+    controller.update_ambient_sound((0, 1))
 
-    assert sound_service.play_calls[0][0] == "south.wav"
+    assert sound_service.play_calls[-1][1] == (0, 3, 0)
 
 
-def test_other_directions_fall_back_to_the_tiles_own_sound() -> None:
-    sound_service = _FakeSoundService()
-    player = object()
-    grid = _FakeGrid(
-        current_coordinates=(2, 2),
-        next_coordinates=(2, 3),
-        next_tile=MapTile("object:boat", is_passable=False),
-    )
-    controller = _side_sound_controller(sound_service, player)
+def test_stopping_the_ambient_ends_its_glide(mocker: Any) -> None:
+    controller, player, _ = _glide_ambient_controller(mocker)
+    controller.update_ambient_sound((0, 0))
+    player.is_playing = True
+    controller._glider.listener_position = lambda: (0, 1, 0)
+    controller.update_ambient_sound((0, 1))
 
-    controller.on_navigation(grid, Direction.LEFT)  # type: ignore[arg-type]
+    controller.stop_ambient_sound()
 
-    assert sound_service.play_calls[0][0] == "bonk.wav"
+    assert not controller._glider.active
+
+
+def test_out_of_range_ambient_ends_its_glide(mocker: Any) -> None:
+    controller, player, _ = _glide_ambient_controller(mocker)
+    controller.update_ambient_sound((0, 0))
+    player.is_playing = True
+    controller._glider.listener_position = lambda: (0, 1, 0)
+    controller.update_ambient_sound((0, 1))
+
+    controller.update_ambient_sound((90, 90))
+
+    assert not controller._glider.active
+
+
+def test_blended_ambient_leaving_range_ends_its_glide(mocker: Any) -> None:
+    controller, _, _ = _glide_ambient_controller(mocker, blend=True)
+    controller.update_ambient_sound((0, 0))
+    controller._blend_players["river_loop.wav"].is_playing = True  # type: ignore[attr-defined]
+    controller._glider.listener_position = lambda: (0, 1, 0)
+    controller.update_ambient_sound((0, 1))
+
+    controller.update_ambient_sound((90, 90))
+
+    assert not controller._glider.active

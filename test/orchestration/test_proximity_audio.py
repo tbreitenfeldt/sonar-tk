@@ -353,3 +353,133 @@ def test_footprint_sounds_the_same_from_either_end() -> None:
     assert first["volume"] == second["volume"]
     assert first["position"] == (5, 0, 5)
     assert second["position"] == (7, 0, 5)
+
+
+class _GlidePlayer(_FakePlayer):
+    def __init__(self) -> None:
+        super().__init__()
+        self.position: tuple[float, float, float] = (0, 0, 0)
+
+
+def _glide_controller(
+    listener: list[tuple[int, int, int]],
+) -> tuple[ProximityAudioController, _GlidePlayer, _FakeSoundService]:
+    player = _GlidePlayer()
+    player.is_playing = True
+    service = _FakeSoundService()
+    controller = ProximityAudioController(
+        emitters={
+            "boat": ProximityAudioEmitter(
+                sound_path="boat.wav",
+                source_coordinates=(5, 0),
+                max_distance_tiles=10,
+            )
+        },
+        players={"boat": cast(Player, player)},
+        position_resolver=lambda c: (c[0], c[1], 0),
+        sound_service=service,  # type: ignore[arg-type]
+        glide_seconds=0.1,
+        listener_position=lambda: listener[0],
+    )
+    return controller, player, service
+
+
+def test_a_playing_sound_starts_from_where_it_was_heard(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 0, 0)]
+    controller, _, service = _glide_controller(listener)
+    controller.update_at((0, 0))
+
+    listener[0] = (0, 1, 0)
+    controller.update_at((0, 1))
+
+    assert service.calls[-1]["position"] == (5, 1, 0)
+
+
+def test_the_sound_glides_to_its_new_position(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 0, 0)]
+    controller, player, _ = _glide_controller(listener)
+    controller.update_at((0, 0))
+    listener[0] = (0, 1, 0)
+    controller.update_at((0, 1))
+
+    controller._glider._tick(0.05)
+    assert player.position == (5, 1 - 0.5, 0)
+
+    controller._glider._tick(0.05)
+    assert player.position == (5, 0, 0)
+
+
+def test_gliding_stops_once_the_sound_arrives(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    unschedule = mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 0, 0)]
+    controller, _, _ = _glide_controller(listener)
+    controller.update_at((0, 0))
+    listener[0] = (0, 1, 0)
+    controller.update_at((0, 1))
+    unschedule.reset_mock()
+
+    controller._glider._tick(0.2)
+
+    unschedule.assert_called_once()
+    assert controller._glider._glides == {}
+
+
+def test_a_sound_that_stopped_is_dropped_from_the_glide(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 0, 0)]
+    controller, player, _ = _glide_controller(listener)
+    controller.update_at((0, 0))
+    listener[0] = (0, 1, 0)
+    controller.update_at((0, 1))
+
+    player.is_playing = False
+    controller._glider._tick(0.02)
+
+    assert controller._glider._glides == {}
+
+
+def test_a_newly_started_sound_does_not_glide(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 3, 0)]
+    controller, player, service = _glide_controller(listener)
+    player.is_playing = False
+
+    controller.update_at((0, 3))
+
+    assert service.calls[-1]["position"] == (5, 0, 0)
+    assert controller._glider._glides == {}
+
+
+def test_leaving_range_cancels_the_glide(mocker) -> None:  # type: ignore[no-untyped-def]
+    mocker.patch("pyglet.clock.schedule_interval")
+    mocker.patch("pyglet.clock.unschedule")
+    listener = [(0, 0, 0)]
+    controller, _, _ = _glide_controller(listener)
+    controller.update_at((0, 0))
+    listener[0] = (0, 1, 0)
+    controller.update_at((0, 1))
+
+    controller.update_many(
+        listener_coordinates=(0, 1), is_active_by_key={"boat": False}
+    )
+
+    assert controller._glider._glides == {}
+    assert controller._glider._offsets == {}
+
+
+def test_without_a_glide_the_sound_jumps_straight_there() -> None:
+    sound_service = _FakeSoundService()
+    controller = _build_controller(
+        sound_service=sound_service, player=_FakePlayer()
+    )
+
+    controller.update_at((5, 3))
+
+    assert sound_service.calls[-1]["position"] == (5, 0, 5)

@@ -6,6 +6,7 @@ import pytest
 from pyglet.window import key
 from pytest_mock import MockerFixture
 
+from sonartk.util import Direction
 from sonartk.orchestration.map_interaction import (
     DEFAULT_INTERACT_KEYS,
     InteractableObject,
@@ -182,3 +183,53 @@ def test_a_large_object_can_be_examined_from_any_footprint_tile() -> None:
 
     grid.current_coordinates = (14, 10)
     assert controller.nearest() is None
+
+
+@pytest.mark.parametrize(
+    "facing, position",
+    [
+        (Direction.UP, (10, 9)),
+        (Direction.DOWN, (10, 11)),
+        (Direction.RIGHT, (9, 10)),
+        (Direction.LEFT, (11, 10)),
+        (Direction.DIAGONAL_UPPER_RIGHT, (9, 9)),
+    ],
+)
+def test_facing_the_object_lets_you_examine_it(
+    facing: Direction, position: tuple[int, int]
+) -> None:
+    controller, window, _ = _controller(position, facing=lambda: facing)
+
+    assert controller.interact() is True
+    assert window.transitions == ["map:beach:describe:boat"]
+
+
+def test_next_to_an_object_but_facing_away_does_nothing() -> None:
+    controller, window, _ = _controller((10, 9), facing=lambda: Direction.DOWN)
+
+    assert controller.nearest() is None
+    assert controller.interact() is True
+    assert window.transitions == []
+
+
+def test_facing_reaches_along_the_line_up_to_the_reach() -> None:
+    near, _, _ = _controller(
+        (10, 8), facing=lambda: Direction.UP, reach_tiles=2
+    )
+    far, _, _ = _controller(
+        (10, 7), facing=lambda: Direction.UP, reach_tiles=2
+    )
+
+    assert near.nearest() == "boat"
+    assert far.nearest() is None
+
+
+def test_facing_a_large_object_uses_any_footprint_tile() -> None:
+    wide = InteractableObject(
+        "cottage", (5, 5), ("A cottage.",), ((5, 5), (6, 5), (7, 5))
+    )
+    controller, _, _ = _controller(
+        (7, 4), (wide,), facing=lambda: Direction.UP
+    )
+
+    assert controller.nearest() == "cottage"

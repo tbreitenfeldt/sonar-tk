@@ -6,6 +6,7 @@ from typing import Any, Callable, Mapping, Optional, Protocol, cast
 
 from sonartk.map_builder.map_2d import Map2d, MapTile
 from sonartk.map_builder.map_2d.map_2d import MAX_STEP_HEIGHT
+from sonartk.orchestration.position_glide import PositionGlider
 from sonartk.sound import sound_manager
 from sonartk.sound.openal_lite.openal import Player
 from sonartk.ui.element.grid import Grid
@@ -121,8 +122,10 @@ class MapSoundNavigationController:
             Mapping[str, Mapping[Direction, str]]
         ] = None,
         slope_pitches: Optional[Mapping[str, tuple[float, float]]] = None,
+        glide_seconds: float = 0.0,
     ) -> None:
         self.map2d = map2d
+        self._glider = PositionGlider(glide_seconds)
         self.slope_pitches = dict(slope_pitches or {})
         self.sound_map = sound_map
         self.blocked_side_sounds = blocked_side_sounds or {}
@@ -184,6 +187,7 @@ class MapSoundNavigationController:
         blocked_side_sounds: Optional[
             Mapping[str, Mapping[Direction, str]]
         ] = None,
+        glide_seconds: float = 0.0,
     ) -> "MapSoundNavigationController":
         """Build a controller from terrain audio profiles.
 
@@ -191,6 +195,10 @@ class MapSoundNavigationController:
         terrain than ``map2d`` uses: profiles for tile names absent from the
         map are skipped, so one shared terrain table serves every map. The
         blocked-tile profile is always kept.
+
+        With ``glide_seconds`` above zero an ambient sound that keeps
+        playing glides to its new place after each step instead of jumping,
+        which avoids a pop when the nearest ambient tile changes beside you.
 
         With ``blend_ambient`` every distinct ambient sound file plays from
         its own nearest tile at once, instead of only the single nearest
@@ -224,6 +232,7 @@ class MapSoundNavigationController:
             blocked_tile_sound_name=blocked_tile_sound_name,
             validate_sound_map=validate_sound_map,
             blend_ambient=blend_ambient,
+            glide_seconds=glide_seconds,
             blocked_side_sounds=blocked_side_sounds,
             slope_pitches={
                 name: (profile.climb_pitch, profile.descend_pitch)
@@ -363,7 +372,9 @@ class MapSoundNavigationController:
         """Play a border collision sound.
 
         Returns True if a blocked collision mapping exists and was played.
+        The player turns to face the border either way.
         """
+        self.map2d.character.directional_orientation = direction
         return self.play_blocked_sound(grid, direction)
 
     def play_blocked_sound(
@@ -412,6 +423,7 @@ class MapSoundNavigationController:
             return self._update_blended_ambient(origin)
         nearest = self._find_nearest_ambient_emitter(origin)
         if nearest is None:
+            self._glider.forget(None)
             self.ambient_player.stop()
             self.ambient_player.remove()
             return False
@@ -420,9 +432,18 @@ class MapSoundNavigationController:
         channel_options: dict[str, str] = (
             {} if config.channel is None else {"channel": config.channel}
         )
+        was_playing = (
+            self._glider.glide_seconds > 0 and self.ambient_player.playing()
+        )
+        position = self._glider.begin(
+            None,
+            self.ambient_player,
+            self.position_resolver(emitter_coordinates),
+            was_playing,
+        )
         self.sound_service.play_sound(
             config.sound_file,
-            position=self.position_resolver(emitter_coordinates),
+            position=position,
             player=self.ambient_player,
             volume=self._effective_ambient_volume(distance, config),
             rolloff=config.rolloff,
@@ -437,6 +458,9 @@ class MapSoundNavigationController:
         players = [*self._blend_players.values()]
         if self.ambient_player is not None:
             players.append(self.ambient_player)
+        self._glider.forget(None)
+        for sound_file in self._blend_players:
+            self._glider.forget(sound_file)
         for player in players:
             player.stop()
             player.remove()
@@ -462,6 +486,7 @@ class MapSoundNavigationController:
 
         for sound_file in list(self._blend_players):
             if sound_file not in nearest_by_sound:
+                self._glider.forget(sound_file)
                 self._blend_players[sound_file].stop()
                 self._blend_players[sound_file].remove()
         for sound_file, (coordinates, config, distance) in sorted(
@@ -470,10 +495,17 @@ class MapSoundNavigationController:
             channel_options: dict[str, str] = (
                 {} if config.channel is None else {"channel": config.channel}
             )
+            blend_player = self._blend_player(sound_file)
+            position = self._glider.begin(
+                sound_file,
+                blend_player,
+                self.position_resolver(coordinates),
+                self._glider.glide_seconds > 0 and blend_player.playing(),
+            )
             self.sound_service.play_sound(
                 sound_file,
-                position=self.position_resolver(coordinates),
-                player=self._blend_player(sound_file),
+                position=position,
+                player=blend_player,
                 volume=self._effective_ambient_volume(distance, config),
                 rolloff=config.rolloff,
                 loop=config.loop,

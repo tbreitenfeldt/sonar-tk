@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import random
+from contextlib import nullcontext
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol, cast
+from typing import Any, ContextManager, Optional, Protocol, cast
 
 import pyglet.clock
 from sonartk.sound import sound_manager
@@ -135,6 +136,17 @@ class FlyoverController:
         self.running = True
         self._schedule_next()
 
+    def fly_now(self) -> None:
+        """Send a flyover right away, replacing any waiting or current one.
+
+        Handy for testing. Does nothing unless the controller is running.
+        """
+        if not self.running:
+            return
+        pyglet.clock.unschedule(self._spawn)
+        self._finish(stop_calls=True)
+        self._spawn()
+
     def stop(self) -> None:
         """Cancel the next flyover and silence the current one."""
         self.running = False
@@ -187,7 +199,34 @@ class FlyoverController:
             z + self.config.height,
         )
 
+    def follow_listener(self) -> None:
+        """Move the flyer to match the listener's current position.
+
+        Call this right after the listener moves, ideally inside the same
+        ``batch_updates`` block, so the flyer never lags a step behind. A
+        lag of even one tile is heard as a pop on one side.
+        """
+        if not self.flying:
+            return
+        with self._batched():
+            self._reposition(self._position())
+
+    def _batched(self) -> ContextManager[Any]:
+        batch = getattr(self.sound_service, "batch_updates", None)
+        return batch() if batch is not None else nullcontext()
+
+    def _reposition(self, position: Position) -> None:
+        self._call_players = [p for p in self._call_players if p.playing()]
+        for player in self._call_players:
+            player.position = position
+        if self._moving_player is not None:
+            self._moving_player.position = position
+
     def _tick(self, dt: float) -> None:
+        with self._batched():
+            self._advance(dt)
+
+    def _advance(self, dt: float) -> None:
         self._elapsed += dt
         position = self._position()
         while (
@@ -203,11 +242,7 @@ class FlyoverController:
                     rolloff=self.config.rolloff,
                 )
             )
-        self._call_players = [p for p in self._call_players if p.playing()]
-        for player in self._call_players:
-            player.position = position
-        if self._moving_player is not None:
-            self._moving_player.position = position
+        self._reposition(position)
         if self._elapsed >= self._duration:
             self._finish(stop_calls=False)
             if self.running:

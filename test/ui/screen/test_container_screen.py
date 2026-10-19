@@ -58,6 +58,38 @@ def nested_container_screen(parent_screen: Screen) -> ContainerScreen:
     return ContainerScreen(parent=parent_screen)
 
 
+def test_reentering_a_screen_does_not_exit_its_child_twice(
+    window: Window, container_screen: ContainerScreen
+) -> None:
+    """A second setup must push as many handlers as exit popped."""
+    stack: list[object] = []
+
+    def push(*args: Any, **kwargs: Any) -> None:
+        stack.append(args)
+
+    def pop(*args: Any, **kwargs: Any) -> None:
+        stack.pop()
+
+    window.push_window_handlers = push  # type: ignore[method-assign]
+    window.pop_window_handlers = pop  # type: ignore[method-assign]
+
+    class Child(MockState):
+        def setup(self, change_state: Any, *args: Any, **kwargs: Any) -> bool:
+            push()
+            return True
+
+        def exit(self) -> bool:
+            pop()
+            return True
+
+    container_screen.state_machine.add("child", Child())
+    for _ in range(3):
+        container_screen.setup(lambda *a, **k: None)
+        assert len(stack) == 2
+        container_screen.exit()
+        assert stack == []
+
+
 def test_container_screen_initialization_with_window_parent(
     window: Window, container_screen: ContainerScreen
 ) -> None:

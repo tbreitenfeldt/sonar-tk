@@ -28,7 +28,8 @@ class ChannelLoop:
 
     Starting a loop replaces the previous one. The loop keeps its own gain,
     so changing the channel volume while it plays rescales it correctly
-    instead of overwriting the gain.
+    instead of overwriting the gain. The loop is relative to the listener, so
+    walking never changes its distance or gain.
     """
 
     def __init__(
@@ -56,6 +57,8 @@ class ChannelLoop:
         self.player = self.sound_service.play_sound(
             sound, volume=gain, loop=True, channel=self.channel
         )
+        self.player.source_relative = True
+        self.player.position = (0, 0, 0)
         return self.player
 
     def stop(self) -> None:

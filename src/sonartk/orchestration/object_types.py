@@ -26,6 +26,7 @@ _TYPE_OPTIONS = {
     "loop",
     "description",
     "movable",
+    "category",
 }
 _LOOP_OPTIONS = {"sound", "max_distance_tiles", "volume"}
 
@@ -60,6 +61,8 @@ class ObjectType:
         loop_volume: Volume of the loop sound.
         description: Pages spoken when the player examines the object.
         movable: Whether the object may be moved. Stored for games to use.
+        category: Free-form label such as "building", for games to group
+            objects by. Stored for games to use.
     """
 
     name: str
@@ -72,6 +75,7 @@ class ObjectType:
     loop_volume: float = 1.0
     description: tuple[str, ...] = ()
     movable: bool = False
+    category: Optional[str] = None
 
 
 def object_types_from_dict(
@@ -85,7 +89,8 @@ def object_types_from_dict(
     ``collision_sound``, ``side_sounds`` (sound names by ``north``,
     ``south``, ``east`` or ``west``, the side of the object that was hit),
     ``loop`` (``sound``, ``max_distance_tiles`` and ``volume``),
-    ``description`` (text or a list of pages) and ``movable``.
+    ``description`` (text or a list of pages), ``movable`` and
+    ``category`` (a label for games to group by).
 
     Args:
         data: Type name to type data.
@@ -143,7 +148,14 @@ def _object_type(name: str, entry: Any, resolve: SoundResolver) -> ObjectType:
         loop_volume=loop_volume,
         description=_pages(name, entry.get("description", [])),
         movable=bool(entry.get("movable", False)),
+        category=_category(name, entry.get("category")),
     )
+
+
+def _category(name: str, value: Any) -> Optional[str]:
+    if value is not None and not isinstance(value, str):
+        raise ObjectTypeError(f"Object type {name!r} category must be text.")
+    return value
 
 
 def _footprint(name: str, value: Any) -> tuple[Coordinates, ...]:

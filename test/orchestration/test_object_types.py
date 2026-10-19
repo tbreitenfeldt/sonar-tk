@@ -27,6 +27,7 @@ def test_defaults_describe_a_single_blocking_tile() -> None:
     assert rock.loop_sound is None
     assert rock.description == ()
     assert rock.movable is False
+    assert rock.category is None
 
 
 def test_every_option_is_read_and_sounds_are_resolved() -> None:
@@ -44,6 +45,7 @@ def test_every_option_is_read_and_sounds_are_resolved() -> None:
                 },
                 "description": "A log.",
                 "movable": True,
+                "category": "wreck",
             }
         },
         resolve_sound=lambda name: f"audio/{name}.wav",
@@ -62,6 +64,7 @@ def test_every_option_is_read_and_sounds_are_resolved() -> None:
     assert log.loop_volume == 0.5
     assert log.description == ("A log.",)
     assert log.movable is True
+    assert log.category == "wreck"
 
 
 @pytest.mark.parametrize(
@@ -94,6 +97,7 @@ def test_a_side_is_hit_by_moving_toward_it(side: str, move: Direction) -> None:
         {"loop": {"max_distance_tiles": 3}},
         {"loop": {"sound": "x"}},
         {"loop": {"sound": "x", "max_distance_tiles": 3, "pitch": 1}},
+        {"category": 4},
         {"description": 4},
         {"description": [1]},
     ],

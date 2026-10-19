@@ -6,6 +6,7 @@ from pyglet.window import key
 
 from sonartk.ui.screen.screen import Screen
 from sonartk.ui.window import Window
+from sonartk.util.state_machine import EmptyState
 
 
 class ContainerScreen(Screen):
@@ -49,6 +50,8 @@ class ContainerScreen(Screen):
         """Exit active child state and detach this screen key handlers."""
         if not self.state_machine.is_empty():
             self.state_machine.exit()
+            # The child has left, so a later setup must not exit it again.
+            self.state_machine.current_state = EmptyState()
 
         self.key_handler.deactivate(reset_state=True)
         self.get_window().pop_window_handlers()

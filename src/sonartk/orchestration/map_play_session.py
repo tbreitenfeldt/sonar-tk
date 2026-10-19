@@ -66,6 +66,10 @@ class MapPlaySession:
         interact_reach_tiles: How far away objects can be examined.
         grid_key: Key of the grid inside the screen.
         arrow_key_repeat_interval: Seconds between repeats of a held arrow.
+        proximity_glide_seconds: Seconds an object's looping sound, and a
+            tile ambient that keeps playing, takes to glide to its new
+            position relative to the player after each step, instead of
+            jumping. Smooths pops as a source is passed.
         blend_ambient: Play each distinct ambient sound from its nearest
             tile at once, instead of only the nearest ambient tile.
         blocked_side_sounds: Tile name to ``{Direction: sound}``, played
@@ -99,6 +103,7 @@ class MapPlaySession:
         grid_key: str = DEFAULT_GRID_KEY,
         arrow_key_repeat_interval: float = DEFAULT_ARROW_KEY_REPEAT_SECONDS,
         blend_ambient: bool = False,
+        proximity_glide_seconds: float = 0.0,
         blocked_side_sounds: Optional[
             Mapping[str, Mapping[Direction, str]]
         ] = None,
@@ -138,6 +143,7 @@ class MapPlaySession:
                 terrain_audio_profiles=terrain_audio_profiles,
                 ignore_unused_profiles=True,
                 blend_ambient=blend_ambient,
+                glide_seconds=proximity_glide_seconds,
                 blocked_side_sounds=blocked_side_sounds,
                 player=Player(),
                 ambient_player=Player(),
@@ -158,6 +164,7 @@ class MapPlaySession:
             keys=interact_keys,
             reach_tiles=interact_reach_tiles,
             on_page_change=on_page_change,
+            facing=lambda: map2d.character.directional_orientation,
         )
         for binding in locate_keys:
             self.grid.key_handler.add_key_press(self.speak_location, binding)
@@ -166,6 +173,7 @@ class MapPlaySession:
         self.objects = ProximityAudioController.from_emitters(
             object_emitters or {},
             position_resolver=self.navigation.position_resolver,
+            glide_seconds=proximity_glide_seconds,
         )
 
     def speak_location(self) -> bool:

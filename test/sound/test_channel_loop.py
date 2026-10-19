@@ -81,6 +81,15 @@ def test_play_loops_on_the_channel_with_its_gain() -> None:
     assert loop.is_playing
 
 
+def test_the_loop_follows_the_listener() -> None:
+    loop, _ = _loop()
+
+    player = loop.play("wind.wav")
+
+    assert player.source_relative is True  # type: ignore[attr-defined]
+    assert player.position == (0, 0, 0)  # type: ignore[attr-defined]
+
+
 def test_default_gain_is_full() -> None:
     loop, service = _loop()
     loop.play("ocean.wav")

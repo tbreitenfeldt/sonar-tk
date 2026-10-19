@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable, Mapping, Optional, Protocol, cast
 
+from sonartk.orchestration.position_glide import (
+    PositionGlider,
+    _listener_position,
+)
 from sonartk.sound import sound_manager
 from sonartk.sound.openal_lite.openal import Player
 from sonartk.util import Coordinates
@@ -67,7 +71,14 @@ class _SoundServiceLike(Protocol):
 
 
 class ProximityAudioController:
-    """Manage one or more proximity-based emitters with shared behavior."""
+    """Manage one or more proximity-based emitters with shared behavior.
+
+    With ``glide_seconds`` above zero a sound that is already playing moves
+    smoothly from where it was heard relative to the listener to where it
+    belongs after a step, instead of jumping there. A source passing close
+    by otherwise swings around the listener's head in one step, which the
+    mixer renders as a pop.
+    """
 
     def __init__(
         self,
@@ -76,6 +87,8 @@ class ProximityAudioController:
         players: Mapping[str, Player],
         position_resolver: Callable[[Coordinates], SoundPosition],
         sound_service: Optional[_SoundServiceLike] = None,
+        glide_seconds: float = 0.0,
+        listener_position: Callable[[], SoundPosition] = _listener_position,
     ) -> None:
         self.emitters = dict(emitters)
         self.players = dict(players)
@@ -83,6 +96,8 @@ class ProximityAudioController:
         self.sound_service = sound_service or cast(
             _SoundServiceLike, sound_manager
         )
+        self.glide_seconds = glide_seconds
+        self._glider = PositionGlider(glide_seconds, listener_position)
 
     @classmethod
     def from_emitters(
@@ -91,6 +106,8 @@ class ProximityAudioController:
         *,
         position_resolver: Callable[[Coordinates], SoundPosition],
         sound_service: Optional[_SoundServiceLike] = None,
+        glide_seconds: float = 0.0,
+        listener_position: Callable[[], SoundPosition] = _listener_position,
     ) -> ProximityAudioController:
         """Build a controller that creates one player per emitter."""
         return cls(
@@ -98,6 +115,8 @@ class ProximityAudioController:
             players={key: Player() for key in emitters},
             position_resolver=position_resolver,
             sound_service=sound_service,
+            glide_seconds=glide_seconds,
+            listener_position=listener_position,
         )
 
     @staticmethod
@@ -133,8 +152,7 @@ class ProximityAudioController:
         player = self.players[emitter_key]
 
         if not is_active:
-            player.stop()
-            player.remove()
+            self._release(emitter_key, player)
             return False
 
         source = emitter.nearest_source(listener_coordinates)
@@ -142,18 +160,22 @@ class ProximityAudioController:
             listener_coordinates[1] - source[1]
         )
         if distance > emitter.max_distance_tiles:
-            player.stop()
-            player.remove()
+            self._release(emitter_key, player)
             return False
 
         channel_options: dict[str, str] = (
             {} if emitter.channel is None else {"channel": emitter.channel}
         )
         offset_needed = emitter.start_offset > 0 and not player.playing()
+        was_playing = player.playing()
+        position = self.position_resolver(source)
+        play_position = self._glider.begin(
+            emitter_key, player, position, was_playing
+        )
         self.sound_service.play_sound(
             emitter.sound_path,
             player=player,
-            position=self.position_resolver(source),
+            position=play_position,
             volume=self.effective_volume(
                 distance_tiles=distance,
                 max_distance_tiles=emitter.max_distance_tiles,
@@ -200,6 +222,13 @@ class ProximityAudioController:
 
     def stop_all(self) -> None:
         """Stop every emitter's sound and release its player."""
-        for player in self.players.values():
-            player.stop()
-            player.remove()
+        for key, player in self.players.items():
+            self._release(key, player)
+
+    def _release(self, emitter_key: str, player: Player) -> None:
+        self._forget(emitter_key)
+        player.stop()
+        player.remove()
+
+    def _forget(self, emitter_key: str) -> None:
+        self._glider.forget(emitter_key)

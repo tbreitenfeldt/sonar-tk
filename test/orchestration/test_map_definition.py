@@ -207,6 +207,7 @@ def _kinds() -> dict[str, ObjectType]:
                 "loop": {"sound": "creak", "max_distance_tiles": 6},
                 "description": ["A log."],
                 "movable": True,
+                "category": "wreck",
             },
             "puddle": {"passable": True},
         }
@@ -230,6 +231,7 @@ def test_a_typed_object_takes_its_type_and_moves_the_footprint() -> None:
     assert spec.sound == ObjectSound("creak", 6)
     assert spec.description == ("A log.",)
     assert spec.movable is True
+    assert spec.category == "wreck"
 
 
 def test_an_object_overrides_its_type() -> None:

@@ -1,7 +1,8 @@
 """Tests for random flyovers."""
 
 import random
-from typing import Any, cast
+from contextlib import contextmanager
+from typing import Any, Iterator, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -138,6 +139,38 @@ def test_the_flyer_crosses_over_the_listener(clock: MagicMock) -> None:
     assert player.position == (15.0, 20.0, 5.0)
 
 
+def test_the_flyer_stays_above_a_listener_on_high_ground(
+    clock: MagicMock,
+) -> None:
+    service = FakeService()
+    service.listener.position = (10, 20, 10)
+    controller = _controller(service)
+    controller.start()
+    controller._spawn()
+    _fly(controller, 2.0)
+
+    assert service.played[0]["position"][2] == 15.0
+    assert service.played[0]["player"].position[2] == 15.0
+
+
+def test_fly_now_sends_a_flyer_at_once_and_replaces_the_current_one(
+    clock: MagicMock,
+) -> None:
+    service = FakeService()
+    controller = _controller(service)
+    controller.fly_now()
+    assert not controller.flying
+
+    controller.start()
+    controller.fly_now()
+    first = service.played[0]["player"]
+    controller.fly_now()
+
+    assert controller.flying
+    first.stop.assert_called_once()
+    assert len(service.played) == 2
+
+
 def test_the_flyer_follows_a_walking_listener(clock: MagicMock) -> None:
     service = FakeService()
     controller = _controller(service, min_calls=0, max_calls=0)
@@ -148,6 +181,54 @@ def test_the_flyer_follows_a_walking_listener(clock: MagicMock) -> None:
     controller._tick(2.0)
 
     assert player.position == (50.0, 60.0, 5.0)
+
+
+def test_the_flyer_moves_with_the_listener_between_ticks(
+    clock: MagicMock,
+) -> None:
+    service = FakeService()
+    controller = _controller(service, min_calls=0, max_calls=0)
+    controller._spawn()
+    player = service.played[0]["player"]
+    controller._tick(2.0)
+
+    service.listener.position = (11, 20, 0)
+    controller.follow_listener()
+
+    assert player.position == (11.0, 20.0, 5.0)
+
+
+def test_following_the_listener_does_nothing_without_a_flyer(
+    clock: MagicMock,
+) -> None:
+    service = FakeService()
+    controller = _controller(service)
+
+    controller.follow_listener()
+
+    assert not service.played
+
+
+def test_updates_are_batched_when_the_service_supports_it(
+    clock: MagicMock,
+) -> None:
+    service = FakeService()
+    batches: list[str] = []
+
+    @contextmanager
+    def batch_updates() -> Iterator[None]:
+        batches.append("begin")
+        yield
+        batches.append("end")
+
+    service.batch_updates = batch_updates  # type: ignore[attr-defined]
+    controller = _controller(service, min_calls=0, max_calls=0)
+    controller._spawn()
+
+    controller._tick(0.1)
+    controller.follow_listener()
+
+    assert batches == ["begin", "end", "begin", "end"]
 
 
 def test_the_flyer_passes_directly_over_a_moving_listener(

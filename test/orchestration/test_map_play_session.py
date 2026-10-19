@@ -120,6 +120,9 @@ def test_interactables_are_wired_to_the_grid_keys(sound: dict) -> None:
         interactables=[InteractableObject("sign", (1, 2), ("Hello.",))],
         interact_keys=(key.E,),
     )
+    session.map2d.character.directional_orientation = Direction.RIGHT
+    assert session.interaction.nearest() is None
+    session.map2d.character.directional_orientation = Direction.UP
     assert session.interaction.nearest() == "sign"
     assert session.interaction.state_keys == {"sign": "map:test:describe:sign"}
 

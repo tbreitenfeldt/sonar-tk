@@ -55,6 +55,7 @@ class MapObjectSpec:
     collision_sound: Optional[str] = None
     side_sounds: Mapping[Direction, str] = field(default_factory=dict)
     movable: bool = False
+    category: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -236,6 +237,7 @@ def _object_spec(
         collision_sound=None if kind is None else kind.collision_sound,
         side_sounds={} if kind is None else dict(kind.side_sounds),
         movable=kind is not None and kind.movable,
+        category=None if kind is None else kind.category,
     )
 
 

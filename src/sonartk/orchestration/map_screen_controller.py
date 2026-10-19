@@ -59,6 +59,9 @@ class MapScreenController:
         interact_reach_tiles: How far away objects can be examined.
         arrow_key_repeat_interval: Seconds between repeats of a held arrow.
         blend_ambient: Play every distinct ambient sound at once.
+        proximity_glide_seconds: Seconds object loops and tile ambients take
+            to glide to their new position after each step, instead of
+            jumping.
         locate_keys: Keys that speak the current tile and coordinates.
         name_keys: Keys that speak the current map's name.
         describe_tile: Turns a tile into the text spoken for it.
@@ -89,6 +92,7 @@ class MapScreenController:
         interact_reach_tiles: int = 1,
         arrow_key_repeat_interval: float = DEFAULT_ARROW_KEY_REPEAT_SECONDS,
         blend_ambient: bool = False,
+        proximity_glide_seconds: float = 0.0,
         locate_keys: tuple[int, ...] = (),
         name_keys: tuple[int, ...] = (),
         describe_tile: Callable[[MapTile], str] = describe_tile_name,
@@ -109,6 +113,7 @@ class MapScreenController:
         self.interact_reach_tiles = interact_reach_tiles
         self.arrow_key_repeat_interval = arrow_key_repeat_interval
         self.blend_ambient = blend_ambient
+        self.proximity_glide_seconds = proximity_glide_seconds
         self.locate_keys = locate_keys
         self.name_keys = name_keys
         self.describe_tile = describe_tile
@@ -243,6 +248,7 @@ class MapScreenController:
             interact_reach_tiles=self.interact_reach_tiles,
             arrow_key_repeat_interval=self.arrow_key_repeat_interval,
             blend_ambient=self.blend_ambient,
+            proximity_glide_seconds=self.proximity_glide_seconds,
             locate_keys=self.locate_keys,
             name_keys=self.name_keys,
             map_name=loaded.definition.name,

@@ -8,9 +8,21 @@ from pyglet.window import key
 from sonartk.orchestration.paged_text_state import PagedTextState
 from sonartk.orchestration.state_flow import WindowStateFlow
 from sonartk.ui.window import Window
-from sonartk.util import Coordinates
+from sonartk.util import Coordinates, Direction
 
 DEFAULT_INTERACT_KEYS: tuple[int, ...] = (key.RETURN, key.ENTER, key.SPACE)
+
+
+_STEP: dict[Direction, Coordinates] = {
+    Direction.UP: (0, 1),
+    Direction.DIAGONAL_UPPER_RIGHT: (1, 1),
+    Direction.RIGHT: (1, 0),
+    Direction.DIAGONAL_LOWER_RIGHT: (1, -1),
+    Direction.DOWN: (0, -1),
+    Direction.DIAGONAL_LOWER_LEFT: (-1, -1),
+    Direction.LEFT: (-1, 0),
+    Direction.DIAGONAL_UPPER_LEFT: (-1, 1),
+}
 
 
 class _GridLike(Protocol):
@@ -51,6 +63,10 @@ class MapInteractionController:
         reach_tiles: How far away an object can be examined.
         on_page_change: Called as ``(state, page_index)`` when a
             description advances, for example to play a paging sound.
+        facing: Returns the direction the player faces. When given, an
+            object can only be examined from a tile it is in line with,
+            within ``reach_tiles`` in that direction. Without it any object
+            within ``reach_tiles`` in any direction can be examined.
     """
 
     def __init__(
@@ -63,7 +79,9 @@ class MapInteractionController:
         keys: Sequence[int] = DEFAULT_INTERACT_KEYS,
         reach_tiles: int = 1,
         on_page_change: Optional[Callable[[PagedTextState, int], None]] = None,
+        facing: Optional[Callable[[], Optional[Direction]]] = None,
     ) -> None:
+        self.facing = facing
         self.window = window
         self.grid = grid
         self.reach_tiles = reach_tiles
@@ -105,10 +123,25 @@ class MapInteractionController:
         position = self.grid.current_coordinates
         reachable = []
         for name, tiles in self._coordinates.items():
-            distance = min(tile_distance(position, tile) for tile in tiles)
-            if distance <= self.reach_tiles:
+            distance = self._distance(position, tiles)
+            if distance is not None and distance <= self.reach_tiles:
                 reachable.append((distance, name))
         return min(reachable)[1] if reachable else None
+
+    def _distance(
+        self, position: Coordinates, tiles: tuple[Coordinates, ...]
+    ) -> Optional[int]:
+        """Steps to the object, or None when the player is not facing it."""
+        if self.facing is None:
+            return min(tile_distance(position, tile) for tile in tiles)
+        direction = self.facing()
+        if direction not in _STEP:
+            return None
+        dx, dy = _STEP[direction]
+        for steps in range(1, self.reach_tiles + 1):
+            if (position[0] + dx * steps, position[1] + dy * steps) in tiles:
+                return steps
+        return None
 
     def interact(self) -> bool:
         """Describe the nearest object in reach; always handles the key."""

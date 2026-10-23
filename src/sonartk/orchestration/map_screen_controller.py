@@ -70,6 +70,9 @@ class MapScreenController:
             sound in sync, so the tiles read as one source and exits can be
             found by ear. Exits that have their own sound (a door) do not
             give it off.
+        door_beacon: If given, every exit that has its own sound (a door)
+            gives off this looping sound, so doors can be found by ear
+            without being mistaken for ordinary exits.
     """
 
     def __init__(
@@ -97,6 +100,7 @@ class MapScreenController:
         name_keys: tuple[int, ...] = (),
         describe_tile: Callable[[MapTile], str] = describe_tile_name,
         exit_sound: Optional[ObjectSound] = None,
+        door_beacon: Optional[ObjectSound] = None,
         announce_map_name: bool = True,
     ) -> None:
         self.window = window
@@ -118,6 +122,7 @@ class MapScreenController:
         self.name_keys = name_keys
         self.describe_tile = describe_tile
         self.exit_sound = exit_sound
+        self.door_beacon = door_beacon
         self.announce_map_name = announce_map_name
         self.switcher: MapSwitcher[LoadedMap] = MapSwitcher()
         for map_key, definition in definitions.items():
@@ -258,20 +263,19 @@ class MapScreenController:
     def _exit_emitters(
         self, loaded: LoadedMap
     ) -> dict[str, ProximityAudioEmitter]:
-        sound = self.exit_sound
-        if sound is None:
-            return {}
-        exits = loaded.definition.exits
-        return {
-            f"exit:{index}": ProximityAudioEmitter(
-                sound_path=sound.sound_file,
-                source_coordinates=map_exit.coordinates,
-                max_distance_tiles=sound.max_distance_tiles,
-                base_volume=sound.volume,
+        emitters: dict[str, ProximityAudioEmitter] = {}
+        for index, map_exit in enumerate(loaded.definition.exits):
+            sound = (
+                self.exit_sound if map_exit.sound is None else self.door_beacon
             )
-            for index, map_exit in enumerate(exits)
-            if map_exit.sound is None
-        }
+            if sound is not None:
+                emitters[f"exit:{index}"] = ProximityAudioEmitter(
+                    sound_path=sound.sound_file,
+                    source_coordinates=map_exit.coordinates,
+                    max_distance_tiles=sound.max_distance_tiles,
+                    base_volume=sound.volume,
+                )
+        return emitters
 
     def _on_move_success(
         self, coordinates: Coordinates, tile: MapTile

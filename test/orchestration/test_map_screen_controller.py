@@ -292,6 +292,25 @@ def test_an_exit_with_its_own_sound_gives_off_no_exit_chime() -> None:
     assert "exit:0" not in controller.session.objects.emitters
 
 
+def test_door_beacon_loops_at_doors_only() -> None:
+    controller = _controller(
+        door_sound="door.wav",
+        exit_sound=ObjectSound("chime.wav", 9, 0.5),
+        door_beacon=ObjectSound("knock.wav", 7, 0.4),
+    )
+    controller.enter("yard")
+    assert controller.session is not None
+    emitter = controller.session.objects.emitters["exit:0"]
+    assert emitter.sound_path == "knock.wav"
+    assert emitter.max_distance_tiles == 7
+    assert emitter.base_volume == 0.4
+
+    plain = _controller(door_beacon=ObjectSound("knock.wav", 7, 0.4))
+    plain.enter("yard")
+    assert plain.session is not None
+    assert "exit:0" not in plain.session.objects.emitters
+
+
 def test_a_silent_exit_plays_nothing(mocker: MockerFixture) -> None:
     play = mocker.patch(
         "sonartk.orchestration.map_screen_controller.sound_manager"

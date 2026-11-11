@@ -4,6 +4,7 @@
 
 - [Audio Scene And Volume Controls](../guides/audio_scene_and_volume_controls.md)
 - [Map Object Collection Sessions](../guides/map_object_collection_sessions.md)
+- [Map Documents and passages](../guides/map_documents.md)
 
 ::: sonartk.orchestration
 
@@ -46,6 +47,10 @@
 ## map_exits
 
 ::: sonartk.orchestration.map_exits
+
+## map_passages
+
+::: sonartk.orchestration.map_passages
 
 ## volume_levels
 

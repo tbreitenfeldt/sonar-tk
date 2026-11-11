@@ -13,10 +13,20 @@ from sonartk.map_builder import (
     MapTile,
 )
 from sonartk.orchestration import map_sound_navigation as navigation
-from sonartk.orchestration.map_definition import MapDefinition, ObjectSound
+from sonartk.orchestration.map_definition import (
+    LoadedMap,
+    MapDefinition,
+    ObjectSound,
+)
 from sonartk.orchestration.map_screen_controller import MapScreenController
+from sonartk.orchestration.map_passages import (
+    expand_passages,
+    parse_map_passages,
+    passage_exit_emitters,
+)
 from sonartk.orchestration.map_sound_navigation import TerrainAudioProfile
 from sonartk.orchestration.object_types import object_types_from_dict
+from sonartk.orchestration.proximity_audio import ProximityAudioEmitter
 from sonartk.ui.window import Window
 from sonartk.util import Direction
 
@@ -382,6 +392,82 @@ def test_exit_sound_marks_every_exit_tile() -> None:
     plain.enter("yard")
     assert plain.session is not None
     assert "exit:0" not in plain.session.objects.emitters
+
+
+@pytest.mark.parametrize("exit_x", [0, 1, 2])
+def test_passage_beacon_and_every_tile_follow_the_exit(
+    exit_x: int, mocker: MockerFixture
+) -> None:
+    doc = MapDocument(
+        key="yard",
+        legend={"s": "sand"},
+        rows=("sss",) * 3,
+        start=(1, 1),
+        properties={
+            "passages": [
+                {
+                    "area": [0, 0, 2, 0],
+                    "target_map": "cabin",
+                    "target_at": [2, 2],
+                    "transition_sound": "door",
+                    "beacon": {"sound": "bell", "range": 4, "volume": 0.6},
+                }
+            ]
+        },
+    )
+
+    def resolve(name: str, label: str) -> str:
+        return name + ".wav"
+
+    passages = parse_map_passages(doc, resolve_sound=resolve)
+    yard = MapDefinition.from_document(
+        expand_passages(doc, passages),
+        resolve_sound=lambda name: name + ".wav",
+    )
+    definitions = dict(_definitions())
+    definitions["yard"] = yard
+    played = mocker.patch(
+        "sonartk.orchestration.map_screen_controller.sound_manager.play_sound"
+    )
+
+    class PassageController(MapScreenController):
+        def _exit_emitters(
+            self, loaded: LoadedMap
+        ) -> dict[str, ProximityAudioEmitter]:
+            return passage_exit_emitters(
+                loaded.definition.exits,
+                parse_map_passages(
+                    loaded.definition.document, resolve_sound=resolve
+                ),
+                super()._exit_emitters(loaded),
+            )
+
+    window = Window(caption="Test")
+    window.transition_to = lambda *_: None  # type: ignore[method-assign]
+    controller = PassageController(
+        window,
+        definitions,
+        terrain_audio_profiles=PROFILES,
+        tile_factory=_tile,
+        exit_sound=ObjectSound("fallback.wav", 9),
+    )
+    controller.enter("yard", (exit_x, 1))
+    session = controller.session
+    assert session is not None
+    assert set(session.objects.emitters) == {"exit:0"}
+    assert session.objects.emitters["exit:0"].footprint == (
+        (0, 0),
+        (1, 0),
+        (2, 0),
+    )
+    assert session.objects.emitters["exit:0"].sound_path == "bell.wav"
+
+    _step(controller, Direction.DOWN)
+
+    assert controller.switcher.current_key == "cabin"
+    assert controller.session is not None
+    assert controller.session.grid.current_coordinates == (2, 2)
+    played.assert_any_call("door.wav")
 
 
 def test_returning_to_a_map_does_not_collide_with_released_states() -> None:

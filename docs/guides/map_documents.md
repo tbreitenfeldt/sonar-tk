@@ -40,6 +40,91 @@ data files instead of code.
   them; the game maps them to its own sound catalog.
 * `properties` (map and object level) carries any extra JSON data a game needs.
 
+## Multi-tile passages
+
+The optional passage helpers expand a rectangular opening into regular exits
+and give the opening one looping beacon. Its source follows the nearest tile
+in the passage, so movement within range does not restart the loop or play
+several overlapping loops. Each passage has its own sound, range and volume;
+ordinary exits keep their existing beacon behavior.
+
+Put passages in the map's `properties` (using inclusive map coordinates):
+
+```json
+{
+  "passages": [
+    {
+      "area": [4, 0, 6, 0],
+      "target_map": "forest",
+      "target_at": [2, 1],
+      "transition_sound": "door",
+      "beacon": {"sound": "bell", "range": 25, "volume": 0.8}
+    }
+  ]
+}
+```
+
+* `area` is `[x0, y0, x1, y1]`, with ordered, inclusive corners inside the
+  source map. It can describe a single tile or a rectangle of any size.
+* `target_map` is a nonempty map key; every tile leads to `target_at`.
+  Choose walkable exit tiles and a valid destination landing as for any exit.
+  The helpers do not check that the destination exists or is walkable.
+* `beacon.sound` is a nonempty sound name, `range` is a positive integer
+  measured in tiles, and `volume` is between 0 and 1 (default 1). The
+  beacon's distance and position use the nearest tile by Manhattan distance.
+  The sound stops outside its range and starts again when the player returns.
+* `transition_sound` is optional and plays once when the passage is taken,
+  separately from the looping beacon. A doorway can use a door sound here
+  and a different beacon sound.
+
+Parsing checks field shapes and values. It checks that sound names are
+nonempty; checking whether they exist is the resolver's responsibility.
+Expansion returns a new document and rejects overlapping passages or
+conflicting ordinary exits. Re-expanding an already expanded document with
+the same passages does not duplicate its exits.
+
+Parsing and expansion are explicit, so maps using `properties.passages` for
+other purposes are unaffected. Supply a resolver accepting a name and a
+descriptive label, or omit it to use the names as sound paths:
+
+```python
+from sonartk.orchestration import (
+    MapDefinition, MapScreenController, expand_passages,
+    parse_map_passages, passage_exit_emitters,
+)
+
+def resolve_passage_sound(name, label):
+    return sound_catalog.require(name, label)
+
+passages = parse_map_passages(document, resolve_sound=resolve_passage_sound)
+expanded = expand_passages(document, passages)
+definition = MapDefinition.from_document(
+    expanded, resolve_sound=lambda name: sound_catalog.require(name, "sound")
+)
+
+class PassageScreen(MapScreenController):
+    def _exit_emitters(self, loaded):
+        passages = parse_map_passages(
+            loaded.definition.document, resolve_sound=resolve_passage_sound
+        )
+        return passage_exit_emitters(
+            loaded.definition.exits, passages, super()._exit_emitters(loaded)
+        )
+```
+
+Build each definition this way before registering it with `PassageScreen`.
+The transition sound remains a document name during expansion:
+`parse_map_passages` calls the passage resolver to validate it, and
+`MapDefinition.from_document` resolves it again for playback. The beacon
+path is resolved by `parse_map_passages`; reparsing on map entry resolves it
+again. Resolver errors propagate to the caller.
+
+`passage_exit_emitters` replaces the controller's `exit:<index>` emitters
+with one emitter per passage, leaving unrelated emitters unchanged. It raises
+`ValueError` if an exit is missing, duplicated, overlaps another passage, or
+points to a different destination. For a `MapExitRegistry` used without a
+screen controller, use `expand_passages` first so every tile is registered.
+
 ## Loading
 
 ```python

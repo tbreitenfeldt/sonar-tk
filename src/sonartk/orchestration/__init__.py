@@ -17,6 +17,10 @@ __all__ = [
     "MapObjectCollectionSession",
     "MapExit",
     "MapExitRegistry",
+    "MapPassage",
+    "parse_map_passages",
+    "expand_passages",
+    "passage_exit_emitters",
     "MapSwitcher",
     "MessageActionState",
     "PagedTextState",
@@ -49,6 +53,12 @@ __all__ = [
 ]
 
 if TYPE_CHECKING:
+    from sonartk.orchestration.map_passages import (
+        MapPassage,
+        expand_passages,
+        parse_map_passages,
+        passage_exit_emitters,
+    )
     from sonartk.orchestration.object_types import (
         ObjectType,
         ObjectTypeError,
@@ -122,6 +132,10 @@ if TYPE_CHECKING:
 
 
 _LAZY_MODULES = {
+    "MapPassage": "map_passages",
+    "parse_map_passages": "map_passages",
+    "expand_passages": "map_passages",
+    "passage_exit_emitters": "map_passages",
     "ObjectType": "object_types",
     "ObjectTypeError": "object_types",
     "load_object_types": "object_types",

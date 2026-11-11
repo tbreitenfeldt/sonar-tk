@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3] - 2026-11-11
+
 ### Fixed
 
 * **Looping ambience lost after an output-device change**: loops that the dying device reported as stopped were skipped during recovery. Any loop that was never removed is now restored.

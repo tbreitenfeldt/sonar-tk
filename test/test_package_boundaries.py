@@ -24,6 +24,12 @@ from sonartk.orchestration.map_exits import (
     MapExitRegistry,
     MapSwitcher,
 )
+from sonartk.orchestration.map_passages import (
+    MapPassage,
+    parse_map_passages,
+    expand_passages,
+    passage_exit_emitters,
+)
 from sonartk.orchestration.scene_audio_state import SceneAudioState
 from sonartk.orchestration.volume_levels import (
     ChannelVolume,
@@ -89,6 +95,10 @@ def test_orchestration_exports_are_explicit() -> None:
         "MapObjectCollectionSession",
         "MapExit",
         "MapExitRegistry",
+        "MapPassage",
+        "parse_map_passages",
+        "expand_passages",
+        "passage_exit_emitters",
         "MapSwitcher",
         "MessageActionState",
         "PagedTextState",
@@ -145,6 +155,10 @@ def test_orchestration_exports_are_explicit() -> None:
         is MapInteractionController
     )
     assert sonartk.orchestration.MapPlaySession is MapPlaySession
+    assert sonartk.orchestration.MapPassage is MapPassage
+    assert sonartk.orchestration.parse_map_passages is parse_map_passages
+    assert sonartk.orchestration.expand_passages is expand_passages
+    assert sonartk.orchestration.passage_exit_emitters is passage_exit_emitters
     assert sonartk.orchestration.MapDefinition is map_definition.MapDefinition
     assert sonartk.orchestration.MapObjectSpec is map_definition.MapObjectSpec
     assert sonartk.orchestration.ObjectSound is map_definition.ObjectSound
